@@ -9,7 +9,7 @@ pub struct Lexer {
 impl Lexer {
     pub fn new(input:String)->Lexer {
         let mut filtered=input;
-        
+
         for token in SPLIT_TOKENS {
             if DONT_ADD.contains(&token) {
                 filtered=filtered.replace(token,SPACE);
@@ -31,6 +31,10 @@ impl Lexer {
             tokens,
             idx:0
         }
+    }
+
+    pub fn to_vec(&self)->Vec<String>{
+        self.tokens.clone()
     }
 }
 
@@ -79,6 +83,13 @@ pub mod lexer_test {
         assert_eq!(lex.next().unwrap(), "2");
         assert_eq!(lex.next().unwrap(), ")");
         assert_eq!(lex.next(), None);
-     
+    }
+
+    #[test]
+    pub fn lexer_test_to_vec() {
+        let expr=String::from("  ( let x 2 ) ");
+        let lex=Lexer::new(expr);
+        let v=lex.to_vec();
+        assert_eq!(v, vec!["(", "let", "x", "2", ")"]);
     }
 }
