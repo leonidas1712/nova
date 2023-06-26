@@ -23,7 +23,7 @@ impl<T> DerefMut for NovaResult<T> {
 
 #[derive(Debug)]
 pub struct NovaError {
-    pub message:String,
+    message:String,
 }
 
 impl NovaError {

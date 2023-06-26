@@ -60,13 +60,16 @@ pub const COMP_LEFT: &str = "@";
 pub const PIPE: &str = ">>";
 
 
-// Tokens to split by
+// Some useful token arrays
 pub const SPLIT_TOKENS: [&'static str; 11] = [
     OPEN_EXPR, CLOSE_EXPR, NEWLINE, TAB, VAR_SEP, 
     OPEN_LIST, CLOSE_LIST, SPACE, LAMBDA, COMP_OPR, PIPE
 ];
 
 pub const DONT_ADD:[&'static str;5]=[NEWLINE, TAB, VAR_SEP, SPACE,EMPTY];
+
+pub const OPEN_TOKENS:[&'static str;2]=[OPEN_EXPR, OPEN_LIST];
+pub const CLOSE_TOKENS:[&'static str;2]=[CLOSE_EXPR,CLOSE_LIST];
 
 // ASTNode types
 pub const EXPRESSION:&str="expression";

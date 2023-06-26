@@ -11,6 +11,7 @@
         // NodeResult::List
 use crate::message::Result;
 use crate::{lexer, message::{NovaError, NovaResult}};
+use crate::constants::{OPEN_TOKENS,CLOSE_TOKENS};
 
 
 #[derive(Debug)]
@@ -35,10 +36,33 @@ impl ASTNode {
 
 // Parser
 pub mod parser {
-    use super::*;
-    // fn parse_list_expression(lex:&mut lexer::Lexer)->Result<ASTNode> {
+    use crate::constants::CLOSE_EXPR;
 
-    // }
+    use super::*;
+
+    fn parse_list_expression(lex:&mut lexer::Lexer)->Result<ASTNode> {
+        let open_token=lex.next().expect("Received empty expression");
+        let mut children:Vec<ASTNode>=Vec::new();
+
+        let opt_token:Option<&str> = loop {
+            match lex.peek().map(|x| x.as_str()) {
+                Some(token) if CLOSE_TOKENS.contains(&token) => {
+                    break Some(token)
+                },
+                _ => ()
+            }
+
+            let res=parse_expression(lex)?;
+            children.push(res.result);
+        };
+
+        if let Some(token) = opt_token {
+            println!("Got last token: {token}");
+        }
+        // check tokens match, flatten expr if needed, etc.
+
+        return Ok(NovaResult::new(ASTNode::new(NodeValue::Expression(children))));
+    }
 
     fn parse_atomic_expression(lex:&mut lexer::Lexer)->Result<ASTNode> {
         let token_opt=lex.next();
@@ -69,8 +93,19 @@ pub mod parser {
             return Err(NovaError::new("Unrecognised expression."))
         }
 
+        let token=token_peek.unwrap().as_str();
+
+        // if first token is ), not well formed
+        if CLOSE_TOKENS.contains(&token) {
+            return Err(NovaError::new("Expression is not well formed."))
+        }
+
+        // list
+        if OPEN_TOKENS.contains(&token) {
+            return parse_list_expression(lex);
+        }
+
         // Check cases in order, last is atomic expression
-        
         parse_atomic_expression(lex)
     }
 
