@@ -9,8 +9,9 @@ pub fn nova_repl() {
         match readline {
             Ok(inp) => {
                 println!("You typed: {}", inp);
+                rl.add_history_entry(inp).unwrap();
             }
-            Err(ReadlineError::Interrupted) => {
+            Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
                 println!("See you again!");
                 break;            
             }
