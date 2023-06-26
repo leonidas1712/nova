@@ -52,7 +52,6 @@ impl Iterator for Lexer {
     }
 }
 
-
 #[cfg(test)]
 pub mod lexer_test {
     use super::Lexer;

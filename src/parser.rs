@@ -1,5 +1,3 @@
-use crate::lexer::Lexer;
-
 // ASTNode: type, value:
     // value: Option<Vec<ASTNode>> or a concrete value
 // enum: NodeValue<T>
@@ -12,19 +10,33 @@ use crate::lexer::Lexer;
         // e.g NodeResult::Number
         // NodeResult::List
 
-struct ASTNode {
+pub struct ASTNode {
     value:NodeValue
 }
 
-enum NodeValue {
+pub enum NodeValue {
     Symbol(String),
     Number(usize),
     Expression(Vec<ASTNode>)
 }
 
 pub mod parser {
-    pub fn parse() {
-        println!("parse");
+    use crate::lexer;
+    use super::*;
+    
+    // recursive
+    pub fn parse_expression(token:String) {
+
+    }
+
+    pub fn parse(mut lex:lexer::Lexer) {
+        let mut nodes:Vec<ASTNode>=Vec::new();
+
+        // while let Some(token)=lex.next() {
+        //     let res=parse_expression(token);
+
+        // }
+
     }
 }
 

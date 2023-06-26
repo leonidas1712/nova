@@ -3,6 +3,7 @@ pub mod lexer;
 pub mod parser;
 pub mod constants;
 pub mod time;
+pub mod message;
 
 use rustyline::{error::ReadlineError, DefaultEditor};
 
@@ -13,7 +14,11 @@ pub fn run(mut args: impl Iterator<Item=String>) {
 }
 
 
+// todo: make this return a Result then add Result to Lexer::new
+    // and use unwrap for parser+lexer
 pub fn nova_repl() {
+    use lexer::Lexer;
+    use parser::parser;
     let mut rl = DefaultEditor::new().unwrap();
     
     println!();
@@ -28,8 +33,10 @@ pub fn nova_repl() {
                 }
                 
                 rl.add_history_entry(inp.clone().trim()).unwrap();
-                let lex=lexer::Lexer::new(inp);
-                println!("Tokenized: {:?}", lex.to_vec());
+
+                // pass lexer to parser
+                let lex=Lexer::new(inp);
+                parser::parse(lex);
             },
             
             Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
