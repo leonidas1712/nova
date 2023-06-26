@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 pub mod evaluator;
 pub mod lexer;
 pub mod parser;
@@ -35,7 +38,7 @@ pub fn nova_repl() {
                 rl.add_history_entry(inp.clone().trim()).unwrap();
 
                 // pass lexer to parser
-                let lex=Lexer::new(inp);
+                let lex=Lexer::new(inp).unwrap().result;
                 parser::parse(lex);
             },
             

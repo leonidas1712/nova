@@ -1,4 +1,5 @@
 use crate::constants::{DONT_ADD, SPACE, SPLIT_TOKENS};
+use crate::message::*;
 
 #[derive(Debug)]
 pub struct Lexer {
@@ -7,7 +8,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new(input:String)->Lexer {
+    pub fn new(input:String)->Result<Lexer> {
         let mut filtered=input;
 
         for token in SPLIT_TOKENS {
@@ -27,10 +28,16 @@ impl Lexer {
             .map(|x| x.to_string())
             .collect();
 
-        Lexer {
+        if tokens.len()==0 {
+            return Err(NovaError::new("Can't parse an empty string."))
+        }
+
+        let lex=Lexer {
             tokens,
             idx:0
-        }
+        };
+
+        Ok(NovaResult::new(lex))
     }
 
     pub fn to_vec(&self)->Vec<String>{
@@ -59,7 +66,7 @@ pub mod lexer_test {
     pub fn lexer_test_splits_whitespace() {
         let expr=String::from("     (    if ( eq n 0)\n\t( add a b )\n  )    "); 
         let expected= ["(", "if", "(", "eq", "n", "0", ")", "(", "add", "a", "b", ")", ")"];
-        let lex=Lexer::new(expr);
+        let lex=Lexer::new(expr).unwrap();
         assert_eq!(expected.to_vec(), lex.tokens);
     }
 
@@ -67,14 +74,14 @@ pub mod lexer_test {
     pub fn lexer_test_splits_on_bigger() {
         let expr=String::from("\t(x sum >>  x  $  y z   g ) >> (  z, y -> (add z)  \n)");
         let expected=["(", "x", "sum", ">>", "x", "$", "y", "z", "g", ")", ">>", "(", "z", "y", "->", "(", "add", "z", ")", ")"];
-        let lex=Lexer::new(expr);
+        let lex=Lexer::new(expr).unwrap();
         assert_eq!(expected.to_vec(), lex.tokens);
     }
 
     #[test]
     pub fn lexer_test_iterator() {
         let expr=String::from("  ( let x 2 ) ");
-        let mut lex=Lexer::new(expr);
+        let mut lex=Lexer::new(expr).unwrap();
 
         assert_eq!(lex.next().unwrap(), "(");
         assert_eq!(lex.next().unwrap(), "let");
@@ -87,7 +94,7 @@ pub mod lexer_test {
     #[test]
     pub fn lexer_test_to_vec() {
         let expr=String::from("  ( let x 2 ) ");
-        let lex=Lexer::new(expr);
+        let lex=Lexer::new(expr).unwrap();
         let v=lex.to_vec();
         assert_eq!(v, vec!["(", "let", "x", "2", ")"]);
     }
