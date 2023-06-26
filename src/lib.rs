@@ -26,10 +26,12 @@ pub fn nova_repl() {
                 if inp.len()==0 {
                     continue;
                 }
-
-                println!("You typed: {}", inp);
-                rl.add_history_entry(inp).unwrap();
-            }
+                
+                rl.add_history_entry(inp.clone().trim()).unwrap();
+                let lex=lexer::Lexer::new(inp);
+                println!("Tokenized: {:?}", lex.to_vec());
+            },
+            
             Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
                 println!("See you again!");
                 break;            

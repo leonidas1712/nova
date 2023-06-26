@@ -11,6 +11,9 @@ pub const EMPTY: &str = "\0";
 
 // Keywords
 pub const LET: &str = "let";
+pub const IF: &str = "if";
+pub const FN: &str = "def";
+
 
 // Operations
 pub const ADD: &str = "add";
@@ -20,8 +23,6 @@ pub const DBL: &str = "dbl";
 pub const INC: &str = "succ";
 pub const DEC: &str = "pred";
 pub const EQUALS: &str = "eq";
-pub const FN: &str = "def";
-pub const IF: &str = "if";
 pub const PUTS: &str = "puts";
 pub const PRINT: &str = "prt";
 pub const OR: &str = "or";
@@ -35,7 +36,11 @@ pub const GT: &str = "gt";
 pub const MOD: &str = "mod";
 pub const DIV: &str = "div";
 
-// List ops
+// Boolean
+pub const TRUE:&str="true";
+pub const FALSE:&str="false";
+
+// List
 pub const CONS: &str = "cons";
 pub const CAR: &str = "car";
 pub const CDR: &str = "cdr";
@@ -43,7 +48,7 @@ pub const LCONS: &str = "lcons";
 pub const LCDR: &str = "lcdr";
 pub const LCAR: &str = "lcar";
 pub const INDEX: &str = "idx";
-
+pub const EMPTY_LIST:&str="[]";
 
 // Lambda
 pub const LAMBDA: &str = "->";
@@ -62,3 +67,10 @@ pub const SPLIT_TOKENS: [&'static str; 11] = [
 ];
 
 pub const DONT_ADD:[&'static str;5]=[NEWLINE, TAB, VAR_SEP, SPACE,EMPTY];
+
+// ASTNode types
+pub const EXPRESSION:&str="expression";
+pub const LIST:&str="list";
+pub const SYMBOL:&str="symbol";
+pub const NUMBER:&str="number";
+pub const STRING:&str="string";

@@ -1,6 +1,6 @@
-use crate::parser;
+use crate::parser::{self, parser::parse};
 
 pub fn evaluate() {
-    parser::parse();
+    parse();
     println!("eval");
 }
