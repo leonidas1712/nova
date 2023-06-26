@@ -1,5 +1,3 @@
-use std::iter::Peekable;
-
 use crate::constants::{DONT_ADD, SPACE, SPLIT_TOKENS};
 use crate::message::*;
 
@@ -12,6 +10,10 @@ pub struct Lexer {
 impl Lexer {
     pub fn new(input:String)->Result<Lexer> {
         let mut filtered=input;
+
+        if filtered.len()==0 {
+            return Err(NovaError::new("Can't parse an empty string."))
+        }
 
         for token in SPLIT_TOKENS {
             if DONT_ADD.contains(&token) {
@@ -30,9 +32,7 @@ impl Lexer {
             .map(|x| x.to_string())
             .collect();
 
-        if tokens.len()==0 {
-            return Err(NovaError::new("Can't parse an empty string."))
-        }
+        
 
         let lex=Lexer {
             tokens,
@@ -112,7 +112,8 @@ pub mod lexer_test {
     #[test]
     pub fn lexer_test_peek() {
         let expr=String::from("  ( let x 2 ) ");
-        let lex=Lexer::new(expr).unwrap();
+        let mut lex=Lexer::new(expr).unwrap();
+        lex.next();
         let fst=lex.peek();
         let snd=lex.peek();
         assert_eq!(fst,snd);
