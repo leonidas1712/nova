@@ -1,8 +1,7 @@
-pub mod lexer;
-pub mod parser;
-pub mod evaluator;
+use nova;
+use std::env;
 
 fn main() {
-    evaluator::evaluate();
-    println!("Hello, world!");
+    let args=env::args().into_iter();
+    nova::run(args);
 }
