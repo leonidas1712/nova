@@ -9,7 +9,6 @@ use rustyline::{error::ReadlineError, DefaultEditor};
 pub fn run(mut args: impl Iterator<Item=String>) {
     args.next();
     args.for_each(|s| println!("{}",s));
-    lexer::lex();
     nova_repl();
 }
 
@@ -17,6 +16,8 @@ pub fn run(mut args: impl Iterator<Item=String>) {
 pub fn nova_repl() {
     let mut rl = DefaultEditor::new().unwrap();
     
+    println!();
+    println!("Welcome to Nova, a highly expressive, dynamically typed functional programming language.\nType an expression to get started.\n");
     loop {
         let readline = rl.readline(">>> ");
 

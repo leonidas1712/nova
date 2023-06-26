@@ -1,8 +1,7 @@
 use nova;
-use std::{env};
-use nova::constants;
+use std::{env::args};
 
 fn main() {
-    let args=env::args().into_iter();
-    // nova::run(args);
+    let args=args().into_iter();
+    nova::run(args);
 }
