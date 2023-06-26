@@ -1,3 +1,5 @@
+use std::iter::Peekable;
+
 use crate::constants::{DONT_ADD, SPACE, SPLIT_TOKENS};
 use crate::message::*;
 
@@ -42,6 +44,14 @@ impl Lexer {
 
     pub fn to_vec(&self)->Vec<String>{
         self.tokens.clone()
+    }
+
+    pub fn peek(&self)->Option<&String> {
+        if self.idx >= self.tokens.len() {
+            None
+        } else {
+            self.tokens.get(self.idx)
+        }
     }
 }
 
@@ -97,5 +107,19 @@ pub mod lexer_test {
         let lex=Lexer::new(expr).unwrap();
         let v=lex.to_vec();
         assert_eq!(v, vec!["(", "let", "x", "2", ")"]);
+    }
+
+    #[test]
+    pub fn lexer_test_peek() {
+        let expr=String::from("  ( let x 2 ) ");
+        let lex=Lexer::new(expr).unwrap();
+        let fst=lex.peek();
+        let snd=lex.peek();
+        assert_eq!(fst,snd);
+
+        let expr=String::from("h");
+        let mut lex=Lexer::new(expr).unwrap();
+        lex.next();
+        assert_eq!(lex.peek(),None);
     }
 }

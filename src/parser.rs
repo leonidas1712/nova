@@ -9,6 +9,7 @@
     // then NodeResult has another enum for the different data types
         // e.g NodeResult::Number
         // NodeResult::List
+use crate::message::Result;
 
 pub struct ASTNode {
     value:NodeValue
@@ -23,20 +24,28 @@ pub enum NodeValue {
 pub mod parser {
     use crate::lexer;
     use super::*;
-    
-    // recursive
-    pub fn parse_expression(token:String) {
+
+    fn parse_list_expression(lex:&mut lexer::Lexer) {
 
     }
 
-    pub fn parse(mut lex:lexer::Lexer) {
+    fn parse_atomic_expression(lex:&mut lexer::Lexer) {
+
+    }
+    
+    // recursive
+    fn parse_expression(lex:&mut lexer::Lexer) {
+
+    }
+
+    pub fn parse(mut lex:lexer::Lexer)->() {
         let mut nodes:Vec<ASTNode>=Vec::new();
 
-        // while let Some(token)=lex.next() {
-        //     let res=parse_expression(token);
+        while let Some(token)=lex.next() {
+            let res=parse_expression(&mut lex);
 
-        // }
-
+        }
+        // Ok(())
     }
 }
 

@@ -17,8 +17,6 @@ pub fn run(mut args: impl Iterator<Item=String>) {
 }
 
 
-// todo: make this return a Result then add Result to Lexer::new
-    // and use unwrap for parser+lexer
 pub fn nova_repl() {
     use lexer::Lexer;
     use parser::parser;
