@@ -176,7 +176,7 @@ pub mod parser {
 
     // for now: return first ASTNode
     // once curried functions: do evaluation in order
-    pub fn parse(mut lex:lexer::Lexer)->Option<ASTNode> {
+    pub fn parse(mut lex:lexer::Lexer)->Result<ASTNode> {
         let mut nodes:Vec<ASTNode>=Vec::new();
         
         loop {
@@ -184,12 +184,29 @@ pub mod parser {
                 break;
             }
 
-            let res=parse_expression(&mut lex);
-            if let Ok(nr) = res {
-                nodes.push(nr.result);
-            }
+            // let res=parse_expression(&mut lex);
+            // if let Ok(nr) = res {
+            //     nodes.push(nr.result);
+            // } 
+
+            let res=parse_expression(&mut lex)?.result;
+            nodes.push(res);
+
         }
-        nodes.into_iter().next()
+
+        if nodes.len()==0 {
+            return Err(NovaError::new("Parse received empty expression."));
+        };
+
+        // nodes.into_iter().next()
+
+        let root:ASTNode = if nodes.len()==1 {
+            nodes.into_iter().next().unwrap()
+        } else {
+            ASTNode::new(Expression(nodes))
+        };
+
+        Ok(NovaResult::new(root))
     }
 
     
@@ -227,6 +244,11 @@ pub mod parser {
     pub fn parse_test() {
         assert_eq!(parse_one("(2)"), "2");
         assert_eq!(parse_one("(((((3 4)))))"), "(3 4)");
+
+        // space separated expressions put into one - for now
+        assert_eq!(parse_one("add 2 2"), "(add 2 2)");
+        assert_eq!(parse_one("(fn $ map fn lst) (add 2 3) (sub 3 5)"), 
+        "((fn $ map fn lst) (add 2 3) (sub 3 5))");
 
         let exps=vec![
             "(sum (map lst (take 5)) (succ 5) [1,2])",

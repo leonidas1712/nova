@@ -81,3 +81,6 @@ pub const LIST:&str="list";
 pub const SYMBOL:&str="symbol";
 pub const NUMBER:&str="number";
 pub const STRING:&str="string";
+
+// REPL commands
+pub const QUIT_STRINGS:[&'static str;4] = ["quit", "quit()", "exit", "exit()"];

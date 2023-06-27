@@ -12,6 +12,8 @@ pub mod message;
 
 use rustyline::{error::ReadlineError, DefaultEditor};
 
+use crate::constants::QUIT_STRINGS;
+
 pub fn run(mut args: impl Iterator<Item=String>) {
     args.next();
     args.for_each(|s| println!("{}",s));
@@ -31,16 +33,22 @@ pub fn nova_repl() {
 
         match readline {
             Ok(inp) => {
+                let inp=inp.trim().to_string();
                 if inp.len()==0 {
                     continue;
+                }
+
+                if QUIT_STRINGS.contains(&inp.as_str()) {
+                    println!("See you again!");
+                    break;     
                 }
                 
                 rl.add_history_entry(inp.clone().trim()).unwrap();
 
                 // pass lexer to parser
                 let lex=Lexer::new(inp).unwrap().result;
-                let res=parser::parse(lex).unwrap();
-                println!("Node:{}", res);
+                let res=parser::parse(lex).unwrap().result;
+                println!("Node: {}", res);
             },
             
             Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
