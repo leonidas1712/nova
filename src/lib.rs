@@ -17,6 +17,7 @@ use crate::constants::QUIT_STRINGS;
 pub fn run(mut args: impl Iterator<Item=String>) {
     args.next();
     args.for_each(|s| println!("{}",s));
+    evaluator::evaluator::evaluate();
     nova_repl();
 }
 

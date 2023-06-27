@@ -20,8 +20,8 @@ enum DataValue {
     Number(u32),
     List(PairStruct),
     Boolean(bool),
-    FunctionVariable(dyn)
-        -> FunctionVariable: stores a dyn trait Function
+    FunctionVariable(dyn),
+        -> FunctionVariable: stores a dyn trait Function    
 }
 
 struct Context {
@@ -56,6 +56,7 @@ Args {
 
 struct UserFunction {
     put name, args, fn body, inner context here
+    when function is applied: can curry by updating arg idx
     ...
 }
 
