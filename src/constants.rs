@@ -71,6 +71,10 @@ pub const DONT_ADD:[&'static str;5]=[NEWLINE, TAB, VAR_SEP, SPACE,EMPTY];
 pub const OPEN_TOKENS:[&'static str;2]=[OPEN_EXPR, OPEN_LIST];
 pub const CLOSE_TOKENS:[&'static str;2]=[CLOSE_EXPR,CLOSE_LIST];
 
+pub const EXPR_TUP:(&'static str,&'static str)=(OPEN_EXPR,CLOSE_EXPR);
+pub const LIST_TUP:(&'static str,&'static str)=(OPEN_LIST,CLOSE_LIST);
+
+
 // ASTNode types
 pub const EXPRESSION:&str="expression";
 pub const LIST:&str="list";

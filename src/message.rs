@@ -1,4 +1,4 @@
-use std::ops::{Deref,DerefMut};
+use std::{ops::{Deref,DerefMut}, error::Error};
 
 #[derive(Debug)]
 pub struct NovaResult<T> {

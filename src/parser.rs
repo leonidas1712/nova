@@ -44,19 +44,21 @@ impl Deref for ASTNode {
 
 // Parser
 pub mod parser {
-    use crate::constants::CLOSE_EXPR;
-
+    use crate::constants::{CLOSE_EXPR, EXPR_TUP, LIST_TUP};
     use super::*;
 
     fn parse_list_expression(lex:&mut lexer::Lexer)->Result<ASTNode> {
         let open_token=lex.next().expect("Received empty expression");
+
         let mut children:Vec<ASTNode>=Vec::new();
 
+        // loop and get child expressions
         let opt_token:Option<&str> = loop {
             match lex.peek().map(|x| x.as_str()) {
                 Some(token) if CLOSE_TOKENS.contains(&token) => {
                     break Some(token)
                 },
+                None => break None,
                 _ => ()
             }
 
@@ -64,10 +66,18 @@ pub mod parser {
             children.push(res.result);
         };
 
-        if let Some(token) = opt_token {
-            println!("Got last token: {token}");
-        }
-        // check tokens match, flatten expr if needed, etc.
+        // compare first and last token: should match () or []
+        // if we broke out of loop without a closing token => not well formed e.g  (2
+        match opt_token {
+            Some(last_token) => {
+                dbg!("Got last token: {}", &last_token);
+                let cmp=(open_token.as_str(),last_token);
+                if cmp!=EXPR_TUP && cmp!=LIST_TUP {
+                    return Err(NovaError::new("Mismatched brackets."));
+                };
+            },
+            None => return Err(NovaError::new("Expression was not well-formed."))
+        };
 
         return Ok(NovaResult::new(ASTNode::new(NodeValue::Expression(children))));
     }
@@ -169,6 +179,18 @@ pub mod parser {
         } else {
             assert!(false);
         }
+    }
+
+    #[test]
+    pub fn parse_list_expression_test_err() {
+        let mut lex=&mut Lexer::new("(add".to_string()).unwrap().result;
+        let res=parser::parse_list_expression(lex).unwrap_err();
+        assert!(&res.format_error().contains("not well-formed."));
+
+        let mut lex=&mut Lexer::new("(1,2]".to_string()).unwrap().result;
+        let res=parser::parse_list_expression(lex).unwrap_err();
+        assert!(&res.format_error().contains("Mismatched brackets"));
+
     }
 }
 
