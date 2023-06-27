@@ -15,8 +15,7 @@ use crate::message::Result;
 use crate::{lexer, message::{NovaError, NovaResult}};
 use crate::constants::{OPEN_TOKENS,CLOSE_TOKENS};
 
-
-#[derive(Debug)]
+#[derive(Debug, Display)]
 pub enum NodeValue {
     Symbol(String),
     Number(usize),
@@ -137,7 +136,6 @@ pub mod parser {
     use lexer::Lexer;
     #[cfg(test)]
     #[test]
-
     pub fn parse_atomic_test() {
 
         let mut lex=&mut Lexer::new("let".to_string()).unwrap().result;
@@ -151,30 +149,26 @@ pub mod parser {
 
     #[test]
     pub fn parse_list_expression_test() {
-        let mut lex=&mut Lexer::new("(add 2 3)".to_string()).unwrap().result;
+        let mut lex=&mut Lexer::new("(add 2 3 (add 2 3))".to_string()).unwrap().result;
         let res=parser::parse_list_expression(lex).unwrap();
 
         dbg!(&res.value);
 
         if let NodeValue::Expression(children) = &res.value {
-            let v=children.iter().map(|x| &(x.value));
-            dbg!(v);
+            // first layer: add,2,3, (add 2 3)
+            let v:Vec<String>=children.iter().map(|x| x.value.to_string()).collect();
+            assert_eq!(v, vec!["Symbol", "Number", "Number", "Expression"]);
+
+            let v2=&children.get(3).unwrap().value;
+
+            // second layer: add,2,3
+            if let NodeValue::Expression(cr2)=&v2 {
+                let v3:Vec<String>=cr2.iter().map(|x| x.value.to_string()).collect();
+                assert_eq!(v3, vec!["Symbol", "Number", "Number"]);
+            }
+        } else {
+            assert!(false);
         }
-        // match res.ok().unwrap().result.value {
-
-        // }
-        // assert_eq!(*res.unwrap().result, NodeValue::Number(23));
-
-        // let mut lex2=&mut Lexer::new("(2)".to_string()).unwrap().result;
-        // let res=parser::parse_list_expression(lex2);
-        
-        // let val=res.ok().unwrap().result.value;
-        // // dbg!(val);
-
-
-        // if let NodeValue::Expression(children)=val {
-        //     dbg!(children);
-        // }
     }
 }
 

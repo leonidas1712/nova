@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
+extern crate strum;
+#[macro_use] extern crate strum_macros;
 
 pub mod evaluator;
 pub mod lexer;
