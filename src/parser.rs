@@ -110,6 +110,8 @@ pub mod parser {
             None => return Err(NovaError::new("Expression was not well-formed."))
         };
 
+        lex.next(); // advance past the last token
+
         // remove nested expressions: (2) => 2
         if children.len()==1 && open_token==OPEN_EXPR {
             let node=children.into_iter().next().unwrap();
@@ -118,7 +120,6 @@ pub mod parser {
 
         let node_val=if open_token==OPEN_EXPR { Expression(children) } else { List(children) };
 
-        lex.next(); // advance past the last token
         return Ok(NovaResult::new(ASTNode::new(node_val)));
     }
 
@@ -189,30 +190,43 @@ pub mod parser {
     #[cfg(test)]
     use lexer::Lexer;
 
+    fn parse_one(exp:&str)->String {
+        let lex=crate::lexer::Lexer::new(exp.to_string()).unwrap().result;
+        let res=parse(lex).unwrap();
+        res.to_string()
+        // parse(lex).unwrap().to_string()
+    }
+
+    // checks if parsing the strings == node string
     fn test_parse(exprs:Vec<&str>)->bool{
         let it=exprs.iter().map(|s| s.trim().to_string());
 
         // node strings after parsing
         let res=it.clone()
-            .map(|s| lexer::Lexer::new(s.clone()).unwrap().result) 
-            .map(|lex| parse(lex))
-            .map(|x| x.unwrap().to_string());
+            .map(|s| parse_one(&s));
 
         // iter(exp, node string)
         let mut zip=it.zip(res);
         zip.all(|tup| tup.0==tup.1)
     }
 
+    // test for main parse function
     #[test]
     pub fn parse_test() {
+        assert_eq!(parse_one("(2)"), "2");
+        assert_eq!(parse_one("(((((3 4)))))"), "(3 4)");
+
         let exps=vec![
             "(sum (map lst (take 5)) (succ 5) [1,2])",
             "(if (eq n 0) (recr (pred n)) (recr (succ n)))",
-            "(map (sum fn (add 2 3)) >> (rec (add 2 3) lst))"
+            "(map (sum fn (add 2 3)) >> (rec (add 2 3) lst))",
+            "sum",
+            "[2]",
+            "[1,2,(add 5 6),[3,4,[5,6,(sub 4 5)]]]"
         ];
 
         assert!(test_parse(exps));
-    }
+    }   
 
     #[test]
     pub fn parse_atomic_test() {
@@ -253,6 +267,14 @@ pub mod parser {
 
     #[test]
     pub fn parse_list_expression_test_nest() {
+        let lex=&mut Lexer::new("(2)".to_string()).unwrap().result;
+        let res=parser::parse_list_expression(lex).unwrap();
+        if let NodeValue::Number(num) = res.value {
+            assert_eq!(num,2);
+        } else {
+            assert!(false);
+        }
+
         let lex=&mut Lexer::new("(((((((2)))))))".to_string()).unwrap().result;
         let res=parser::parse_list_expression(lex).unwrap();
         if let NodeValue::Number(num) = res.value {
