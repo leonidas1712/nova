@@ -3,6 +3,11 @@ use std::ops::Deref;
 use crate::constants::*;
 
 #[derive(Debug, Display)]
+
+// todo: IfStmt, LetStmt, FnDef, Lambda, FunctionCall
+    // FunctionCall: when we have a symbol or expression which is:
+        // 1. nested inside another expression (more than 1 inside parent.value)
+        // 2. is the first element inside that expression
 pub enum NodeValue {
     Symbol(String),
     Number(usize),

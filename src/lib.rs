@@ -12,6 +12,8 @@ pub mod message;
 use rustyline::{error::ReadlineError, DefaultEditor};
 use crate::constants::QUIT_STRINGS;
 
+// setup context by making the map of functions and pass it into Context::new, then pass it to nova_repl
+    // this is how we can seed Context with map of refs to functions
 pub fn run(mut args: impl Iterator<Item=String>) {
     args.next();
     args.for_each(|s| println!("{}",s));
