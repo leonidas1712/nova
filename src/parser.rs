@@ -4,6 +4,8 @@
     // NodeValue::Children(Vec<ASTNode>)
     // NodeValue::Value(T)
 
+use std::ops::Deref;
+
 // evaluation: evaluate node => Result<T,E>
     // T: some custom wrapper struct/enum e.g NodeResult
     // then NodeResult has another enum for the different data types
@@ -30,6 +32,13 @@ pub struct ASTNode {
 impl ASTNode {
     fn new(value:NodeValue)->ASTNode {
         ASTNode { value }
+    }
+}
+
+impl Deref for ASTNode {
+    type Target = NodeValue;
+    fn deref(&self) -> &Self::Target {
+        &self.value
     }
 }
 
@@ -125,16 +134,48 @@ pub mod parser {
         return nodes;
     }
 
+    use lexer::Lexer;
     #[cfg(test)]
     #[test]
-    pub fn parse_atomic_test() {
-        use std::ops::Deref;
 
-        let mut lex=&mut lexer::Lexer::new("k".to_string()).unwrap().result;
-        let res=parser::parse_atomic_expression(lex);
-        dbg!(res.ok().unwrap());
-        // assert_eq!(*res.unwrap().result, NodeValue::Number(23));
+    pub fn parse_atomic_test() {
+
+        let mut lex=&mut Lexer::new("let".to_string()).unwrap().result;
+        let res=parser::parse_atomic_expression(lex).unwrap();
+        if let NodeValue::Symbol(v)=&res.value {
+            assert_eq!(v, "let");
+        } else {
+            assert!(false);
+        }
     }   
+
+    #[test]
+    pub fn parse_list_expression_test() {
+        let mut lex=&mut Lexer::new("(add 2 3)".to_string()).unwrap().result;
+        let res=parser::parse_list_expression(lex).unwrap();
+
+        dbg!(&res.value);
+
+        if let NodeValue::Expression(children) = &res.value {
+            let v=children.iter().map(|x| &(x.value));
+            dbg!(v);
+        }
+        // match res.ok().unwrap().result.value {
+
+        // }
+        // assert_eq!(*res.unwrap().result, NodeValue::Number(23));
+
+        // let mut lex2=&mut Lexer::new("(2)".to_string()).unwrap().result;
+        // let res=parser::parse_list_expression(lex2);
+        
+        // let val=res.ok().unwrap().result.value;
+        // // dbg!(val);
+
+
+        // if let NodeValue::Expression(children)=val {
+        //     dbg!(children);
+        // }
+    }
 }
 
 
