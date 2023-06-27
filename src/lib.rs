@@ -55,10 +55,7 @@ pub fn nova_repl() {
                         let node=nr.result;
                         println!("Node: {}", node);
 
-                        if let Some(msg) = nr.message {
-                            println!("Message: {}", msg);
-                        }
-
+                        nr.messages.iter().for_each(|msg| println!("Message: {}", msg))
                     },
                     Err(ne) => {
                         println!("{}", ne.format_error());

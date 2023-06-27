@@ -36,6 +36,10 @@ impl ASTNode {
     fn new(value:NodeValue)->ASTNode {
         ASTNode { value }
     }
+    
+    fn empty()->ASTNode {
+        ASTNode::new(Symbol("empty".to_string()))
+    }
 
     fn get_children(&self)->Option<&Vec<ASTNode>> {
         if let Expression(children) | List(children) = &self.value {
@@ -90,6 +94,9 @@ pub mod parser {
 
         let mut children:Vec<ASTNode>=Vec::new();
 
+        // tmp node as placeholder
+        let mut result=NovaResult::new(ASTNode::empty());
+
         // loop and get child expressions
         let opt_token:Option<&str> = loop {
             match lex.peek().map(|x| x.as_str()) {
@@ -100,9 +107,13 @@ pub mod parser {
                 _ => ()
             }
 
-            let res=parse_expression(lex)?;
-            children.push(res.result);
+            let mut res=parse_expression(lex)?;
+            result.add_messages(&mut res);
+
+            let node=res.result;
+            children.push(node);
         };
+
 
         // compare first and last token: should match () or []
         // if we broke out of loop without a closing token => not well formed e.g  (2
@@ -118,7 +129,7 @@ pub mod parser {
 
         lex.next(); // advance past the last token
 
-        // remove nested expressions: (2) => 2
+        // remove nested expressions: (2) => 2, but not for [2]
         if children.len()==1 && open_token==OPEN_EXPR {
             let node=children.into_iter().next().unwrap();
             return Ok(NovaResult::new(node));
@@ -126,7 +137,9 @@ pub mod parser {
 
         let node_val=if open_token==OPEN_EXPR { Expression(children) } else { List(children) };
 
-        return Ok(NovaResult::new(ASTNode::new(node_val)));
+        // return Ok(NovaResult::new(ASTNode::new(node_val)));
+        result.result=ASTNode::new(node_val);
+        Ok(result)
     }
 
     fn parse_atomic_expression(lex:&mut lexer::Lexer)->Result<ASTNode> {
@@ -178,14 +191,18 @@ pub mod parser {
     // once curried functions: do evaluation in order
     pub fn parse(mut lex:lexer::Lexer)->Result<ASTNode> {
         let mut nodes:Vec<ASTNode>=Vec::new();
+        let mut result=NovaResult::new(ASTNode::empty());
         
         loop {
             if let None=lex.peek() {
                 break;
             }
 
-            let res=parse_expression(&mut lex)?.result;
-            nodes.push(res);
+            let mut res=parse_expression(&mut lex)?;
+            result.add_messages(&mut res);
+
+            let node=res.result;
+            nodes.push(node);
 
         }
 
@@ -201,7 +218,8 @@ pub mod parser {
             ASTNode::new(Expression(nodes))
         };
 
-        Ok(NovaResult::new(root))
+        result.result=root;
+        Ok(result)
     }
 
     
@@ -209,8 +227,8 @@ pub mod parser {
     use lexer::Lexer;
 
     fn parse_one(exp:&str)->String {
-        let lex=crate::lexer::Lexer::new(exp.to_string()).unwrap().result;
-        let res=parse(lex).unwrap();
+        let lex=crate::lexer::Lexer::new(exp.to_string()).unwrap();
+        let res=parse(lex.result).unwrap();
         res.to_string()
         // parse(lex).unwrap().to_string()
     }
@@ -267,6 +285,10 @@ pub mod parser {
         } else {
             assert!(false);
         }
+
+        // let lex=&mut Lexer::new("(add 2 3)".to_string()).unwrap().result;
+        // let res=parser::parse_list_expression(lex).unwrap();
+        // dbg!(res);
     }
 
     #[test]
@@ -289,8 +311,8 @@ pub mod parser {
 
     #[test]
     pub fn parse_list_expression_test_nest() {
-        let lex=&mut Lexer::new("(2)".to_string()).unwrap().result;
-        let res=parser::parse_list_expression(lex).unwrap();
+        let mut lex=&mut Lexer::new("(2)".to_string()).unwrap();
+        let res=parser::parse_list_expression(&mut lex).unwrap();
         if let NodeValue::Number(num) = res.value {
             assert_eq!(num,2);
         } else {
