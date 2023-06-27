@@ -23,6 +23,8 @@ pub enum NodeValue {
     List(Vec<ASTNode>)
 }
 
+use NodeValue::*;
+
 // ASTNode
 #[derive(Debug)]
 pub struct ASTNode {
@@ -32,6 +34,19 @@ pub struct ASTNode {
 impl ASTNode {
     fn new(value:NodeValue)->ASTNode {
         ASTNode { value }
+    }
+
+    fn get_children(&self)->Option<&Vec<ASTNode>> {
+        if let Expression(children) | List(children) = &self.value {
+            Some(&children)
+        } else {
+            None
+        }
+    }
+
+    fn get_ith_child(&self, index:usize)->Option<&ASTNode> {
+        self.get_children()
+        .and_then(|v| v.get(index))
     }
 }
 
@@ -45,7 +60,7 @@ impl Deref for ASTNode {
 
 // Parser
 pub mod parser {
-    use crate::constants::{CLOSE_EXPR, EXPR_TUP, LIST_TUP};
+    use crate::constants::{CLOSE_EXPR, EXPR_TUP, LIST_TUP, OPEN_LIST, OPEN_EXPR};
     use super::*;
 
     fn parse_list_expression(lex:&mut lexer::Lexer)->Result<ASTNode> {
@@ -81,11 +96,15 @@ pub mod parser {
         };
 
         // remove nested expressions: (2) => 2
-        // if children.len()==1 {
+        if children.len()==1 && open_token==OPEN_EXPR {
+            let node=children.into_iter().next().unwrap();
+            return Ok(NovaResult::new(node));
+        }
 
-        // }
+        let node_val=if open_token==OPEN_EXPR { Expression(children) } else { List(children) };
 
-        return Ok(NovaResult::new(ASTNode::new(NodeValue::Expression(children))));
+        lex.next(); // advance past the last token
+        return Ok(NovaResult::new(ASTNode::new(node_val)));
     }
 
     fn parse_atomic_expression(lex:&mut lexer::Lexer)->Result<ASTNode> {
@@ -99,11 +118,11 @@ pub mod parser {
 
         let node=match try_numeric {
             Ok(num) => {
-                ASTNode::new(NodeValue::Number(num))
+                ASTNode::new(Number(num))
             },
 
             Err(_) => {
-                ASTNode::new(NodeValue::Symbol(token))
+                ASTNode::new(Symbol(token))
             }
         };
 
@@ -149,55 +168,74 @@ pub mod parser {
         return nodes;
     }
 
-    use lexer::Lexer;
+    
     #[cfg(test)]
+    use lexer::Lexer;
     #[test]
     pub fn parse_atomic_test() {
 
-        let mut lex=&mut Lexer::new("let".to_string()).unwrap().result;
+        let lex=&mut Lexer::new("let".to_string()).unwrap().result;
         let res=parser::parse_atomic_expression(lex).unwrap();
-        if let NodeValue::Symbol(v)=&res.value {
+        if let Symbol(v)=&res.value {
             assert_eq!(v, "let");
         } else {
             assert!(false);
         }
-    }   
+    }
+
+    fn get_node_value_strings(v: &ASTNode)->Option<Vec<String>> {
+        v.get_children().map( | children |
+            children.iter().map(|x| x.value.to_string()).collect()
+        )
+    }
+
+    // here
+    #[test]
+    pub fn parse_list_expression_test_many() {
+        let lex=&mut Lexer::new("(sum (map lst (take 5)) (succ 5) [1,2])".to_string()).unwrap().result;
+        let res=parser::parse_list_expression(lex).unwrap();
+
+        let first_layer=get_node_value_strings(&res.result);
+        assert_eq!(first_layer.unwrap(), vec!["Symbol", "Expression", "Expression", "List"]);
+
+        let snd=res.get_ith_child(1);
+        let snd_children=snd.and_then(|node| get_node_value_strings(node));
+        assert_eq!(snd_children.unwrap(), vec!["Symbol", "Symbol", "Expression"]);
+
+        let snd=snd.unwrap();
+        let take=snd.get_ith_child(2).and_then(|node| get_node_value_strings(node));
+
+        assert_eq!(take.unwrap(), vec!["Symbol", "Number"]); 
+    }
 
     #[test]
     pub fn parse_list_expression_test_nest() {
-        let mut lex=&mut Lexer::new("(add 2 3 (add 2 3))".to_string()).unwrap().result;
+        let lex=&mut Lexer::new("(((((((2)))))))".to_string()).unwrap().result;
         let res=parser::parse_list_expression(lex).unwrap();
-
-        if let NodeValue::Expression(children) = &res.value {
-            // first layer: add,2,3, (add 2 3)
-            let v:Vec<String>=children.iter().map(|x| x.value.to_string()).collect();
-            assert_eq!(v, vec!["Symbol", "Number", "Number", "Expression"]);
-
-            let v2=&children.get(3).unwrap().value;
-
-            // second layer: add,2,3
-            if let NodeValue::Expression(cr2)=&v2 {
-                let v3:Vec<String>=cr2.iter().map(|x| x.value.to_string()).collect();
-                assert_eq!(v3, vec!["Symbol", "Number", "Number"]);
-            }
+        if let NodeValue::Number(num) = res.value {
+            assert_eq!(num,2);
         } else {
             assert!(false);
         }
 
-        let mut lex=&mut Lexer::new("((((((2))))))".to_string()).unwrap().result;
+        // doesn't flatten a list
+        let lex=&mut Lexer::new("[2]".to_string()).unwrap().result;
         let res=parser::parse_list_expression(lex).unwrap();
-        dbg!(res);
 
-
+        if let NodeValue::List(vc) = res.result.value {
+            assert_eq!(vc.len(),1);
+        } else {
+            assert!(false);
+        }
     }
 
     #[test]
     pub fn parse_list_expression_test_err() {
-        let mut lex=&mut Lexer::new("(add".to_string()).unwrap().result;
+        let lex=&mut Lexer::new("(add".to_string()).unwrap().result;
         let res=parser::parse_list_expression(lex).unwrap_err();
         assert!(&res.format_error().contains("not well-formed."));
 
-        let mut lex=&mut Lexer::new("(1,2]".to_string()).unwrap().result;
+        let lex=&mut Lexer::new("(1,2]".to_string()).unwrap().result;
         let res=parser::parse_list_expression(lex).unwrap_err();
         assert!(&res.format_error().contains("Mismatched brackets"));
 
