@@ -148,7 +148,7 @@ pub mod parser {
             }
         };
 
-        Ok(NovaResult::new(node))
+        Ok(NovaResult::new(node).add_msg("Just a symbol."))
     }
     
     // recursive
@@ -183,11 +183,6 @@ pub mod parser {
             if let None=lex.peek() {
                 break;
             }
-
-            // let res=parse_expression(&mut lex);
-            // if let Ok(nr) = res {
-            //     nodes.push(nr.result);
-            // } 
 
             let res=parse_expression(&mut lex)?.result;
             nodes.push(res);

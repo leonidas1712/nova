@@ -46,9 +46,24 @@ pub fn nova_repl() {
                 rl.add_history_entry(inp.clone().trim()).unwrap();
 
                 // pass lexer to parser
-                let lex=Lexer::new(inp).unwrap().result;
-                let res=parser::parse(lex).unwrap().result;
-                println!("Node: {}", res);
+                // let lex=Lexer::new(inp).unwrap().result;
+                // let res=parser::parse(lex).unwrap().result;
+                let res=Lexer::new(inp).and_then(|lex| parser::parse(lex.result));     
+
+                match res {
+                    Ok(nr) => {
+                        let node=nr.result;
+                        println!("Node: {}", node);
+
+                        if let Some(msg) = nr.message {
+                            println!("Message: {}", msg);
+                        }
+
+                    },
+                    Err(ne) => {
+                        println!("{}", ne.format_error());
+                    }
+                }
             },
             
             Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
