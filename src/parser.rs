@@ -161,7 +161,7 @@ pub mod parser {
             }
         };
 
-        Ok(NovaResult::new(node).add_msg("Just a symbol."))
+        Ok(NovaResult::new(node))
     }
     
     // recursive

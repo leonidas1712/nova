@@ -46,8 +46,6 @@ pub fn nova_repl() {
                 rl.add_history_entry(inp.clone().trim()).unwrap();
 
                 // pass lexer to parser
-                // let lex=Lexer::new(inp).unwrap().result;
-                // let res=parser::parse(lex).unwrap().result;
                 let res=Lexer::new(inp).and_then(|lex| parser::parse(lex.result));     
 
                 match res {
