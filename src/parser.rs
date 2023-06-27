@@ -73,6 +73,12 @@ impl Deref for ASTNode {
     }
 }
 
+impl Display for ASTNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
+
 
 // Parser
 pub mod parser {
@@ -197,6 +203,12 @@ pub mod parser {
         // parse(lex).unwrap().to_string()
     }
 
+    fn get_node_value_strings(v: &ASTNode)->Option<Vec<String>> {
+        v.get_children().map( | children |
+            children.iter().map(|x| x.value.to_string()).collect()
+        )
+    }
+
     // checks if parsing the strings == node string
     fn test_parse(exprs:Vec<&str>)->bool{
         let it=exprs.iter().map(|s| s.trim().to_string());
@@ -240,13 +252,6 @@ pub mod parser {
         }
     }
 
-    fn get_node_value_strings(v: &ASTNode)->Option<Vec<String>> {
-        v.get_children().map( | children |
-            children.iter().map(|x| x.value.to_string()).collect()
-        )
-    }
-
-    // here
     #[test]
     pub fn parse_list_expression_test_many() {
         let lex=&mut Lexer::new("(sum (map lst (take 5)) (succ 5) [1,2])".to_string()).unwrap().result;

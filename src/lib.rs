@@ -39,7 +39,8 @@ pub fn nova_repl() {
 
                 // pass lexer to parser
                 let lex=Lexer::new(inp).unwrap().result;
-                parser::parse(lex);
+                let res=parser::parse(lex).unwrap();
+                println!("Node:{}", res);
             },
             
             Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
