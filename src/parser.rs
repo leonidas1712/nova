@@ -19,7 +19,8 @@ use crate::constants::{OPEN_TOKENS,CLOSE_TOKENS};
 pub enum NodeValue {
     Symbol(String),
     Number(usize),
-    Expression(Vec<ASTNode>)
+    Expression(Vec<ASTNode>),
+    List(Vec<ASTNode>)
 }
 
 // ASTNode
@@ -78,6 +79,11 @@ pub mod parser {
             },
             None => return Err(NovaError::new("Expression was not well-formed."))
         };
+
+        // remove nested expressions: (2) => 2
+        // if children.len()==1 {
+
+        // }
 
         return Ok(NovaResult::new(ASTNode::new(NodeValue::Expression(children))));
     }
@@ -158,11 +164,9 @@ pub mod parser {
     }   
 
     #[test]
-    pub fn parse_list_expression_test() {
+    pub fn parse_list_expression_test_nest() {
         let mut lex=&mut Lexer::new("(add 2 3 (add 2 3))".to_string()).unwrap().result;
         let res=parser::parse_list_expression(lex).unwrap();
-
-        dbg!(&res.value);
 
         if let NodeValue::Expression(children) = &res.value {
             // first layer: add,2,3, (add 2 3)
@@ -179,6 +183,12 @@ pub mod parser {
         } else {
             assert!(false);
         }
+
+        let mut lex=&mut Lexer::new("((((((2))))))".to_string()).unwrap().result;
+        let res=parser::parse_list_expression(lex).unwrap();
+        dbg!(res);
+
+
     }
 
     #[test]
