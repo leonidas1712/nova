@@ -4,6 +4,7 @@
     // NodeValue::Children(Vec<ASTNode>)
     // NodeValue::Value(T)
 
+use std::fmt::Display;
 use std::ops::Deref;
 
 // evaluation: evaluate node => Result<T,E>
@@ -13,7 +14,7 @@ use std::ops::Deref;
         // NodeResult::List
 use crate::message::Result;
 use crate::{lexer, message::{NovaError, NovaResult}};
-use crate::constants::{OPEN_TOKENS,CLOSE_TOKENS};
+use crate::constants::{OPEN_TOKENS,CLOSE_TOKENS,SPACE,VAR_SEP,OPEN_EXPR,CLOSE_EXPR,OPEN_LIST,CLOSE_LIST};
 
 #[derive(Debug, Display)]
 pub enum NodeValue {
@@ -47,6 +48,21 @@ impl ASTNode {
     fn get_ith_child(&self, index:usize)->Option<&ASTNode> {
         self.get_children()
         .and_then(|v| v.get(index))
+    }
+    
+    fn to_string(&self)->String {
+        match &self.value {
+            Symbol(string) => string.clone(),
+            Number(num) => num.to_string(),
+            Expression(children) => {
+                let v:Vec<String>=children.iter().map(|n| n.to_string()).collect();
+                format!("{}{}{}",OPEN_EXPR,v.join(SPACE),CLOSE_EXPR)
+            },
+            List(children) => {
+                let v:Vec<String>=children.iter().map(|n| n.to_string()).collect();
+                format!("{}{}{}",OPEN_LIST,v.join(VAR_SEP),CLOSE_LIST)
+            }
+        }
     }
 }
 
@@ -86,7 +102,6 @@ pub mod parser {
         // if we broke out of loop without a closing token => not well formed e.g  (2
         match opt_token {
             Some(last_token) => {
-                dbg!("Got last token: {}", &last_token);
                 let cmp=(open_token.as_str(),last_token);
                 if cmp!=EXPR_TUP && cmp!=LIST_TUP {
                     return Err(NovaError::new("Mismatched brackets."));
@@ -152,7 +167,9 @@ pub mod parser {
         parse_atomic_expression(lex)
     }
 
-    pub fn parse(mut lex:lexer::Lexer)->Vec<ASTNode> {
+    // for now: return first ASTNode
+    // once curried functions: do evaluation in order
+    pub fn parse(mut lex:lexer::Lexer)->Option<ASTNode> {
         let mut nodes:Vec<ASTNode>=Vec::new();
         
         loop {
@@ -165,12 +182,38 @@ pub mod parser {
                 nodes.push(nr.result);
             }
         }
-        return nodes;
+        nodes.into_iter().next()
     }
 
     
     #[cfg(test)]
     use lexer::Lexer;
+
+    fn test_parse(exprs:Vec<&str>)->bool{
+        let it=exprs.iter().map(|s| s.trim().to_string());
+
+        // node strings after parsing
+        let res=it.clone()
+            .map(|s| lexer::Lexer::new(s.clone()).unwrap().result) 
+            .map(|lex| parse(lex))
+            .map(|x| x.unwrap().to_string());
+
+        // iter(exp, node string)
+        let mut zip=it.zip(res);
+        zip.all(|tup| tup.0==tup.1)
+    }
+
+    #[test]
+    pub fn parse_test() {
+        let exps=vec![
+            "(sum (map lst (take 5)) (succ 5) [1,2])",
+            "(if (eq n 0) (recr (pred n)) (recr (succ n)))",
+            "(map (sum fn (add 2 3)) >> (rec (add 2 3) lst))"
+        ];
+
+        assert!(test_parse(exps));
+    }
+
     #[test]
     pub fn parse_atomic_test() {
 
@@ -238,7 +281,6 @@ pub mod parser {
         let lex=&mut Lexer::new("(1,2]".to_string()).unwrap().result;
         let res=parser::parse_list_expression(lex).unwrap_err();
         assert!(&res.format_error().contains("Mismatched brackets"));
-
     }
 }
 
