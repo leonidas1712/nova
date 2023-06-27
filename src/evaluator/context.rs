@@ -3,21 +3,7 @@ use crate::parser::node::*;
 use std::collections::HashMap;
 use crate::message::*;
 use crate::evaluator::evaluator;
-
-pub enum DataValue {
-    Default,
-    Num(usize)
-}
-
-use DataValue::*;
-
-enum Arg {
-    Evaluated(DataValue),
-    Unevaluated(ASTNode),
-    DefaultArg
-}
-
-use Arg::*;
+use super::data::*;
 
 trait Function {
     fn execute(&self, args: Vec<Arg>, context:&Context)->Result<DataValue>;
