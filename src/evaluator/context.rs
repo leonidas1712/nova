@@ -1,46 +1,13 @@
+use std::collections::HashMap;
+
 use crate::parser::*;
 use crate::parser::node::*;
-use std::collections::HashMap;
 use crate::message::*;
 use crate::evaluator::evaluator;
+
 use super::data::*;
-
-trait Function {
-    fn execute(&self, args: Vec<Arg>, context:&Context)->Result<DataValue>;
-}
-
-struct Add;
-impl Function for Add {
-    fn execute(&self, args: Vec<Arg>, context:&Context)->Result<DataValue>{
-        println!("Added");
-
-        Ok(NovaResult::new(Default))
-    }   
-}
-
-struct Sub;
-impl Function for Sub {
-    fn execute(&self, args: Vec<Arg>, context:&Context)->Result<DataValue> {
-        println!("Sub");
-        
-        Ok(NovaResult::new(Default))
-    }
-}
-
-struct UserFunction {
-    name:String
-}
-
-impl Function for UserFunction {
-    fn execute(&self, args: Vec<Arg>, context:&Context)->Result<DataValue> {
-        println!("User function: {}", &self.name);
-        
-        // just test by passing name
-        evaluator::evaluate(&context, &ASTNode::new(NodeValue::Symbol(self.name.clone())), true)?;
-
-        Ok(NovaResult::new(Default))
-    }
-}
+use super::function::*;
+use super::builtins::*;
 
 pub struct Context {
     functions: Vec<Box<dyn Function>>
@@ -50,9 +17,9 @@ impl Context {
     pub fn new()->Context {
         let add=Add;
         let sub=Sub;
-        
-        let uf=UserFunction { name: "recr".to_string() };
-        let uf2=UserFunction { name: "recr_tail".to_string() };
+
+        let uf=UserFunction::new("recr");
+        let uf2=UserFunction::new("recr_tail");
 
 
         // turn into macro given list of function names => Box::new...
