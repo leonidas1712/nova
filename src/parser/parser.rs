@@ -1,92 +1,9 @@
-// ASTNode: type, value:
-    // value: Option<Vec<ASTNode>> or a concrete value
-// enum: NodeValue<T>
-    // NodeValue::Children(Vec<ASTNode>)
-    // NodeValue::Value(T)
-
-use std::fmt::Display;
-use std::ops::Deref;
-
-// evaluation: evaluate node => Result<T,E>
-    // T: some custom wrapper struct/enum e.g NodeResult
-    // then NodeResult has another enum for the different data types
-        // e.g NodeResult::Number
-        // NodeResult::List
-use crate::message::Result;
-use crate::{lexer, message::{NovaError, NovaResult}};
-use crate::constants::{OPEN_TOKENS,CLOSE_TOKENS,SPACE,VAR_SEP,OPEN_EXPR,CLOSE_EXPR,OPEN_LIST,CLOSE_LIST,LIST_TUP,EXPR_TUP};
-
-#[derive(Debug, Display)]
-pub enum NodeValue {
-    Symbol(String),
-    Number(usize),
-    Expression(Vec<ASTNode>),
-    List(Vec<ASTNode>)
-}
-
-use NodeValue::*;
-
-// ASTNode
-#[derive(Debug)]
-pub struct ASTNode {
-    value:NodeValue
-}
-
-impl ASTNode {
-    fn new(value:NodeValue)->ASTNode {
-        ASTNode { value }
-    }
-    
-    fn empty()->ASTNode {
-        ASTNode::new(Symbol("empty".to_string()))
-    }
-
-    fn get_children(&self)->Option<&Vec<ASTNode>> {
-        if let Expression(children) | List(children) = &self.value {
-            Some(&children)
-        } else {
-            None
-        }
-    }
-
-    fn get_ith_child(&self, index:usize)->Option<&ASTNode> {
-        self.get_children()
-        .and_then(|v| v.get(index))
-    }
-    
-    fn to_string(&self)->String {
-        match &self.value {
-            Symbol(string) => string.clone(),
-            Number(num) => num.to_string(),
-            Expression(children) => {
-                let v:Vec<String>=children.iter().map(|n| n.to_string()).collect();
-                format!("{}{}{}",OPEN_EXPR,v.join(SPACE),CLOSE_EXPR)
-            },
-            List(children) => {
-                let v:Vec<String>=children.iter().map(|n| n.to_string()).collect();
-                format!("{}{}{}",OPEN_LIST,v.join(VAR_SEP),CLOSE_LIST)
-            }
-        }
-    }
-}
-
-impl Deref for ASTNode {
-    type Target = NodeValue;
-    fn deref(&self) -> &Self::Target {
-        &self.value
-    }
-}
-
-impl Display for ASTNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
-    }
-}
-
+use crate::parser::node::*;
+use crate::message::*;
+use crate::constants::*;
+use crate::lexer;
 
 // Parser
-// use super::*;
-
 fn parse_list_expression(lex:&mut lexer::Lexer)->Result<ASTNode> {
     let open_token=lex.next().expect("Received empty expression");
 
@@ -221,7 +138,6 @@ pub fn parse(mut lex:lexer::Lexer)->Result<ASTNode> {
 }
 
 // Tests
-
 #[cfg(test)]
 use lexer::Lexer;
 pub mod tests {
