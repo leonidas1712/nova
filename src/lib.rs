@@ -2,7 +2,6 @@
 #![allow(unused_variables)]
 extern crate strum;
 #[macro_use] extern crate strum_macros;
-
 pub mod evaluator;
 pub mod lexer;
 pub mod parser;
@@ -11,7 +10,6 @@ pub mod time;
 pub mod message;
 
 use rustyline::{error::ReadlineError, DefaultEditor};
-
 use crate::constants::QUIT_STRINGS;
 
 pub fn run(mut args: impl Iterator<Item=String>) {
