@@ -1,2 +1,2 @@
 pub mod parser;
-mod node;
+pub mod node;

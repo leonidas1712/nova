@@ -30,7 +30,8 @@ struct Context {
 }
 
 trait ExecutableFunction {
-    execute(res:Vec<Args>, ctx:Context, evaluate:?) {...}
+    just call evaluate directly
+    execute(res:Vec<Args>, ctx:Context, //evaluate:?) {...}
     -> 1. method to unwrap args to eval/uneval then check the types easily without match
         -> get right number of eval/unevaluated 
         -> inf: check all eval/ all uneval
@@ -47,6 +48,10 @@ trait ExecutableFunction {
 -> each struct has the list of args-> no choice but to repeat?
     -> or maybe use default method on Function trait
 
+the only difference is builtin doesnt have a function body
+
+Just use trait Function, then write the builtin functions manually as structs impl Function
+then when you want to use just add them all to the hashmap: now builtins and user function are treated the exact same
 
 
 Args {
