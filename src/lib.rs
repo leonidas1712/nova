@@ -15,7 +15,7 @@ use std::rc::Rc;
 
 use crate::{
     constants::*, 
-    evaluator::{context::Context, function::*, data::*,builtins::*, evaluator::evaluate}
+    evaluator::{context::Context, function::*, data::*,builtins::*, evaluator::evaluate}, message::NovaResult
 };
 use rustyline::{error::ReadlineError, DefaultEditor};
 
@@ -29,6 +29,7 @@ pub fn setup_context()->Context {
     let mut ctx=Context::new();
 
     ctx.add_function("add", rcf(Add{}));
+    ctx.add_variable("var", Num(500));
 
     ctx
 }
@@ -69,29 +70,16 @@ pub fn nova_repl(context:Context) {
                 rl.add_history_entry(inp.clone().trim()).unwrap();
 
                 // pass lexer to parser
-                let res = Lexer::new(inp).and_then(|lex| parser::parse(lex.result));
+                let res = Lexer::new(inp)
+                .and_then(|lex| parser::parse(lex.result))
+                .and_then(|node| evaluate(&context, &node));
 
                 match res {
                     Ok(nr) => {
-                        let node = &nr.result;
-                        println!("Node: {}", &node);
+                        println!("Result: {}", nr.result.to_string())
+                    },
 
-                        let eval_result=evaluate(&context, &node);
-                        
-                        match eval_result {
-                            Ok(nr) => {
-                                println!("Eval result: {}", nr.to_string());
-                            },
-                            Err(ne) => {
-                                println!("{}", ne.format_error());
-                            }
-                        }
-
-                
-                    }
-                    Err(ne) => {
-                        println!("{}", ne.format_error());
-                    }
+                    Err(ne) => println!("{}",ne.format_error())
                 }
             }
 
