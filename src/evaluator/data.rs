@@ -1,6 +1,7 @@
 use super::function::Function;
 use crate::parser::node::ASTNode;
 use std::rc::Rc;
+use std::fmt::Display;
 
 pub const NUM:&str="Num";
 pub const BOOL:&str="Bool";
@@ -55,19 +56,25 @@ impl DataValue  {
     }
 }
 
-pub enum Arg {
+pub enum Arg<'a> {
     Evaluated(DataValue),
-    Unevaluated(ASTNode),
+    Unevaluated(&'a ASTNode), // node could be part of fn body -> Arg can't own it
     DefaultArg,
 }
 
-impl Arg {
+impl<'a> Arg<'a> {
     pub fn to_string(&self)->String {
         match self {
             Evaluated(val) => val.to_string(),
             Unevaluated(node) => node.to_string(),
             DefaultArg => "DefaultArg".to_string()
         }
+    }
+}
+
+impl<'a> Display for Arg<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.to_string())
     }
 }
 

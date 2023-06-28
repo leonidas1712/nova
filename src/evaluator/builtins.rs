@@ -7,7 +7,8 @@ use DataValue::*;
 pub struct Add;
 impl Function for Add {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
-        println!("Added");
+        println!("Added:");
+        args.iter().for_each(|x| println!("{}", x.to_string()));
 
         Ok(Num(400))
     }

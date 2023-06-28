@@ -2,7 +2,7 @@ use super::{context::*, data::*, evaluator::evaluate};
 use crate::message::*;
 use crate::parser::node::*;
 
-pub fn get_args_from_nodes(iter:impl Iterator<Item=Result<DataValue>> + Clone)->Result<Vec<Arg>> {
+pub fn get_args_from_nodes<'a>(iter:impl Iterator<Item=Result<DataValue>> + Clone)->Result<Vec<Arg<'a>>> {
     // let eval_rest=nodes.iter().map(|node| evaluate(ctx, node));
     let res_iter:Result<Vec<DataValue>>=iter.clone().into_iter().collect();
     let results=res_iter.map(|v| {
@@ -26,8 +26,6 @@ pub fn evaluate_expression(ctx:&Context, children:&Vec<ASTNode>)->Result<DataVal
         return Ok(res)
     }
 
-    // let v:Vec<Result<u32>>=vec![Ok(1),Ok(2), Ok(1), Err(Ex::new("oops"))];
-    // let k:Result<Vec<u32>>=v.into_iter().collect();
     let mut rest=children.iter();
     rest.next();
 
@@ -38,23 +36,24 @@ pub fn evaluate_expression(ctx:&Context, children:&Vec<ASTNode>)->Result<DataVal
         Some(func) => {
             if func.get_arg_type()==ArgType::Evaluated {
                 let results= get_args_from_nodes(eval_rest.clone())?;
-                
+                func.execute(results, ctx)
+
                 // let strings:Vec<String>=results.into_iter().map(|x| x.to_string()).collect();
                 // dbg!(strings);
+                
+            } else {
+                // just ast nodes
+                let args:Vec<Arg>=children.into_iter().map(|x| Unevaluated(x)).collect();
+                func.execute(args, ctx)
             }
             
         },
+        // not a function: evaluate in order and return last
         None => {
-            println!("got to none");
+            let res_iter:Result<Vec<DataValue>>=eval_rest.clone().into_iter().collect();
+            res_iter?.into_iter().last().ok_or(Ex::new("Couldn't evaluate expression."))
         }
     }
-
-    // iterate over rest, convert to data value, then arg,  propagate errors
-        // -> either get iter of Args or an err
-
-    println!("expr");
-    dbg!(children);
-    Ok(Num(900))
 }
 
 pub fn evaluate_list(ctx:&Context, children:&Vec<ASTNode>)->Result<DataValue> {
