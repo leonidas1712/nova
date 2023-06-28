@@ -10,10 +10,10 @@ pub mod message;
 pub mod parser;
 pub mod time;
 
-use std::{collections::HashMap};
+
 use crate::{
     constants::*, 
-    evaluator::{context::Context,evaluator::evaluate,data::*, builtins::*, function::*}
+    evaluator::{context::Context, function::*}
 };
 use rustyline::{error::ReadlineError, DefaultEditor};
 

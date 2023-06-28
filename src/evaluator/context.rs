@@ -1,8 +1,8 @@
-use super::builtins::*;
+
 use super::data::*;
 use super::function::*;
-use crate::message::*;
-use std::collections::{HashMap,HashSet};
+
+use std::collections::{HashMap};
 use std::rc::Rc;
 
 pub struct Context {
@@ -52,6 +52,7 @@ impl Context {
 #[cfg(test)]
 pub mod tests {
     use super::*;
+    use crate::evaluator::builtins::*;
    #[test]
    fn context_test() {
         let fnc=Add{};
