@@ -2,7 +2,8 @@ use super::{context::*, data::*, evaluator::evaluate};
 use crate::message::*;
 use crate::parser::node::*;
 
-pub fn get_args_from_nodes<'a>(iter:impl Iterator<Item=Result<DataValue>> + Clone)->Result<Vec<Arg<'a>>> {
+// evaluated args
+pub fn get_eval_args_from_nodes<'a>(iter:impl Iterator<Item=Result<DataValue>> + Clone)->Result<Vec<Arg<'a>>> {
     // let eval_rest=nodes.iter().map(|node| evaluate(ctx, node));
     let res_iter:Result<Vec<DataValue>>=iter.clone().into_iter().collect();
     let results=res_iter.map(|v| {
@@ -35,7 +36,7 @@ pub fn evaluate_expression(ctx:&Context, children:&Vec<ASTNode>)->Result<DataVal
     match res.expect_function().ok() {
         Some(func) => {
             if func.get_arg_type()==ArgType::Evaluated {
-                let results= get_args_from_nodes(eval_rest.clone())?;
+                let results= get_eval_args_from_nodes(eval_rest.clone())?;
                 func.execute(results, ctx)
 
                 // let strings:Vec<String>=results.into_iter().map(|x| x.to_string()).collect();
