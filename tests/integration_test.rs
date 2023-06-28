@@ -36,3 +36,8 @@ fn if_test() {
     let expected=vec!["-4"];
     compare_many(exprs, expected, &mut ctx);
 }
+
+#[test]
+fn let_test() {
+    let e1="(let x (add 5 (if 1 2 (sub 5 6))) x)";
+}
