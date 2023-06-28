@@ -29,10 +29,15 @@ pub fn setup_context()->Context {
         ($name:literal, $struct:ident) => {
             ctx.add_function($name, Rc::new($struct{}));
         };
+
+        ($name:expr, $struct:ident) => {
+            ctx.add_function($name, Rc::new($struct{}));
+        };
     }
 
-    reg!("add",Add);
-    reg!("sub",Sub);
+    reg!(ADD,Add);
+    reg!(SUB,Sub);
+    reg!(MULT, Mult);
 
     ctx
 }

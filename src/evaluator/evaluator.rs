@@ -36,6 +36,8 @@ pub fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
     match &node.value {
         Number(num) => Ok(Num(*num)),
         Symbol(sym) => {
+            // Boolean
+            
             let fnc=ctx.get_function(sym);
             if fnc.is_some() {
                 return Ok(FunctionVariable(fnc.unwrap().clone()));

@@ -43,5 +43,15 @@ impl Function for Sub {
     }
 }
 
-// pub struct Mult;
-// impl Function for 
+pub struct Mult;
+impl Function for Mult {
+    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
+        get_nums(args).map(|v| v.into_iter().reduce(|acc,e| acc*e))?
+        .ok_or(Ex::new("Could not multiply provided expression"))
+        .map(|x| Num(x))
+    }
+
+    fn to_string(&self) -> String {
+        MULT.to_string()
+    }
+}
