@@ -1,8 +1,8 @@
 use nova::{evaluate_input, evaluator::context::Context, setup_context};
 
 fn compare(inp:&str, expected:&str, ctx:&mut Context) {
-    let res=evaluate_input(inp, ctx);
-    assert_eq!(res, expected);
+    let res=evaluate_input(inp.trim(), ctx);
+    assert_eq!(res, expected.trim());
 }
 
 fn compare_many(inputs:Vec<&str>, expected:Vec<&str>,  ctx:&mut Context) {

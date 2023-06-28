@@ -31,7 +31,7 @@ use super::eval_helpers::*;
             // return out -> add to REPL context 
         // lambda: can just return a normal FnVar
 
-pub fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
+pub (crate) fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
     // try to match terminals
     match &node.value {
         Boolean(b) => Ok(Bool(*b)),
