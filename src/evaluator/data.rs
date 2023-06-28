@@ -2,13 +2,17 @@ use super::function::Function;
 use crate::parser::node::ASTNode;
 use std::rc::Rc;
 
+pub const NUM:&str="Num";
+pub const BOOL:&str="Bool";
+pub const FNV:&str="FunctionVariable";
+
 // Number, Boolean, List, String, Lambda, FunctionVariable(Box<dyn Function>)
 // when we have an enum that has a reference, then a vector of enums and I clone the vector what happens
 
 // do a getter for each enum type that returns an Option so we can chain map etc
 
 // Function shouldn't get dropped until all refs in context/args are dropped -> use Rc
-#[derive(Clone)]
+#[derive(Clone,Display)]
 pub enum DataValue {
     Num(usize),
     Boolean(bool),
@@ -17,15 +21,6 @@ pub enum DataValue {
 }
 
 impl DataValue  {
-    pub fn to_string(&self) -> String {
-        match self {
-            Num(number) => number.to_string(),
-            Boolean(b) => b.to_string(),
-            FunctionVariable(f) => f.to_string(),
-            Default => "Default Data Value".to_string(),
-        }
-    }
-
     pub fn get_num(&self) -> Option<usize> {
         match self {
             Num(num) => Some(*num),
@@ -77,6 +72,8 @@ pub use DataValue::*;
             let d2=Boolean(true);
             let add=Add{};
             let d3=FunctionVariable(Rc::new(add));
+
+            dbg!(d3.to_string());
 
             assert_eq!(d1.get_num().unwrap(), 20);
             assert!(d2.get_num().is_none());

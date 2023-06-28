@@ -5,6 +5,7 @@ use super::function::*;
 use std::collections::{HashMap};
 use std::rc::Rc;
 
+#[derive(Clone)]
 pub struct Context {
     symbol_map:HashMap<String,DataValue>,
 }

@@ -24,7 +24,6 @@ use crate::parser::node::*;
 
 // Else: invalid, return error
 
-// worst case: borrowing from context e.g if we return a FunctionVariable it shouldnt last longer than the context
 pub fn evaluate(ctx: &Context, node: &ASTNode) -> Result<DataValue> {
     // try to match terminals
     match &node.value {
@@ -32,7 +31,8 @@ pub fn evaluate(ctx: &Context, node: &ASTNode) -> Result<DataValue> {
         Symbol(sym) => {
             let fnc=ctx.get_function(sym);
             if fnc.is_some() {
-                return fnc.unwrap().execute(vec![], ctx);
+                return Ok(FunctionVariable(fnc.unwrap().clone()));
+                // return fnc.unwrap().execute(vec![], ctx);
             }
 
             let resolve=ctx.get_variable(sym);

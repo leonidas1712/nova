@@ -18,14 +18,17 @@ pub trait Function {
     }
 }
 
+#[derive(Clone)]
 pub struct UserFunction {
     name: String,
+    context:Context
 }
 
 impl UserFunction {
     pub fn new(name: &str) -> UserFunction {
         UserFunction {
             name: name.to_string(),
+            context:Context::new()
         }
     }
 

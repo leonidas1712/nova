@@ -15,7 +15,7 @@ use std::rc::Rc;
 
 use crate::{
     constants::*, 
-    evaluator::{context::Context, function::*, data::*,builtins::*, evaluator::evaluate}, message::NovaResult
+    evaluator::{context::Context, function::*, data::*,builtins::*, evaluator::evaluate}
 };
 use rustyline::{error::ReadlineError, DefaultEditor};
 
