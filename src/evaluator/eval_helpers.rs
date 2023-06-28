@@ -32,7 +32,7 @@ pub fn evaluate_expression(ctx:&Context, children:&Vec<ASTNode>)->Result<DataVal
     let eval_rest=rest.clone().map(|node| evaluate(ctx, node));
  
     // is function: check ArgType, gets arg, eval.
-    match res.get_function().ok() {
+    match res.expect_function().ok() {
         Some(func) => {
             if func.get_arg_type()==ArgType::Evaluated {
                 let results= get_args_from_nodes(eval_rest.clone())?;

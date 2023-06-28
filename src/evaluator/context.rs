@@ -33,7 +33,7 @@ impl Context {
     
     // reference is enough: we never have to mutate
     pub fn get_function(&self, name:&str)->Option<&Rc<dyn Function>> {
-       self.symbol_map.get(name).and_then(|data| data.get_function().ok())
+       self.symbol_map.get(name).and_then(|data| data.expect_function().ok())
     }
 
     // get a variable (non-function) - returns None if name doesn't exist or name is a function
@@ -63,7 +63,7 @@ pub mod tests {
 
         let g=ctx.get_variable("x");
         let exp:usize=20;
-        assert_eq!(g.unwrap().get_num().unwrap(), exp);
+        assert_eq!(g.unwrap().expect_num().unwrap(), exp);
 
         let f=ctx.get_function("add");
         assert_eq!(f.unwrap().to_string(), "add".to_string());

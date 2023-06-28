@@ -25,34 +25,31 @@ pub enum DataValue {
 }
 
 impl DataValue  {
-    pub fn get_num(&self) -> Result<usize> {
+    pub fn expect_num(&self) -> Result<usize> {
         match self {
             Num(num) => Ok(*num),
             _ => {
-                let msg=format!("Expected a number but got {}", self.to_string());
+                let msg=format!("Expected a number but got '{}'", self.to_string());
                 Err(Ex::new(msg.as_str()))
             },
         }
     }
 
-    pub fn get_bool(&self) -> Result<bool> {
+    pub fn expect_bool(&self) -> Result<bool> {
         match self {
             Boolean(bool) => Ok(*bool),
             _ => {
-                let msg=format!("Expected a boolean but got {}", self.to_string());
+                let msg=format!("Expected a boolean but got '{}'", self.to_string());
                 Err(Ex::new(msg.as_str()))
             },
         }
     }
 
-    // does this transfer ownership because of Rc instead of &Rc
-    // let d={Rc<..>}, then rf=&d, then *(rf.rcp), then see
-    // make a DataVal with a function, do get and call, then do it again
-    pub fn get_function(&self) -> Result<&Rc<dyn Function>> {
+    pub fn expect_function(&self) -> Result<&Rc<dyn Function>> {
         match self {
             FunctionVariable(fn_ref) => Ok(fn_ref),
             _ => {
-                let msg=format!("Expected a function but got {}", self.to_string());
+                let msg=format!("Expected a function but got '{}'", self.to_string());
                 Err(Ex::new(msg.as_str()))
             },
         }
@@ -155,17 +152,17 @@ pub use DataValue::*;
 
             dbg!(d3.to_string());
 
-            assert_eq!(d1.get_num().unwrap(), 20);
-            assert!(d2.get_num().is_err());
-            assert!(d3.get_num().is_err());
+            assert_eq!(d1.expect_num().unwrap(), 20);
+            assert!(d2.expect_num().is_err());
+            assert!(d3.expect_num().is_err());
 
-            assert!(d1.get_bool().is_err());
-            assert_eq!(d2.get_bool().unwrap(), true);
-            assert!(d3.get_bool().is_err());
+            assert!(d1.expect_bool().is_err());
+            assert_eq!(d2.expect_bool().unwrap(), true);
+            assert!(d3.expect_bool().is_err());
 
-            assert!(d1.get_function().is_err());
-            assert!(d2.get_function().is_err());
-            assert!(d3.get_function().is_ok());            
+            assert!(d1.expect_function().is_err());
+            assert!(d2.expect_function().is_err());
+            assert!(d3.expect_function().is_ok());            
         }
 
         #[test]
