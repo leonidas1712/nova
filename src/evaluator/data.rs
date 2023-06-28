@@ -17,7 +17,7 @@ pub const FNV:&str="FunctionVariable";
 #[derive(Clone,Display,AsRefStr)]
 pub enum DataValue {
     Num(NumType),
-    Boolean(bool),
+    Bool(bool),
     FunctionVariable(Rc<dyn Function>), // we need to borrow the function from Context when doing this
     FnDef(Rc<dyn Function>),
     SetVar(Box<DataValue>),
@@ -37,7 +37,7 @@ impl DataValue  {
 
     pub fn expect_bool(&self) -> Result<bool> {
         match self {
-            Boolean(bool) => Ok(*bool),
+            Bool(bool) => Ok(*bool),
             _ => {
                 let msg=format!("Expected a boolean but got '{}'", self.to_string());
                 Err(Ex::new(msg.as_str()))
@@ -58,7 +58,7 @@ impl DataValue  {
     pub fn to_string(&self) -> String {
         match self {
             Num(n) => n.to_string(),
-            Boolean(b) => b.to_string(),
+            Bool(b) => b.to_string(),
             FunctionVariable(f) => f.to_string(),
             Default => String::from("Default Data Value"),
             _ => String::from("unimplemented")
@@ -145,7 +145,7 @@ pub use DataValue::*;
         #[test]
         fn data_test_getters() {
             let d1=Num(20);
-            let d2=Boolean(true);
+            let d2=Bool(true);
             let add=Add{};
             let d3=FunctionVariable(Rc::new(add));
 
@@ -166,7 +166,7 @@ pub use DataValue::*;
 
         #[test]
         fn data_test_arg_expect() {
-            let d=DataValue::Boolean(true);
+            let d=DataValue::Bool(true);
             let d1=DataValue::Num(20);
             let v1:Vec<Arg>=vec![Evaluated(d),Evaluated(d1)];
 

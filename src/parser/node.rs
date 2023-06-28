@@ -13,6 +13,7 @@ pub enum NodeValue {
     Number(NumType),
     Expression(Vec<ASTNode>),
     List(Vec<ASTNode>),
+    Boolean(bool)
 }
 
 pub use NodeValue::*;
@@ -55,7 +56,8 @@ impl ASTNode {
             List(children) => {
                 let v: Vec<String> = children.iter().map(|n| n.to_string()).collect();
                 format!("{}{}{}", OPEN_LIST, v.join(VAR_SEP), CLOSE_LIST)
-            }
+            },
+            Boolean(b) => if *b { TRUE.to_string() } else { FALSE.to_string() }
         }
     }
 }

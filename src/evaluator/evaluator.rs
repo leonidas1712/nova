@@ -34,10 +34,11 @@ use super::eval_helpers::*;
 pub fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
     // try to match terminals
     match &node.value {
+        Boolean(b) => Ok(Bool(*b)),
         Number(num) => Ok(Num(*num)),
         Symbol(sym) => {
             // Boolean
-            
+
             let fnc=ctx.get_function(sym);
             if fnc.is_some() {
                 return Ok(FunctionVariable(fnc.unwrap().clone()));
