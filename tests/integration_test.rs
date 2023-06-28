@@ -39,5 +39,9 @@ fn if_test() {
 
 #[test]
 fn let_test() {
-    let e1="(let x (add 5 (if 1 2 (sub 5 6))) x)";
+    // let e1="(let x (add 5 (if 1 2 (sub 5 6))) x)";
+    // (let x (let y (let z 5) y) x)
+    let e="(let if 2)";
+    let mut ctx=setup_context();
+    evaluate_input(e, &mut ctx);
 }

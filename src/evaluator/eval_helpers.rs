@@ -1,6 +1,6 @@
 use super::{context::*, data::*, evaluator::evaluate};
-use crate::constants::DONT_ADD;
-use crate::message::*;
+use crate::constants::{DONT_ADD, RESERVED_KEYWORDS, SPLIT_TOKENS, LET_NAME};
+use crate::{message::*};
 use crate::parser::node::*;
 
 // evaluated args
@@ -16,13 +16,17 @@ pub fn get_eval_args_from_nodes<'a>(
     Ok(results)
 }
 
-pub fn is_valid_identifier(s:String)->bool {
-    if DONT_ADD.contains(&s.as_str()) {
-        return false;
+pub fn is_valid_identifier(s:&str)->Result<bool> {
+    let s=&s;
+    if DONT_ADD.contains(s) || SPLIT_TOKENS.contains(s) {
+        let msg=format!("Invalid identifier: {}", s);
+        return Err(Ex::new(&msg));
+    } else if RESERVED_KEYWORDS.contains(s) {
+        let msg=format!("Invalid identifier: '{}' is a reserved keyword.", s);
+        return Err(Ex::new(&msg));
     }
 
-    
-    true
+    Ok(true)
 }
 
 // evaluate first child. if len==1, return
@@ -98,7 +102,48 @@ pub fn evaluate_if(ctx: &Context, cond: &ASTNode, e1: &ASTNode, e2: &ASTNode) ->
 pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>) -> Result<DataValue> {
     // println!("Let received eval:", expressions.);
     // expressions.iter().for_each(|n| println!("{}", n.to_string()));
-    let new_ctx=ctx.clone();
+    let mut new_ctx=ctx.clone();
+    let n=expressions.len();
+
+    let mut var:Option<&str>=None; // name of var to set in map
+
+    // if var is None: expect symbol to assign
+    // if var is Some: evaluate
+
+    for i in 0..n {
+        let nxt_node=expressions.get(i).unwrap();
+        if i == n-1 {
+            return evaluate(&new_ctx, nxt_node);
+        }
+
+        if var.is_some() {
+            let res=evaluate(&new_ctx, &nxt_node)?;
+            new_ctx.add_variable(var.unwrap(), res);
+            var.take();
+            continue;
+        }
+
+        // None: expect symbol
+        match &nxt_node.value {
+            Symbol(string) => {
+                let check=is_valid_identifier(string.as_str())?;
+                var.replace(string.as_str());
+            }
+            _ => {
+                let msg=format!("'{}' expected a symbol but got '{}'", LET_NAME, nxt_node.to_string());
+                return Err(Ex::new(&msg));
+            }
+        }
+    }
 
     Ok(Default)
 }
+
+use crate::lexer::Lexer;
+#[test]
+fn let_test() {
+    let e="(let if 2)";
+  
+}
+
+

@@ -216,6 +216,9 @@ pub mod tests {
     #[test]
     pub fn parse_let_test() {
         let exp="(let x 2)";
+        let e2="(let if 2)";
+        let mut lex = Lexer::new(e2.to_string()).unwrap();
+        let p=parse(lex);
     }
 
     #[test]
