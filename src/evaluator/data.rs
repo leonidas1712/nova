@@ -1,11 +1,10 @@
-use super::function::Function;
+use std::rc::Rc;
+use std::fmt::Display;
+
 use crate::constants::NumType;
 use crate::parser::node::ASTNode;
 use crate::message::*;
-
-use std::ops::Deref;
-use std::rc::Rc;
-use std::fmt::Display;
+use super::function::Function;
 
 pub const NUM:&str="Num";
 pub const BOOL:&str="Bool";
@@ -115,7 +114,6 @@ impl<'a> Arg<'a>  {
         match self {
             Evaluated(val) => val.to_string(),
             Unevaluated(node) => node.to_string(),
-            DefaultArg => "DefaultArg".to_string()
         }
     }
 }

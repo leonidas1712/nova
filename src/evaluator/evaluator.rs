@@ -51,6 +51,5 @@ pub fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
         },
         Expression(children) => evaluate_expression(ctx, children),
         List(children) => evaluate_list(ctx, children),
-        _ => Ok(Default),
     }
 }

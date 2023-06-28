@@ -9,6 +9,7 @@ pub mod lexer;
 pub mod message;
 pub mod parser;
 pub mod time;
+pub mod macros;
 
 pub use evaluator::*;
 
@@ -16,7 +17,8 @@ use std::rc::Rc;
 
 use crate::{
     constants::*, 
-    evaluator::{context::Context,builtins::*, evaluator::evaluate}
+    evaluator::{context::Context,builtins::*, evaluator::evaluate},
+    macros::*
 };
 use rustyline::{error::ReadlineError, DefaultEditor};
 
@@ -30,7 +32,7 @@ pub fn setup_context()->Context {
         };
     }
 
-    reg!("add", Add);
+    reg!("add",Add);
     reg!("sub",Sub);
 
     ctx

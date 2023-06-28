@@ -17,7 +17,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
             _ => (),
         }
 
-        let mut res = parse_expression(lex)?;
+        let res = parse_expression(lex)?;
         children.push(res);
     };
 
@@ -101,7 +101,7 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
             break;
         }
 
-        let mut res = parse_expression(&mut lex)?;
+        let res = parse_expression(&mut lex)?;
         nodes.push(res);
     }
 
