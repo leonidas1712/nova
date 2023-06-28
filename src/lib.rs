@@ -10,34 +10,27 @@ pub mod message;
 pub mod parser;
 pub mod time;
 
-use std::collections::HashMap;
+pub use evaluator::*;
+
 use std::rc::Rc;
 
 use crate::{
     constants::*, 
-    evaluator::{context::Context, function::*, data::*,builtins::*, evaluator::evaluate}
+    evaluator::{context::Context,builtins::*, evaluator::evaluate}
 };
 use rustyline::{error::ReadlineError, DefaultEditor};
 
-
-fn rcf<F: Function + 'static>(f: F) -> Rc<dyn Function> {
-    Rc::new(f)
-}
-
 // register builtins here
-// // macro!(Add) => ctx.add_function("add", rcf(Add{}))
-
 pub fn setup_context()->Context {
     let mut ctx=Context::new();
 
-
     macro_rules! reg {
         ($name:literal, $struct:ident) => {
-            ctx.add_function($name, rcf($struct{}));
+            ctx.add_function($name, Rc::new($struct{}));
         };
     }
 
-    reg!("add",Add);
+    reg!("add", Add);
     reg!("sub",Sub);
 
     ctx

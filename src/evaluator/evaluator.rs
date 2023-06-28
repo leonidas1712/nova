@@ -39,14 +39,14 @@ pub fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
             let fnc=ctx.get_function(sym);
             if fnc.is_some() {
                 return Ok(FunctionVariable(fnc.unwrap().clone()));
-                // return fnc.unwrap().execute(vec![], ctx);
             }
 
             let resolve=ctx.get_variable(sym);
             if resolve.is_some() {
                 Ok(resolve.unwrap().clone())
             } else {
-                Err(Ex::new("Unrecognised symbol.")) 
+                let err_string=format!("Unrecognised symbol: '{}'", sym);
+                Err(Ex::new(err_string.as_str()))
             }
         },
         Expression(children) => evaluate_expression(ctx, children),

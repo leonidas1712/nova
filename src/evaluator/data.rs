@@ -12,7 +12,7 @@ pub const FNV:&str="FunctionVariable";
 // do a getter for each enum type that returns an Option so we can chain map etc
 
 // Function shouldn't get dropped until all refs in context/args are dropped -> use Rc
-#[derive(Clone,Display)]
+#[derive(Clone,Display,AsRefStr)]
 pub enum DataValue {
     Num(usize),
     Boolean(bool),
@@ -44,6 +44,15 @@ impl DataValue  {
             _ => None,
         }
     }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            Num(n) => n.to_string(),
+            Boolean(b) => b.to_string(),
+            FunctionVariable(f) => f.to_string(),
+            Default => String::from("Default Data Value")
+        }
+    }
 }
 
 pub enum Arg {
@@ -52,6 +61,17 @@ pub enum Arg {
     DefaultArg,
 }
 
+impl Arg {
+    pub fn to_string(&self)->String {
+        match self {
+            Evaluated(val) => val.to_string(),
+            Unevaluated(node) => node.to_string(),
+            DefaultArg => "DefaultArg".to_string()
+        }
+    }
+}
+
+#[derive(PartialEq)]
 pub enum ArgType {
     Evaluated,
     Unevaluated,
