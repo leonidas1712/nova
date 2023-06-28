@@ -25,11 +25,20 @@ fn rcf<F: Function + 'static>(f: F) -> Rc<dyn Function> {
 }
 
 // register builtins here
+// // macro!(Add) => ctx.add_function("add", rcf(Add{}))
+
 pub fn setup_context()->Context {
     let mut ctx=Context::new();
 
-    ctx.add_function("add", rcf(Add{}));
-    ctx.add_variable("var", Num(500));
+
+    macro_rules! reg {
+        ($name:literal, $struct:ident) => {
+            ctx.add_function($name, rcf($struct{}));
+        };
+    }
+
+    reg!("add",Add);
+    reg!("sub",Sub);
 
     ctx
 }
