@@ -3,14 +3,22 @@ use super::data::*;
 use super::function::*;
 use crate::message::*;
 use DataValue::*;
+use super::data::*;
 
+// expect on data values inside args
+// pub fn expect_args(args:&Vec<Arg>, )
+    // args.get(0).
 pub struct Add;
 impl Function for Add {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
         println!("Added:");
-        args.iter().for_each(|x| println!("{}", x.to_string()));
-
-        Ok(Num(400))
+        // args.iter().for_each(|x| println!("{}", x.to_string()));
+        let r:Result<Vec<usize>>=Arg::expect_all_eval(args)
+        .and_then(|f| f.into_iter().map(|x| x.get_num()).collect());
+        
+        let total:Result<usize>=r.map(|v| v.into_iter().sum());
+        total.map(|n| Num(n))
+        
     }
 
     fn to_string(&self) -> String {
