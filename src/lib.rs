@@ -70,6 +70,11 @@ pub fn nova_repl(context:Context) {
                     println!("See you again!");
                     break;
                 }
+                
+                if ["cl", "clear"].contains(&inp.as_str()) {
+                    rl.clear_screen();
+                    continue;
+                }
 
                 rl.add_history_entry(inp.clone().trim()).unwrap();
 
@@ -79,8 +84,8 @@ pub fn nova_repl(context:Context) {
                 .and_then(|node| evaluate(&context, &node));
 
                 match res {
-                    Ok(nr) => {
-                        println!("Result: {}", nr.to_string())
+                    Ok(val) => {
+                        println!("Result: {}", val.to_string())
                     },
 
                     Err(ne) => println!("{}",ne.format_error())
