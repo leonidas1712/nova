@@ -31,6 +31,5 @@ fn nova_error_test_new() {
 
     let v:Vec<Result<u32>>=vec![Ok(1),Ok(2), Ok(1), Err(Ex::new("oops"))];
     let k:Result<Vec<u32>>=v.into_iter().collect();
-    dbg!(k);
 }
 
