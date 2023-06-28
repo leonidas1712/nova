@@ -1,6 +1,4 @@
 use super::{context::*, data::*};
-
-use crate::parser::*;
 use crate::parser::node::*;
 use crate::message::*;
 
@@ -20,25 +18,21 @@ use crate::message::*;
         // We are in an expression + First subexpr resolves to FunctionVariable + length of expr > 1 => eval
 
     // FunctionCall: check if evaluated or unevaluated, then decide to eval or not the rest of the subexprs
-        // Need a way to check - ? how
+        // Need a way to check - trait
     // else, evaluate the other subexpressions in order and return the result from the last eval
         // e.g (puts 1) (puts 2 ) (puts 3) => should print 1 2 3
     
 // Else: invalid, return error
 
 // worst case: borrowing from context e.g if we return a FunctionVariable it shouldnt last longer than the context
-pub fn evaluate<'a>(ctx:&'a Context, node:&ASTNode, user_fn:bool)->Result<DataValue<'a>> {
+pub fn evaluate<'a>(ctx:&'a Context, node:&ASTNode)->Result<DataValue<'a>> {
     let mut nova_result=NovaResult::new(DataValue::Default);
-
-    if user_fn {
-        println!("Called by user function:{}", node.value.to_string());
-        return Ok(nova_result)
-    }
-    // placeholder
     
+    match node.value {
+        Number(num) => nova_result.result=Num(num),
+        _ => nova_result.result=DataValue::Default
 
-    println!("eval");
-    context();
+    }
 
     Ok(nova_result)
 }

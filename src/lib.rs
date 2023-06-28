@@ -10,7 +10,11 @@ pub mod time;
 pub mod message;
 
 use rustyline::{error::ReadlineError, DefaultEditor};
-use crate::constants::QUIT_STRINGS;
+use crate::{
+    constants::QUIT_STRINGS, 
+    evaluator::evaluator::evaluate,
+    evaluator::context
+};
 
 // setup context by making the map of functions and pass it into Context::new, then pass it to nova_repl
     // this is how we can seed Context with map of refs to functions
@@ -51,10 +55,14 @@ pub fn nova_repl() {
 
                 match res {
                     Ok(nr) => {
-                        let node=nr.result;
-                        println!("Node: {}", node);
-
-                        nr.messages.iter().for_each(|msg| println!("Message: {}", msg))
+                        let node=&nr.result;
+                        println!("Node: {}", &node);
+                        
+                        let ctx=context::Context::new();
+                        let mut evaluated=evaluate(&ctx, &node).unwrap();
+                        evaluated.add_messages(&nr);
+                    
+                        println!("Evaluated: {}", evaluated.result.to_string());
                     },
                     Err(ne) => {
                         println!("{}", ne.format_error());

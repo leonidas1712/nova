@@ -7,6 +7,15 @@ use crate::parser::node::*;
 // &Context: need to be able to re-use the context
 pub trait Function {
     fn execute(&self, args: Vec<Arg>, context:&Context)->Result<DataValue>;
+
+    // default: Evaluated
+    fn get_arg_type(&self)->ArgType {
+        ArgType::Evaluated
+    }
+
+    fn to_string(&self)->String {
+        "Function trait".to_string()
+    }
 }
 
 pub struct UserFunction {
@@ -27,10 +36,9 @@ impl UserFunction {
 
 impl Function for UserFunction {
     fn execute(&self, args: Vec<Arg>, context:&Context)->Result<DataValue> {
-        println!("User function: {}", &self.name);
-        
+
         // just test by passing name
-        evaluator::evaluate(&context, &ASTNode::new(NodeValue::Symbol(self.name.clone())), true)?;
+        evaluator::evaluate(&context, &ASTNode::new(NodeValue::Symbol(self.name.clone())))?;
 
         Ok(NovaResult::new(Default))
     }

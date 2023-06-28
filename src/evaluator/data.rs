@@ -16,6 +16,15 @@ pub enum DataValue<'a> {
 }
 
 impl<'a> DataValue<'a> {
+    pub fn to_string(&self)->String {
+        match self {
+            Num(number) => number.to_string(),
+            Boolean(b) => b.to_string(),
+            FunctionVariable(f) => f.to_string(),
+            Default => "Default Data Value".to_string()
+        }
+    }
+
     pub fn get_num(&self)->Option<usize> {
         match self {
             Num(num) => Some(*num),
@@ -43,6 +52,12 @@ pub enum Arg<'a> {
     Unevaluated(ASTNode),
     DefaultArg
 }
+
+// impl<'a> Arg<'a> {
+//     fn get_args_evaluated(value_iter: impl Iterator<Item=DataValue<'a>>)->impl Iterator<Item=Arg<'a>> {
+//         value_iter.map(|val| Evaluated(val))
+//     }
+// }
 
 pub enum ArgType {
     Evaluated,

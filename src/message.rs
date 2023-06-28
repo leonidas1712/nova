@@ -54,11 +54,15 @@ impl<T> NovaResult<T> {
     }
 
     // add messages from another result, consuming it
-    pub fn add_messages<U>(&mut self, other:&mut NovaResult<U>) {
+    pub fn add_messages<U>(&mut self, other:&NovaResult<U>) {
         if other.messages.len()==0 {
             return;
         }
-        self.messages.append(&mut other.messages);
+
+        for msg in other.messages.iter() {
+            self.messages.push(msg.clone());
+        }
+        // self.messages.append(&mut other.messages);
     }
 }
 
