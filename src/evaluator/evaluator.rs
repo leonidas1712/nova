@@ -1,7 +1,7 @@
+use super::eval_helpers::*;
 use super::{context::*, data::*};
 use crate::message::*;
 use crate::parser::node::*;
-use super::eval_helpers::*;
 
 // 1. Check ast node type -> if terminal, convert to a DataValue -> put this method in context
 // terminal: num, bool, list, function variable, identifiers
@@ -26,12 +26,12 @@ use super::eval_helpers::*;
 // Else: invalid, return error
 
 // how to handle: ( (def f (x) x) (1) )
-    // i.e inline fn def + result
-        // make DataValue::FnDef -> contains Rc<fn> + optional result
-            // return out -> add to REPL context 
-        // lambda: can just return a normal FnVar
+// i.e inline fn def + result
+// make DataValue::FnDef -> contains Rc<fn> + optional result
+// return out -> add to REPL context
+// lambda: can just return a normal FnVar
 
-pub (crate) fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
+pub(crate) fn evaluate(ctx: &Context, node: &ASTNode) -> Result<DataValue> {
     // try to match terminals
     match &node.value {
         Boolean(b) => Ok(Bool(*b)),
@@ -39,27 +39,29 @@ pub (crate) fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
         Symbol(sym) => {
             // Boolean
 
-            let fnc=ctx.get_function(sym);
+            let fnc = ctx.get_function(sym);
             if fnc.is_some() {
                 return Ok(FunctionVariable(fnc.unwrap().clone()));
             }
 
-            let resolve=ctx.get_variable(sym);
+            let resolve = ctx.get_variable(sym);
             if resolve.is_some() {
                 Ok(resolve.unwrap().clone())
             } else {
-                let err_string=format!("Unrecognised symbol: '{}'", sym);
+                let err_string = format!("Unrecognised symbol: '{}'", sym);
                 Err(Ex::new(err_string.as_str()))
             }
-        },
+        }
         Expression(children) => evaluate_expression(ctx, children),
         List(children) => evaluate_list(ctx, children),
         IfNode(children) => {
-            return evaluate_if(ctx, children.get(0).unwrap(), 
-                children.get(1).unwrap(), children.get(2).unwrap());
-        },
-        LetNode(children) => {
-            return evaluate_let(ctx, children)
+            return evaluate_if(
+                ctx,
+                children.get(0).unwrap(),
+                children.get(1).unwrap(),
+                children.get(2).unwrap(),
+            );
         }
+        LetNode(children) => return evaluate_let(ctx, children),
     }
 }

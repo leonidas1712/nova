@@ -1,20 +1,20 @@
-use std::rc::Rc;
 use std::fmt::Display;
+use std::rc::Rc;
 
-use crate::constants::NumType;
-use crate::parser::node::ASTNode;
-use crate::message::*;
 use super::function::Function;
+use crate::constants::NumType;
+use crate::message::*;
+use crate::parser::node::ASTNode;
 
-pub const NUM:&str="Num";
-pub const BOOL:&str="Bool";
-pub const FNV:&str="FunctionVariable";
+pub const NUM: &str = "Num";
+pub const BOOL: &str = "Bool";
+pub const FNV: &str = "FunctionVariable";
 
 // Number, Boolean, List, String, Lambda, FunctionVariable(Box<dyn Function>)
 // when we have an enum that has a reference, then a vector of enums and I clone the vector what happens
 
 // Function shouldn't get dropped until all refs in context/args are dropped -> use Rc
-#[derive(Clone,Display,AsRefStr)]
+#[derive(Clone, Display, AsRefStr)]
 pub enum DataValue {
     Num(NumType),
     Bool(bool),
@@ -24,14 +24,14 @@ pub enum DataValue {
     Default,
 }
 
-impl DataValue  {
+impl DataValue {
     pub fn expect_num(&self) -> Result<NumType> {
         match self {
             Num(num) => Ok(*num),
             _ => {
-                let msg=format!("Expected a number but got '{}'", self.to_string());
+                let msg = format!("Expected a number but got '{}'", self.to_string());
                 Err(Ex::new(msg.as_str()))
-            },
+            }
         }
     }
 
@@ -39,9 +39,9 @@ impl DataValue  {
         match self {
             Bool(bool) => Ok(*bool),
             _ => {
-                let msg=format!("Expected a boolean but got '{}'", self.to_string());
+                let msg = format!("Expected a boolean but got '{}'", self.to_string());
                 Err(Ex::new(msg.as_str()))
-            },
+            }
         }
     }
 
@@ -49,9 +49,9 @@ impl DataValue  {
         match self {
             FunctionVariable(fn_ref) => Ok(fn_ref),
             _ => {
-                let msg=format!("Expected a function but got '{}'", self.to_string());
+                let msg = format!("Expected a function but got '{}'", self.to_string());
                 Err(Ex::new(msg.as_str()))
-            },
+            }
         }
     }
 
@@ -61,17 +61,16 @@ impl DataValue  {
             Bool(b) => b.to_string(),
             FunctionVariable(f) => f.to_string(),
             Default => String::from("Default Data Value"),
-            _ => String::from("unimplemented")
+            _ => String::from("unimplemented"),
         }
     }
 }
 
 // expect_eval: takes one arg -> Option<DataValue> (None if uneval)
-    // expect_uneval: ... 
-    // consume because we need to unwrap the value inside => Arg is useless after that
+// expect_uneval: ...
+// consume because we need to unwrap the value inside => Arg is useless after that
 
 // expect_all: (Iterator<Arg>, predicate(Arg)) -> true if all ...
-
 
 pub enum Arg<'a> {
     Evaluated(DataValue),
@@ -80,38 +79,38 @@ pub enum Arg<'a> {
 
 pub use Arg::*;
 
-impl<'a> Arg<'a>  {
-    pub fn expect_eval(self)->Result<DataValue>{
+impl<'a> Arg<'a> {
+    pub fn expect_eval(self) -> Result<DataValue> {
         match self {
             Evaluated(val) => Ok(val),
-            Unevaluated(node)=> {
-                let msg=format!("Expected evaluated: {}", node.to_string());
+            Unevaluated(node) => {
+                let msg = format!("Expected evaluated: {}", node.to_string());
                 Err(Ex::new(msg.as_str()))
             }
         }
     }
 
-    pub fn expect_uneval(self)->Result<&'a ASTNode> {
+    pub fn expect_uneval(self) -> Result<&'a ASTNode> {
         match self {
             Unevaluated(node) => Ok(node),
             Evaluated(val) => {
-                let msg=format!("Expected unevaluated node: {}", val.to_string());
+                let msg = format!("Expected unevaluated node: {}", val.to_string());
                 Err(Ex::new(msg.as_str()))
             }
         }
     }
 
-    pub fn expect_all_eval(args:Vec<Arg>)->Result<Vec<DataValue>> {
-        let k:Result<Vec<DataValue>>=args.into_iter().map(|a| a.expect_eval()).collect();
+    pub fn expect_all_eval(args: Vec<Arg>) -> Result<Vec<DataValue>> {
+        let k: Result<Vec<DataValue>> = args.into_iter().map(|a| a.expect_eval()).collect();
         return k;
     }
 
-    pub fn expect_all_uneval(args:Vec<Arg<'a>>)->Result<Vec<&'a ASTNode>> {
-        let k:Result<Vec<&'a ASTNode>>=args.into_iter().map(|a| a.expect_uneval()).collect();
+    pub fn expect_all_uneval(args: Vec<Arg<'a>>) -> Result<Vec<&'a ASTNode>> {
+        let k: Result<Vec<&'a ASTNode>> = args.into_iter().map(|a| a.expect_uneval()).collect();
         return k;
     }
 
-    pub fn to_string(&self)->String {
+    pub fn to_string(&self) -> String {
         match self {
             Evaluated(val) => val.to_string(),
             Unevaluated(node) => node.to_string(),
@@ -123,7 +122,7 @@ pub use Arg::*;
 
 impl<'a> Display for Arg<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}",self.to_string())
+        write!(f, "{}", self.to_string())
     }
 }
 
@@ -137,44 +136,43 @@ pub use Arg::*;
 pub use DataValue::*;
 
 #[cfg(test)]
-    pub mod tests {
-        use super::*;
-        use super::super::builtins::Add;
-        use std::rc::Rc;
+pub mod tests {
+    use super::super::builtins::Add;
+    use super::*;
+    use std::rc::Rc;
 
-        #[test]
-        fn data_test_getters() {
-            let d1=Num(20);
-            let d2=Bool(true);
-            let add=Add{};
-            let d3=FunctionVariable(Rc::new(add));
+    #[test]
+    fn data_test_getters() {
+        let d1 = Num(20);
+        let d2 = Bool(true);
+        let add = Add {};
+        let d3 = FunctionVariable(Rc::new(add));
 
-            dbg!(d3.to_string());
+        dbg!(d3.to_string());
 
-            assert_eq!(d1.expect_num().unwrap(), 20);
-            assert!(d2.expect_num().is_err());
-            assert!(d3.expect_num().is_err());
+        assert_eq!(d1.expect_num().unwrap(), 20);
+        assert!(d2.expect_num().is_err());
+        assert!(d3.expect_num().is_err());
 
-            assert!(d1.expect_bool().is_err());
-            assert_eq!(d2.expect_bool().unwrap(), true);
-            assert!(d3.expect_bool().is_err());
+        assert!(d1.expect_bool().is_err());
+        assert_eq!(d2.expect_bool().unwrap(), true);
+        assert!(d3.expect_bool().is_err());
 
-            assert!(d1.expect_function().is_err());
-            assert!(d2.expect_function().is_err());
-            assert!(d3.expect_function().is_ok());            
-        }
-
-        #[test]
-        fn data_test_arg_expect() {
-            let d=DataValue::Bool(true);
-            let d1=DataValue::Num(20);
-            let v1:Vec<Arg>=vec![Evaluated(d),Evaluated(d1)];
-
-            let res=Arg::expect_all_eval(v1);
-            assert!(res.is_ok());
-            let n=res.unwrap();
-        
-            assert_eq!(n.get(0).unwrap().to_string(), "true");
-        }
+        assert!(d1.expect_function().is_err());
+        assert!(d2.expect_function().is_err());
+        assert!(d3.expect_function().is_ok());
     }
 
+    #[test]
+    fn data_test_arg_expect() {
+        let d = DataValue::Bool(true);
+        let d1 = DataValue::Num(20);
+        let v1: Vec<Arg> = vec![Evaluated(d), Evaluated(d1)];
+
+        let res = Arg::expect_all_eval(v1);
+        assert!(res.is_ok());
+        let n = res.unwrap();
+
+        assert_eq!(n.get(0).unwrap().to_string(), "true");
+    }
+}
