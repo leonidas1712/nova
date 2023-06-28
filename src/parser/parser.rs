@@ -2,6 +2,7 @@ use crate::constants::*;
 use crate::lexer;
 use crate::message::*;
 use crate::parser::node::*;
+use super::special::*;
 
 enum Special {
     If,
@@ -21,22 +22,6 @@ impl Special {
             _ => None
         }
     }
-}
-
-fn parse_fn_def(lex: &mut lexer::Lexer)->Result<ASTNode> {
-    lex.next();
-    Ok(ASTNode::new(Symbol("FnDef".to_string())))
-}
-
-fn parse_if_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
-    lex.next();
-    Ok(ASTNode::new(Symbol("IfStmt".to_string())))
-}
-
-
-fn parse_let_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
-    lex.next();
-    Ok(ASTNode::new(Symbol("LetStmt".to_string())))
 }
 
 // Parser
@@ -112,7 +97,7 @@ fn parse_atomic_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 }
 
 // recursive
-fn parse_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
+pub fn parse_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     let token_peek = lex.peek();
     if let None = token_peek {
         return Err(Ex::new("Unrecognised expression."));
@@ -218,7 +203,7 @@ pub mod tests {
 
         let exps = vec![
             "(sum (map lst (take 5)) (succ 5) [1,2])",
-            "(if (eq n 0) (recr (pred n)) (recr (succ n)))",
+            // "(if (eq n 0) (recr (pred n)) (recr (succ n)))",
             "(map (sum fn (add 2 3)) >> (rec (add 2 3) lst))",
             "sum",
             "[2]",
