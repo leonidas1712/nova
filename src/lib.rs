@@ -1,5 +1,7 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
+// #![allow(dead_code)]
+// #![allow(unused_variables)]
+// #![allow(unused_imports)]
+// #![allow(unused_macros)]
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;
@@ -25,13 +27,13 @@ use rustyline::{error::ReadlineError, DefaultEditor};
 // register builtins here
 pub fn setup_context()->Context {
     let mut ctx=Context::new();
-
     macro_rules! reg {
         ($name:literal, $struct:ident) => {
             ctx.add_function($name, Rc::new($struct{}));
         };
     }
 
+    prints!(1,2,3);
     reg!("add",Add);
     reg!("sub",Sub);
 
@@ -86,7 +88,7 @@ pub fn nova_repl(mut context:Context) {
                 }
                 
                 if ["cl", "clear"].contains(&inp.as_str()) {
-                    rl.clear_screen();
+                    let _=rl.clear_screen();
                     continue;
                 }
 

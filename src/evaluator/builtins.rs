@@ -42,3 +42,6 @@ impl Function for Sub {
         SUB.to_string()
     }
 }
+
+// pub struct Mult;
+// impl Function for 
