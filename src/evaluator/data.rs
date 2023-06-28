@@ -1,20 +1,22 @@
 use super::function::Function;
 use crate::parser::node::*;
+use std::rc::Rc;
 
 // Number, Boolean, List, String, Lambda, FunctionVariable(Box<dyn Function>)
 // when we have an enum that has a reference, then a vector of enums and I clone the vector what happens
 
 // do a getter for each enum type that returns an Option so we can chain map etc
 
+// Function shouldn't get dropped until all refs in context/args are dropped -> use Rc
 #[derive(Clone)]
-pub enum DataValue<'a> {
+pub enum DataValue {
     Num(usize),
     Boolean(bool),
-    FunctionVariable(&'a Box<dyn Function>), // we need to borrow the function from Context when doing this
+    FunctionVariable(Rc<dyn Function>), // we need to borrow the function from Context when doing this
     Default,
 }
 
-impl<'a> DataValue<'a> {
+impl DataValue  {
     pub fn to_string(&self) -> String {
         match self {
             Num(number) => number.to_string(),
@@ -38,16 +40,16 @@ impl<'a> DataValue<'a> {
         }
     }
 
-    pub fn get_function(&self) -> Option<&'a Box<dyn Function>> {
+    pub fn get_function(&self) -> Option<&Rc<dyn Function>> {
         match self {
-            FunctionVariable(fn_ref) => Some(*fn_ref),
+            FunctionVariable(fn_ref) => Some(fn_ref),
             _ => None,
         }
     }
 }
 
 pub enum Arg<'a> {
-    Evaluated(DataValue<'a>),
+    Evaluated(DataValue),
     Unevaluated(ASTNode),
     DefaultArg,
 }
