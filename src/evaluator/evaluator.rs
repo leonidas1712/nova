@@ -39,7 +39,7 @@ pub fn evaluate(ctx: &Context, node: &ASTNode) -> Result<DataValue> {
             if resolve.is_some() {
                 Ok(resolve.unwrap().clone())
             } else {
-                Err(NovaError::new("Unrecognised symbol."))
+                Err(Ex::new("Unrecognised symbol."))
             }
         }
         _ => return Ok(DataValue::Default),

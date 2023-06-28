@@ -12,7 +12,7 @@ impl Lexer {
         let mut filtered = input;
 
         if filtered.len() == 0 {
-            return Err(NovaError::new("Can't parse an empty string."));
+            return Err(Ex::new("Can't parse an empty string."));
         }
 
         for token in SPLIT_TOKENS {

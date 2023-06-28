@@ -27,10 +27,10 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
         Some(last_token) => {
             let cmp = (open_token.as_str(), last_token);
             if cmp != EXPR_TUP && cmp != LIST_TUP {
-                return Err(NovaError::new("Mismatched brackets."));
+                return Err(Ex::new("Mismatched brackets."));
             };
         }
-        None => return Err(NovaError::new("Expression was not well-formed.")),
+        None => return Err(Ex::new("Expression was not well-formed.")),
     };
 
     lex.next(); // advance past the last token
@@ -53,7 +53,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 fn parse_atomic_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     let token_opt = lex.next();
     if token_opt.is_none() {
-        return Err(NovaError::new("Problem parsing expression."));
+        return Err(Ex::new("Problem parsing expression."));
     }
 
     let token = token_opt.unwrap();
@@ -72,14 +72,14 @@ fn parse_atomic_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 fn parse_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     let token_peek = lex.peek();
     if let None = token_peek {
-        return Err(NovaError::new("Unrecognised expression."));
+        return Err(Ex::new("Unrecognised expression."));
     }
 
     let token = token_peek.unwrap().as_str();
 
     // if first token is ), not well formed
     if CLOSE_TOKENS.contains(&token) {
-        return Err(NovaError::new("Expression is not well formed."));
+        return Err(Ex::new("Expression is not well formed."));
     }
 
     // list
@@ -95,7 +95,6 @@ fn parse_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 // once curried functions: do evaluation in order
 pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
     let mut nodes: Vec<ASTNode> = Vec::new();
-    let mut result = NovaResult::new(ASTNode::empty());
 
     loop {
         if let None = lex.peek() {
@@ -107,7 +106,7 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
     }
 
     if nodes.len() == 0 {
-        return Err(NovaError::new("Parse received empty expression."));
+        return Err(Ex::new("Parse received empty expression."));
     };
 
     // nodes.into_iter().next()
