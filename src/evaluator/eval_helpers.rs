@@ -57,7 +57,7 @@ pub fn evaluate_expression(ctx:&Context, children:&Vec<ASTNode>)->Result<DataVal
     }
 }
 
-pub fn evaluate_list(ctx:&Context, children:&Vec<ASTNode>)->Result<DataValue> {
+pub fn evaluate_list(_ctx:&Context, children:&Vec<ASTNode>)->Result<DataValue> {
     println!("list eval");
     dbg!(children);
     Ok(Default)

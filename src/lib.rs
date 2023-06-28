@@ -1,10 +1,11 @@
-// #![allow(dead_code)]
-// #![allow(unused_variables)]
-// #![allow(unused_imports)]
-// #![allow(unused_macros)]
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+#![allow(unused_macros)]
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;
+
 pub mod constants;
 pub mod evaluator;
 pub mod lexer;
@@ -13,14 +14,11 @@ pub mod parser;
 pub mod time;
 pub mod macros;
 
-pub (crate) use evaluator::*;
-
 use std::rc::Rc;
 
 use crate::{
     constants::*, 
-    evaluator::{context::Context,builtins::*, evaluator::evaluate},
-    macros::*
+    evaluator::{context::Context,builtins::*, evaluator::evaluate}
 };
 use rustyline::{error::ReadlineError, DefaultEditor};
 
@@ -33,7 +31,6 @@ pub fn setup_context()->Context {
         };
     }
 
-    prints!(1,2,3);
     reg!("add",Add);
     reg!("sub",Sub);
 

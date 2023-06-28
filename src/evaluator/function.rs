@@ -38,7 +38,7 @@ impl UserFunction {
 }
 
 impl Function for UserFunction {
-    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
+    fn execute(&self, _args: Vec<Arg>, context: &Context) -> Result<DataValue> {
         // just test by passing name
         evaluator::evaluate(
             &context,

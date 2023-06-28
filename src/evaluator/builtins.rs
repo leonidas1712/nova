@@ -19,7 +19,7 @@ fn get_nums(args:Vec<Arg>)->Result<Vec<NumType>> {
 
 pub struct Add;
 impl Function for Add {
-    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
+    fn execute(&self, args: Vec<Arg>, _context: &Context) -> Result<DataValue> {
         let r=get_nums(args);
         let total:Result<NumType>=r.map(|v| v.into_iter().sum());
         total.map(|n| Num(n))
@@ -32,7 +32,7 @@ impl Function for Add {
 
 pub struct Sub;
 impl Function for Sub {
-    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
+    fn execute(&self, args: Vec<Arg>, _context: &Context) -> Result<DataValue> {
         get_nums(args).map(|v| v.into_iter().reduce(|acc,e| acc-e))?
         .ok_or(Ex::new("Could not subtract provided expression"))
         .map(|x| Num(x))
