@@ -3,9 +3,10 @@ use super::data::*;
 use super::function::*;
 use crate::message::*;
 use std::collections::{HashMap,HashSet};
+use std::rc::Rc;
 
-pub struct Context<'a> {
-    symbol_map:HashMap<&'a str,DataValue<'a>>,
+pub struct Context {
+    symbol_map:HashMap<String,DataValue>,
 }
 
 // has function/variable: just check if ident in map. if it is, check the type
@@ -14,16 +15,16 @@ pub struct Context<'a> {
 
 
 // take in a dyn Function and add to map
-impl<'a> Context<'a> {
-    pub fn new_empty()->Context<'a> {
-        let symbol_map:HashMap<&'a str,DataValue<'a>>=HashMap::new();
+impl Context {
+    pub fn new_empty()->Context {
+        let symbol_map:HashMap<String,DataValue>=HashMap::new();
         Context {
             symbol_map
         }
     }
 
     // iterate and get function names
-    pub fn new(symbol_map:HashMap<&'a str, DataValue<'a>>) -> Context<'a> {
+    pub fn new(symbol_map:HashMap<String, DataValue>) -> Context {
         Context {
             symbol_map
         }
@@ -34,12 +35,12 @@ impl<'a> Context<'a> {
         // if we did 'b generic instead: means we could accept a ref with unbounded lifetime
             // in this case that wouold not be valid, but if we are just say processing the refs and not storing
             // we could use 'b
-    pub fn add_function(&mut self, name:&'a str, function:&'a Box<dyn Function>) {
+    pub fn add_function(&mut self, name:&str, function:Rc<dyn Function>) {
         let d=DataValue::FunctionVariable(function);
-        self.symbol_map.insert(name, d);
+        self.symbol_map.insert(name.to_string(), d);
     }
     
-    pub fn get_function(&self, name:&str)->Option<&Box<dyn Function>> {
+    pub fn get_function(&self, name:&str)->Option<&Rc<dyn Function>> {
        self.symbol_map.get(name).and_then(|data| data.get_function())
     }
 

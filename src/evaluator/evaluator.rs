@@ -25,14 +25,14 @@ use crate::parser::node::*;
 // Else: invalid, return error
 
 // worst case: borrowing from context e.g if we return a FunctionVariable it shouldnt last longer than the context
-pub fn evaluate<'a>(ctx: &'a Context, node: &ASTNode) -> Result<DataValue<'a>> {
+pub fn evaluate<'a>(ctx: &'a Context, node: &ASTNode) -> Result<DataValue> {
     let mut nova_result = NovaResult::new(DataValue::Default);
 
     // try to match terminals
     match &node.value {
         Number(num) => nova_result.result = Num(*num),
         Symbol(sym) => {
-            
+
         }
         _ => nova_result.result = DataValue::Default,
     }

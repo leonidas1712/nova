@@ -44,20 +44,20 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     args.next();
     args.for_each(|s| println!("{}", s));
 
-    use DataValue::FunctionVariable;
+    // use DataValue::FunctionVariable;
 
-    let symbol_map:HashMap<&str,DataValue> = HashMap::new();
+    // let symbol_map:HashMap<&str,DataValue> = HashMap::new();
 
-    let add=create_function(Add{});
-    // let sub=create_function(Sub{});
+    // let add=create_function(Add{});
+    // // let sub=create_function(Sub{});
 
-    let mut sym_map:HashMap<&str,DataValue>=HashMap::new();
-    sym_map.insert(ADD, FunctionVariable(&add));
+    // let mut sym_map:HashMap<&str,DataValue>=HashMap::new();
+    // sym_map.insert(ADD, FunctionVariable(&add));
 
-    let ctx=Context::new(sym_map);
+    // let ctx=Context::new(sym_map);
     
     // evaluator::evaluator::evaluate();
-    nova_repl(ctx);
+    // nova_repl(ctx);
 }
 
 pub fn nova_repl(context:Context) {
