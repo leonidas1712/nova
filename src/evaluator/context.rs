@@ -2,84 +2,104 @@ use super::builtins::*;
 use super::data::*;
 use super::function::*;
 use crate::message::*;
+use std::collections::{HashMap,HashSet};
 
-pub struct Context {
-    functions: Vec<Box<dyn Function>>,
+pub struct Context<'a> {
+    symbol_map:HashMap<&'a str,DataValue<'a>>,
 }
 
 // has function/variable: just check if ident in map. if it is, check the type
     // DataValue::FunctionVariable => function, else variable
-impl Context {
-    pub fn new() -> Context {
-        let add = Add;
-        let sub = Sub;
 
-        let uf = UserFunction::new("recr");
-        let uf2 = UserFunction::new("recr_tail");
 
-        // turn into macro given list of function names => Box::new...
-        let functions: Vec<Box<dyn Function>> =
-            vec![Box::new(Add), Box::new(Sub), Box::new(uf), Box::new(uf2)];
 
-        Context { functions }
-    }
-
-    pub fn test(&self) -> Result<DataValue> {
-        for function in self.functions.iter() {
-            let args: Vec<Arg> = vec![DefaultArg];
-
-            function.execute(args, self)?;
+// take in a dyn Function and add to map
+impl<'a> Context<'a> {
+    pub fn new_empty()->Context<'a> {
+        let symbol_map:HashMap<&'a str,DataValue<'a>>=HashMap::new();
+        Context {
+            symbol_map
         }
-
-        Ok(NovaResult::new(DataValue::Default))
     }
+
+    // iterate and get function names
+    pub fn new(symbol_map:HashMap<&'a str, DataValue<'a>>) -> Context<'a> {
+        Context {
+            symbol_map
+        }
+    }
+
+    // add dyn Function 
+        // 'a: means the string and function box refs must live at least as long as Context
+        // if we did 'b generic instead: means we could accept a ref with unbounded lifetime
+            // in this case that wouold not be valid, but if we are just say processing the refs and not storing
+            // we could use 'b
+    pub fn add_function(&mut self, name:&'a str, function:&'a Box<dyn Function>) {
+        let d=DataValue::FunctionVariable(function);
+        self.symbol_map.insert(name, d);
+    }
+    
+    pub fn get_function(&self, name:&str)->Option<&Box<dyn Function>> {
+       self.symbol_map.get(name).and_then(|data| data.get_function())
+    }
+
+    // get a variable (non-function) - returns None if name doesn't exist or name is a function
+    pub fn get_variable(&self, name:&str)->Option<&DataValue> {
+        if self.get_function(name).is_some() {
+            None
+        } else {
+            self.symbol_map.get(name)
+        }
+    }
+
+
 }
 
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    #[test]
-    fn test_context() {
-        let ctx = Context::new();
-        println!("test eval");
-        ctx.test().unwrap();
-    }
+    // #[test]
+    // fn test_context() {
+    //     let ctx = Context::new(vec![]);
+    //     println!("test eval");
+    //     ctx.test().unwrap();
+    // }
 
     // Question: if I have a Vec<&DataValue> then clone it is the original still usable
     // then what about hashmap with string => &DataValue
-    #[test]
-    fn test_clone() {
-        // we can own the data because DataValue is just an enum and FunctionVar already has a reference(?)
-        // cloning: can we clone the enum?
-        let mut v: Vec<DataValue> = Vec::new();
-        let num = Num(30);
-        let add: Box<dyn Function> = Box::new(Add);
-        let add_var = FunctionVariable(&add);
+    // #[test]
+    // fn test_clone() {
+    //     // we can own the data because DataValue is just an enum and FunctionVar already has a reference(?)
+    //     // cloning: can we clone the enum?
+    //     let mut v: Vec<DataValue> = Vec::new();
+    //     let num = Num(30);
+    //     let add: Box<dyn Function> = Box::new(Add);
+    //     let add_var = FunctionVariable(&add);
 
-        if let FunctionVariable(adder) = add_var {
-            adder.execute(vec![], &Context::new());
-        }
+    //     if let FunctionVariable(adder) = add_var {
+    //         adder.execute(vec![], &Context::new(vec![]));
+    //     }
 
-        v.push(num);
-        v.push(add_var);
+    //     v.push(num);
+    //     v.push(add_var);
 
-        let v2_cloned = v.clone();
+    //     let v2_cloned = v.clone();
 
-        let x = v2_cloned
-            .get(1)
-            .unwrap()
-            .get_function()
-            .unwrap()
-            .execute(vec![], &Context::new());
+    //     let x = v2_cloned
+    //         .get(1)
+    //         .unwrap()
+    //         .get_function()
+    //         .unwrap()
+    //         .execute(vec![], &Context::new(vec![]));
 
-        println!("After v2 clone");
+    //     println!("After v2 clone");
 
-        v.get(1)
-            .unwrap()
-            .get_function()
-            .unwrap()
-            .execute(vec![], &Context::new());
-    }
+    //     v.get(1)
+    //         .unwrap()
+    //         .get_function()
+    //         .unwrap()
+    //         .execute(vec![], &Context::new(vec![]));
+    // }
 }
 
 pub fn context() {
