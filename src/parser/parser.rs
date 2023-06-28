@@ -71,7 +71,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     Ok(ASTNode::new(node_val))
 }
 
-fn parse_atomic_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
+pub fn parse_atomic_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     let token_opt = lex.next();
     if token_opt.is_none() {
         return Err(Ex::new("Problem parsing expression."));

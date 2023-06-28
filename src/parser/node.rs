@@ -15,7 +15,7 @@ pub enum NodeValue {
     List(Vec<ASTNode>),
     Boolean(bool),
     IfNode(Vec<ASTNode>),
-    LetNode(Vec<ASTNode>)
+    LetNode(Vec<(String,ASTNode)>)
 }
 
 pub use NodeValue::*;

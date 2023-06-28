@@ -1,4 +1,5 @@
 use crate::constants::*;
+use crate::evaluator::eval_helpers::is_valid_identifier;
 use crate::lexer;
 use crate::message::*;
 use crate::parser::node::*;
@@ -34,18 +35,43 @@ pub (super) fn parse_if_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
 }
 
 
+// change to return tuple (ident, expr) since we are checking anyway
 pub (super) fn parse_let_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
     lex.next();
 
-    let mut children:Vec<ASTNode>=vec![];
+    let mut ident:Option<String>=None;
+
+    // when parsing symbol: do parse atomic, check valid ident
+    // else: parse normally
+    let mut children:Vec<(String,ASTNode)>=vec![];
 
     while let Some(token)=lex.peek() {
         if token==CLOSE_EXPR {
             break;
         }
 
-        let res=parse_expression(lex)?;
-        children.push(res);
+        if ident.is_some() {
+            let res=parse_expression(lex)?;
+            children.push((ident.unwrap(), res));
+
+            continue;
+        }
+
+        // None: use parse atomic
+        let res=parse_atomic_expression(lex)?;
+
+        match &res.value {
+            Symbol(string) => {
+                is_valid_identifier(string)?;
+                ident.replace(string.to_string());
+
+            },
+            _ => {
+                let msg=format!("'let' expected identfier but got: {}", res.to_string());
+                return Err(Ex::new(&msg));
+            }
+        }
+        
     }
 
     if children.len()==0 {
