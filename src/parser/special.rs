@@ -31,26 +31,6 @@ pub (super) fn parse_if_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
 
     let node_val=IfNode(res);
     Ok(ASTNode::new(node_val))
-
-
-    // match checked {
-    //     Ok(res) => {
-    //         let last=lex.peek();
-    //         match last {
-    //             Some(token) if !token.eq(CLOSE_EXPR)=> {
-    //                return Err(Ex::new("'if' received too many expressions."))
-    //             },
-    //             _ => ()
-    //         }
-
-    //         let node_val=IfNode(res);
-    //         Ok(ASTNode::new(node_val))
-    //     },
-
-    //     Err(err) => {
-    //         return Err(err);
-    //     }
-    // }
 }
 
 
