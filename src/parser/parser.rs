@@ -3,6 +3,42 @@ use crate::lexer;
 use crate::message::*;
 use crate::parser::node::*;
 
+enum Special {
+    If,
+    Let,
+    Fn
+}
+
+use Special::*;
+
+impl Special {
+    fn get_special(token:String)->Option<Special> {
+        let token=token.as_str();
+        match token {
+            IF_NAME => Some(If),
+            LET_NAME => Some(Let),
+            FN_NAME=> Some(Fn),
+            _ => None
+        }
+    }
+}
+
+fn parse_fn_def(lex: &mut lexer::Lexer)->Result<ASTNode> {
+    lex.next();
+    Ok(ASTNode::new(Symbol("FnDef".to_string())))
+}
+
+fn parse_if_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
+    lex.next();
+    Ok(ASTNode::new(Symbol("IfStmt".to_string())))
+}
+
+
+fn parse_let_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
+    lex.next();
+    Ok(ASTNode::new(Symbol("LetStmt".to_string())))
+}
+
 // Parser
 fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     let open_token = lex.next().expect("Received empty expression");
@@ -94,6 +130,17 @@ fn parse_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
         return parse_list_expression(lex);
     }
 
+    // Special cases: uneval list
+    let try_special=Special::get_special(token.to_string());
+
+    if try_special.is_some() {
+        match try_special.unwrap() {
+            If => return parse_if_expression(lex),
+            Let => return parse_let_expression(lex),
+            Fn => return parse_fn_def(lex)
+        }
+    }
+
     // Check cases in order, last is atomic expression
     parse_atomic_expression(lex)
 }
@@ -179,6 +226,11 @@ pub mod tests {
         ];
 
         assert!(test_parse(exps));
+    }
+
+    #[test]
+    pub fn parse_let_test() {
+        let exp="(let x 2)";
     }
 
     #[test]

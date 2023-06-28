@@ -12,9 +12,9 @@ pub const EMPTY: &str = "\0";
 pub type NumType=i64;
 
 // Keywords
-pub const LET: &str = "let";
-pub const IF: &str = "if";
-pub const FN: &str = "def";
+pub const LET_NAME: &str = "let";
+pub const IF_NAME: &str = "if";
+pub const FN_NAME: &str = "def";
 
 // Operations
 pub const ADD: &str = "add";
