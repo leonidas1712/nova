@@ -16,15 +16,8 @@ pub struct Context {
 
 // take in a dyn Function and add to map
 impl Context {
-    pub fn new_empty()->Context {
+    pub fn new()->Context {
         let symbol_map:HashMap<String,DataValue>=HashMap::new();
-        Context {
-            symbol_map
-        }
-    }
-
-    // iterate and get function names
-    pub fn new(symbol_map:HashMap<String, DataValue>) -> Context {
         Context {
             symbol_map
         }
@@ -34,11 +27,6 @@ impl Context {
         self.symbol_map.insert(ident.to_string(), value);
     }
 
-    // add dyn Function 
-        // 'a: means the string and function box refs must live at least as long as Context
-        // if we did 'b generic instead: means we could accept a ref with unbounded lifetime
-            // in this case that wouold not be valid, but if we are just say processing the refs and not storing
-            // we could use 'b
     pub fn add_function(&mut self, name:&str, function:Rc<dyn Function>) {
         let d=DataValue::FunctionVariable(function);
         self.symbol_map.insert(name.to_string(), d);
@@ -68,7 +56,7 @@ pub mod tests {
    fn context_test() {
         let fnc=Add{};
         let fnc_var=Rc::new(fnc);
-        let mut ctx=Context::new_empty();
+        let mut ctx=Context::new();
 
         let num=Num(20);
 
@@ -81,7 +69,7 @@ pub mod tests {
         let f=ctx.get_function("add");
         assert_eq!(f.unwrap().to_string(), "add".to_string());
 
-        let mut ctx2=Context::new_empty();
+        let mut ctx2=Context::new();
 
         ctx2.add_variable("y", Num(30));
 
@@ -93,8 +81,4 @@ pub mod tests {
         let add_rc_ref=ctx.get_function("add").unwrap();
         assert_eq!(Rc::strong_count(add_rc_ref), 2); // 2: both ctx and ctx2 point to it
    }
-}
-
-pub fn context() {
-    println!("Context");
 }
