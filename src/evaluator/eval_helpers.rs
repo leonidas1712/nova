@@ -1,4 +1,5 @@
 use super::{context::*, data::*, evaluator::evaluate};
+use crate::constants::DONT_ADD;
 use crate::message::*;
 use crate::parser::node::*;
 
@@ -14,6 +15,16 @@ pub fn get_eval_args_from_nodes<'a>(
     })?;
     Ok(results)
 }
+
+pub fn is_valid_identifier(s:String)->bool {
+    if DONT_ADD.contains(&s.as_str()) {
+        return false;
+    }
+
+    
+    true
+}
+
 // evaluate first child. if len==1, return
 // elif first child is FnVar | FnDef => apply to arguments
 // else: evaluate nodes in order, return result from last
@@ -85,6 +96,9 @@ pub fn evaluate_if(ctx: &Context, cond: &ASTNode, e1: &ASTNode, e2: &ASTNode) ->
 }
 
 pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>) -> Result<DataValue> {
-    println!("Let received eval:");
+    // println!("Let received eval:", expressions.);
+    // expressions.iter().for_each(|n| println!("{}", n.to_string()));
+    let new_ctx=ctx.clone();
+
     Ok(Default)
 }

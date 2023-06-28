@@ -36,7 +36,6 @@ pub (super) fn parse_if_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
 
 pub (super) fn parse_let_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
     lex.next();
-    // dbg!(lex.peek());
 
     let mut children:Vec<ASTNode>=vec![];
 
@@ -46,19 +45,14 @@ pub (super) fn parse_let_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
         }
 
         let res=parse_expression(lex)?;
-
-        // (let x (add 5 (if 1 2 (sub 5 6))) x)
         children.push(res);
     }
 
     if children.len()==0 {
         let msg=format!("'{}' received 0 expressions or symbols", LET_NAME);
-        return Err(Ex::new(""))
+        return Err(Ex::new(&msg));
     }
 
-    // children empty + check that symbols alternate?
-
-    // dbg!(children);
     Ok(ASTNode::new(LetNode(children)))
 }
 
