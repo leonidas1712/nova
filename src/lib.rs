@@ -15,7 +15,7 @@ use std::rc::Rc;
 
 use crate::{
     constants::*, 
-    evaluator::{context::Context, function::*, data::*,builtins::*}
+    evaluator::{context::Context, function::*, data::*,builtins::*, evaluator::evaluate}
 };
 use rustyline::{error::ReadlineError, DefaultEditor};
 
@@ -39,10 +39,8 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     args.next();
     args.for_each(|s| println!("{}", s));
 
-    use DataValue::FunctionVariable;
-
     let ctx=setup_context();
-    
+
     nova_repl(ctx);
 }
 
@@ -78,11 +76,18 @@ pub fn nova_repl(context:Context) {
                         let node = &nr.result;
                         println!("Node: {}", &node);
 
-                        // let ctx = context::Context::new();
-                        // let mut evaluated = evaluate(&ctx, &node).unwrap();
-                        // evaluated.add_messages(&nr);
+                        let eval_result=evaluate(&context, &node);
+                        
+                        match eval_result {
+                            Ok(nr) => {
+                                println!("Eval result: {}", nr.to_string());
+                            },
+                            Err(ne) => {
+                                println!("{}", ne.format_error());
+                            }
+                        }
 
-                        // println!("Evaluated: {}", evaluated.result.to_string());
+                
                     }
                     Err(ne) => {
                         println!("{}", ne.format_error());

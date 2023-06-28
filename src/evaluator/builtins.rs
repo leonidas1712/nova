@@ -2,13 +2,14 @@ use super::context::*;
 use super::data::*;
 use super::function::*;
 use crate::message::*;
+use DataValue::*;
 
 pub struct Add;
 impl Function for Add {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
         println!("Added");
 
-        Ok(NovaResult::new(Default))
+        Ok(NovaResult::new(Num(400)))
     }
 
     fn to_string(&self) -> String {
