@@ -31,10 +31,6 @@ use super::eval_helpers::*;
             // return out -> add to REPL context 
         // lambda: can just return a normal FnVar
 
-// evaluate first child. if len==1, return
-    // elif first child is FnVar | FnDef => apply to arguments
-    // else: evaluate nodes in order, return result from last
-
 pub fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
     // try to match terminals
     match &node.value {
