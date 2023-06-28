@@ -54,6 +54,10 @@ use super::builtins::*;
     // but if the map is of names to references, then when we add something it won't live long enough
         // since it will be dropped when that function exits
     // if the map is of names to owned data -> then we need to deepcopy
+
+// do we ever need to mutate functions => No
+    // builtin: defined once, currying -> copy
+    // user: defined once, currying -> copy
 pub struct Context {
     functions: Vec<Box<dyn Function>>
 }
@@ -96,6 +100,45 @@ pub mod tests {
         let ctx=Context::new();
         println!("test eval");
         ctx.test().unwrap();
+    }
+
+    // Question: if I have a Vec<&DataValue> then clone it is the original still usable
+        // then what about hashmap with string => &DataValue
+    #[test]
+    fn test_clone() {
+        // we can own the data because DataValue is just an enum and FunctionVar already has a reference(?)
+            // cloning: can we clone the enum?
+        let mut v:Vec<DataValue>=Vec::new();
+        let num=Num(30);
+        let add:Box<dyn Function>=Box::new(Add);
+        let add_var=FunctionVariable(&add);
+
+        if let FunctionVariable(adder) = add_var {
+            adder.execute(vec![], &Context::new());
+        }
+
+        v.push(num);
+        v.push(add_var);
+
+        let v2_cloned=v.clone();
+
+        match v2_cloned.get(1).unwrap() {
+            FunctionVariable(adder) => {
+                adder.execute(vec![], &Context::new());
+            },
+
+            _ => println!("??")
+        }
+
+        match v.get(1).unwrap() {
+            FunctionVariable(adder) => {
+                println!("From v after clone");
+                adder.execute(vec![], &Context::new());
+            },
+
+            _ => println!("??")
+        }
+
     }
 }
 

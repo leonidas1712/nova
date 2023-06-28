@@ -4,6 +4,7 @@ use crate::message::*;
 use super::evaluator;
 use crate::parser::node::*;
 
+// &Context: need to be able to re-use the context
 pub trait Function {
     fn execute(&self, args: Vec<Arg>, context:&Context)->Result<DataValue>;
 }
