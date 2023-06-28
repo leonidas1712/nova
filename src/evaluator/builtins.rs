@@ -10,6 +10,10 @@ impl Function for Add {
 
         Ok(NovaResult::new(Default))
     }
+
+    fn to_string(&self) -> String {
+        "add".to_string()
+    }
 }
 
 pub struct Sub;

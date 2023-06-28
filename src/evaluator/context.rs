@@ -30,6 +30,10 @@ impl Context {
         }
     }
 
+    pub fn add_variable(&mut self, ident:&str, value:DataValue) {
+        self.symbol_map.insert(ident.to_string(), value);
+    }
+
     // add dyn Function 
         // 'a: means the string and function box refs must live at least as long as Context
         // if we did 'b generic instead: means we could accept a ref with unbounded lifetime
@@ -40,6 +44,7 @@ impl Context {
         self.symbol_map.insert(name.to_string(), d);
     }
     
+    // reference is enough: we never have to mutate
     pub fn get_function(&self, name:&str)->Option<&Rc<dyn Function>> {
        self.symbol_map.get(name).and_then(|data| data.get_function())
     }
@@ -59,48 +64,35 @@ impl Context {
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    // #[test]
-    // fn test_context() {
-    //     let ctx = Context::new(vec![]);
-    //     println!("test eval");
-    //     ctx.test().unwrap();
-    // }
+   #[test]
+   fn context_test() {
+        let fnc=Add{};
+        let fnc_var=Rc::new(fnc);
+        let mut ctx=Context::new_empty();
 
-    // Question: if I have a Vec<&DataValue> then clone it is the original still usable
-    // then what about hashmap with string => &DataValue
-    // #[test]
-    // fn test_clone() {
-    //     // we can own the data because DataValue is just an enum and FunctionVar already has a reference(?)
-    //     // cloning: can we clone the enum?
-    //     let mut v: Vec<DataValue> = Vec::new();
-    //     let num = Num(30);
-    //     let add: Box<dyn Function> = Box::new(Add);
-    //     let add_var = FunctionVariable(&add);
+        let num=Num(20);
 
-    //     if let FunctionVariable(adder) = add_var {
-    //         adder.execute(vec![], &Context::new(vec![]));
-    //     }
+        ctx.add_function("add", fnc_var);
+        ctx.add_variable("x", num);
 
-    //     v.push(num);
-    //     v.push(add_var);
+        let g=ctx.get_variable("x");
+        assert_eq!(g.unwrap().get_num(), Some(20));
 
-    //     let v2_cloned = v.clone();
+        let f=ctx.get_function("add");
+        assert_eq!(f.unwrap().to_string(), "add".to_string());
 
-    //     let x = v2_cloned
-    //         .get(1)
-    //         .unwrap()
-    //         .get_function()
-    //         .unwrap()
-    //         .execute(vec![], &Context::new(vec![]));
+        let mut ctx2=Context::new_empty();
 
-    //     println!("After v2 clone");
+        ctx2.add_variable("y", Num(30));
 
-    //     v.get(1)
-    //         .unwrap()
-    //         .get_function()
-    //         .unwrap()
-    //         .execute(vec![], &Context::new(vec![]));
-    // }
+        // can clone from a previous context -> maintains Rc pointers
+        let add_clone=ctx.get_function("add").unwrap().clone();
+        ctx2.add_function("my_add", add_clone);
+        assert_eq!(ctx2.get_function("my_add").unwrap().to_string(), "add");
+
+        let add_rc_ref=ctx.get_function("add").unwrap();
+        assert_eq!(Rc::strong_count(add_rc_ref), 2); // 2: both ctx and ctx2 point to it
+   }
 }
 
 pub fn context() {
