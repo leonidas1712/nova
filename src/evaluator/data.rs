@@ -13,14 +13,14 @@ pub const FNV:&str="FunctionVariable";
 // Number, Boolean, List, String, Lambda, FunctionVariable(Box<dyn Function>)
 // when we have an enum that has a reference, then a vector of enums and I clone the vector what happens
 
-// do a getter for each enum type that returns an Option so we can chain map etc
-
 // Function shouldn't get dropped until all refs in context/args are dropped -> use Rc
 #[derive(Clone,Display,AsRefStr)]
 pub enum DataValue {
     Num(NumType),
     Boolean(bool),
     FunctionVariable(Rc<dyn Function>), // we need to borrow the function from Context when doing this
+    FnDef(Rc<dyn Function>),
+    SetVar(Box<DataValue>),
     Default,
 }
 
@@ -60,7 +60,8 @@ impl DataValue  {
             Num(n) => n.to_string(),
             Boolean(b) => b.to_string(),
             FunctionVariable(f) => f.to_string(),
-            Default => String::from("Default Data Value")
+            Default => String::from("Default Data Value"),
+            _ => String::from("unimplemented")
         }
     }
 }
@@ -138,7 +139,6 @@ pub use DataValue::*;
 #[cfg(test)]
     pub mod tests {
         use super::*;
-        use super::DataValue::*;
         use super::super::builtins::Add;
         use std::rc::Rc;
 

@@ -11,7 +11,7 @@ pub mod parser;
 pub mod time;
 pub mod macros;
 
-pub use evaluator::*;
+pub (crate) use evaluator::*;
 
 use std::rc::Rc;
 
@@ -38,6 +38,22 @@ pub fn setup_context()->Context {
     ctx
 }
 
+// main function to take a string -> get a string representing output
+    // take a mut ctx -> in only 2 cases we need to add something:
+        // FnDef and (set x...) => have special types in DataValue for this
+pub fn evaluate_input(inp:String, context:&mut Context)->String {
+    let res = lexer::Lexer::new(inp)
+        .and_then(|lex| parser::parser::parse(lex))
+        .and_then(|node| evaluate(&context, &node));
+
+    // context.add_function(name, function)
+
+    match res {
+        Ok(val) => val.to_string(),
+        Err(err) => err.format_error()
+    }
+}
+
 // setup context by making the map of functions and pass it into Context::new, then pass it to nova_repl
 // this is how we can seed Context with map of refs to functions
 pub fn run(mut args: impl Iterator<Item = String>) {
@@ -49,9 +65,7 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     nova_repl(ctx);
 }
 
-pub fn nova_repl(context:Context) {
-    use lexer::Lexer;
-    use parser::parser;
+pub fn nova_repl(mut context:Context) {
     let mut rl = DefaultEditor::new().unwrap();
 
     println!();
@@ -78,18 +92,8 @@ pub fn nova_repl(context:Context) {
 
                 rl.add_history_entry(inp.clone().trim()).unwrap();
 
-                // pass lexer to parser
-                let res = Lexer::new(inp)
-                .and_then(|lex| parser::parse(lex))
-                .and_then(|node| evaluate(&context, &node));
-
-                match res {
-                    Ok(val) => {
-                        println!("Result: {}", val.to_string())
-                    },
-
-                    Err(ne) => println!("{}",ne.format_error())
-                }
+                let res=evaluate_input(inp, &mut context);
+                println!("{res}");
             }
 
             Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
