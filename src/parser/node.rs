@@ -10,7 +10,7 @@ use std::ops::Deref;
 // 2. is the first element inside that expression
 pub enum NodeValue {
     Symbol(String),
-    Number(usize),
+    Number(NumType),
     Expression(Vec<ASTNode>),
     List(Vec<ASTNode>),
 }

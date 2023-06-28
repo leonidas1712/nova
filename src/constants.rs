@@ -9,6 +9,8 @@ pub const CLOSE_LIST: &str = "]";
 pub const SPACE: &str = " ";
 pub const EMPTY: &str = "\0";
 
+pub type NumType=i64;
+
 // Keywords
 pub const LET: &str = "let";
 pub const IF: &str = "if";

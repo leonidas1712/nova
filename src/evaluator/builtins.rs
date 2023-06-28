@@ -14,10 +14,10 @@ use DataValue::*;
 pub struct Add;
 impl Function for Add {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
-        let r:Result<Vec<usize>>=Arg::expect_all_eval(args)
+        let r:Result<Vec<NumType>>=Arg::expect_all_eval(args)
         .and_then(|f| f.into_iter().map(|x| x.expect_num()).collect());
         
-        let total:Result<usize>=r.map(|v| v.into_iter().sum());
+        let total:Result<NumType>=r.map(|v| v.into_iter().sum());
         total.map(|n| Num(n))
     }
 
@@ -29,7 +29,7 @@ impl Function for Add {
 pub struct Sub;
 impl Function for Sub {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
-        
+
         Ok(Default)
     }
 

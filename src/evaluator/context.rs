@@ -49,7 +49,7 @@ impl Context {
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use crate::evaluator::builtins::*;
+    use crate::{evaluator::builtins::*, constants::NumType};
    #[test]
    fn context_test() {
         let fnc=Add{};
@@ -62,7 +62,7 @@ pub mod tests {
         ctx.add_variable("x", num);
 
         let g=ctx.get_variable("x");
-        let exp:usize=20;
+        let exp:NumType=20;
         assert_eq!(g.unwrap().expect_num().unwrap(), exp);
 
         let f=ctx.get_function("add");

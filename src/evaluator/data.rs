@@ -1,4 +1,5 @@
 use super::function::Function;
+use crate::constants::NumType;
 use crate::parser::node::ASTNode;
 use crate::message::*;
 
@@ -18,14 +19,14 @@ pub const FNV:&str="FunctionVariable";
 // Function shouldn't get dropped until all refs in context/args are dropped -> use Rc
 #[derive(Clone,Display,AsRefStr)]
 pub enum DataValue {
-    Num(usize),
+    Num(NumType),
     Boolean(bool),
     FunctionVariable(Rc<dyn Function>), // we need to borrow the function from Context when doing this
     Default,
 }
 
 impl DataValue  {
-    pub fn expect_num(&self) -> Result<usize> {
+    pub fn expect_num(&self) -> Result<NumType> {
         match self {
             Num(num) => Ok(*num),
             _ => {

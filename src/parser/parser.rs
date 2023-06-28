@@ -57,7 +57,7 @@ fn parse_atomic_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     }
 
     let token = token_opt.unwrap();
-    let try_numeric = token.parse::<usize>();
+    let try_numeric = token.parse::<i64>();
 
     let node = match try_numeric {
         Ok(num) => ASTNode::new(Number(num)),
