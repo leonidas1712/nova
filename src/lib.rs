@@ -41,8 +41,8 @@ pub fn setup_context()->Context {
 // main function to take a string -> get a string representing output
     // take a mut ctx -> in only 2 cases we need to add something:
         // FnDef and (set x...) => have special types in DataValue for this
-pub fn evaluate_input(inp:String, context:&mut Context)->String {
-    let res = lexer::Lexer::new(inp)
+pub fn evaluate_input(inp:&str, context:&mut Context)->String {
+    let res = lexer::Lexer::new(inp.to_string())
         .and_then(|lex| parser::parser::parse(lex))
         .and_then(|node| evaluate(&context, &node));
 
@@ -92,7 +92,7 @@ pub fn nova_repl(mut context:Context) {
 
                 rl.add_history_entry(inp.clone().trim()).unwrap();
 
-                let res=evaluate_input(inp, &mut context);
+                let res=evaluate_input(inp.as_str(), &mut context);
                 println!("{res}");
             }
 
