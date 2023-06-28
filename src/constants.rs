@@ -14,7 +14,6 @@ pub const LET: &str = "let";
 pub const IF: &str = "if";
 pub const FN: &str = "def";
 
-
 // Operations
 pub const ADD: &str = "add";
 pub const MULT: &str = "mul";
@@ -37,8 +36,8 @@ pub const MOD: &str = "mod";
 pub const DIV: &str = "div";
 
 // Boolean
-pub const TRUE:&str="true";
-pub const FALSE:&str="false";
+pub const TRUE: &str = "true";
+pub const FALSE: &str = "false";
 
 // List
 pub const CONS: &str = "cons";
@@ -48,7 +47,7 @@ pub const LCONS: &str = "lcons";
 pub const LCDR: &str = "lcdr";
 pub const LCAR: &str = "lcar";
 pub const INDEX: &str = "idx";
-pub const EMPTY_LIST:&str="[]";
+pub const EMPTY_LIST: &str = "[]";
 
 // Lambda
 pub const LAMBDA: &str = "->";
@@ -59,28 +58,26 @@ pub const COMP_OPR: &str = "$";
 pub const COMP_LEFT: &str = "@";
 pub const PIPE: &str = ">>";
 
-
 // Some useful token arrays
 pub const SPLIT_TOKENS: [&'static str; 11] = [
-    OPEN_EXPR, CLOSE_EXPR, NEWLINE, TAB, VAR_SEP, 
-    OPEN_LIST, CLOSE_LIST, SPACE, LAMBDA, COMP_OPR, PIPE
+    OPEN_EXPR, CLOSE_EXPR, NEWLINE, TAB, VAR_SEP, OPEN_LIST, CLOSE_LIST, SPACE, LAMBDA, COMP_OPR,
+    PIPE,
 ];
 
-pub const DONT_ADD:[&'static str;5]=[NEWLINE, TAB, VAR_SEP, SPACE,EMPTY];
+pub const DONT_ADD: [&'static str; 5] = [NEWLINE, TAB, VAR_SEP, SPACE, EMPTY];
 
-pub const OPEN_TOKENS:[&'static str;2]=[OPEN_EXPR, OPEN_LIST];
-pub const CLOSE_TOKENS:[&'static str;2]=[CLOSE_EXPR,CLOSE_LIST];
+pub const OPEN_TOKENS: [&'static str; 2] = [OPEN_EXPR, OPEN_LIST];
+pub const CLOSE_TOKENS: [&'static str; 2] = [CLOSE_EXPR, CLOSE_LIST];
 
-pub const EXPR_TUP:(&'static str,&'static str)=(OPEN_EXPR,CLOSE_EXPR);
-pub const LIST_TUP:(&'static str,&'static str)=(OPEN_LIST,CLOSE_LIST);
-
+pub const EXPR_TUP: (&'static str, &'static str) = (OPEN_EXPR, CLOSE_EXPR);
+pub const LIST_TUP: (&'static str, &'static str) = (OPEN_LIST, CLOSE_LIST);
 
 // ASTNode types
-pub const EXPRESSION:&str="expression";
-pub const LIST:&str="list";
-pub const SYMBOL:&str="symbol";
-pub const NUMBER:&str="number";
-pub const STRING:&str="string";
+pub const EXPRESSION: &str = "expression";
+pub const LIST: &str = "list";
+pub const SYMBOL: &str = "symbol";
+pub const NUMBER: &str = "number";
+pub const STRING: &str = "string";
 
 // REPL commands
-pub const QUIT_STRINGS:[&'static str;4] = ["quit", "quit()", "exit", "exit()"];
+pub const QUIT_STRINGS: [&'static str; 4] = ["quit", "quit()", "exit", "exit()"];
