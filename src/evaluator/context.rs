@@ -58,6 +58,9 @@ use super::builtins::*;
 // do we ever need to mutate functions => No
     // builtin: defined once, currying -> copy
     // user: defined once, currying -> copy
+
+// 1. function name set + map of names->DataValue
+// 2. how to convert Args
 pub struct Context {
     functions: Vec<Box<dyn Function>>
 }
@@ -122,22 +125,11 @@ pub mod tests {
 
         let v2_cloned=v.clone();
 
-        match v2_cloned.get(1).unwrap() {
-            FunctionVariable(adder) => {
-                adder.execute(vec![], &Context::new());
-            },
+        let x=v2_cloned.get(1).unwrap().get_function().unwrap().execute(vec![], &Context::new());
 
-            _ => println!("??")
-        }
+        println!("After v2 clone");
 
-        match v.get(1).unwrap() {
-            FunctionVariable(adder) => {
-                println!("From v after clone");
-                adder.execute(vec![], &Context::new());
-            },
-
-            _ => println!("??")
-        }
+        v.get(1).unwrap().get_function().unwrap().execute(vec![], &Context::new());
 
     }
 }

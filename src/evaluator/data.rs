@@ -16,17 +16,37 @@ pub enum DataValue<'a> {
 }
 
 impl<'a> DataValue<'a> {
-    fn get_num(&self)->Option<&usize> {
+    pub fn get_num(&self)->Option<usize> {
         match self {
-            Num(num) => Some(num),
+            Num(num) => Some(*num),
+            _ => None
+        }
+    }
+
+    pub fn get_bool(&self)->Option<bool> {
+        match self {
+            Boolean(bool) => Some(*bool),
+            _ => None
+        }
+    }
+
+    pub fn get_function(&self)->Option<&'a Box<dyn Function>> {
+        match self {
+            FunctionVariable(fn_ref) => Some(*fn_ref),
             _ => None
         }
     }
 }
+
 pub enum Arg<'a> {
     Evaluated(DataValue<'a>),
     Unevaluated(ASTNode),
     DefaultArg
+}
+
+pub enum ArgType {
+    Evaluated,
+    Unevaluated
 }
 
 pub use Arg::*;

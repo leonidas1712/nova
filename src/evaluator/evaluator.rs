@@ -17,7 +17,10 @@ use crate::message::*;
 // 4. Left with expression
     // Resolve based on first element: if first element resolves to function call (first could also be an expression), call the function with
     // the rest of the expressions as arguments
-        // i.e if first element resolves to FunctionVariable + first element +...etc
+        // We are in an expression + First subexpr resolves to FunctionVariable + length of expr > 1 => eval
+
+    // FunctionCall: check if evaluated or unevaluated, then decide to eval or not the rest of the subexprs
+        // Need a way to check - ? how
     // else, evaluate the other subexpressions in order and return the result from the last eval
         // e.g (puts 1) (puts 2 ) (puts 3) => should print 1 2 3
     
