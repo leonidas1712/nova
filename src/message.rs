@@ -23,6 +23,7 @@ impl<T> DerefMut for NovaResult<T> {
 #[derive(Debug)]
 pub struct NovaError {
     message: String,
+    // type: Parse,Eval...
 }
 
 impl NovaError {
@@ -73,7 +74,7 @@ impl NovaError {
     }
 }
 
-pub type Result<T> = std::result::Result<NovaResult<T>, NovaError>;
+pub type Result<T> = std::result::Result<T, NovaError>;
 
 #[cfg(test)]
 pub mod test {

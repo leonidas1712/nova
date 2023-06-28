@@ -33,7 +33,7 @@ impl Lexer {
 
         let lex = Lexer { tokens, idx: 0 };
 
-        Ok(NovaResult::new(lex))
+        Ok(lex)
     }
 
     pub fn to_vec(&self) -> Vec<String> {

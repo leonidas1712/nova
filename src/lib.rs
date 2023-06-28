@@ -71,12 +71,12 @@ pub fn nova_repl(context:Context) {
 
                 // pass lexer to parser
                 let res = Lexer::new(inp)
-                .and_then(|lex| parser::parse(lex.result))
+                .and_then(|lex| parser::parse(lex))
                 .and_then(|node| evaluate(&context, &node));
 
                 match res {
                     Ok(nr) => {
-                        println!("Result: {}", nr.result.to_string())
+                        println!("Result: {}", nr.to_string())
                     },
 
                     Err(ne) => println!("{}",ne.format_error())

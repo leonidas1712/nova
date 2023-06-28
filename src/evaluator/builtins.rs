@@ -9,7 +9,7 @@ impl Function for Add {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
         println!("Added");
 
-        Ok(NovaResult::new(Num(400)))
+        Ok(Num(400))
     }
 
     fn to_string(&self) -> String {
@@ -22,6 +22,6 @@ impl Function for Sub {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
         println!("Sub");
 
-        Ok(NovaResult::new(Default))
+        Ok(Default)
     }
 }

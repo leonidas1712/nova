@@ -42,6 +42,6 @@ impl Function for UserFunction {
             &ASTNode::new(NodeValue::Symbol(self.name.clone())),
         )?;
 
-        Ok(NovaResult::new(Default))
+        Ok(Default)
     }
 }
