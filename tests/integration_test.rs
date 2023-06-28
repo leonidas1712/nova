@@ -28,3 +28,11 @@ fn calc_test() {
 
     compare_many(exprs, expected, &mut ctx);
 }
+
+#[test]
+fn if_test() {
+    let mut ctx=setup_context();
+    let exprs=vec!["(if (if true (add 0 0) (sub 5 4)) (add 10 20 30) (sub 5 (if 1 2 4) 7))"];
+    let expected=vec!["-4"];
+    compare_many(exprs, expected, &mut ctx);
+}
