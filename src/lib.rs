@@ -10,33 +10,28 @@ pub mod message;
 pub mod parser;
 pub mod time;
 
+use std::collections::HashMap;
+use std::rc::Rc;
 
 use crate::{
     constants::*, 
-    evaluator::{context::Context, function::*}
+    evaluator::{context::Context, function::*, data::*,builtins::*}
 };
 use rustyline::{error::ReadlineError, DefaultEditor};
 
 
-fn create_function<F: Function + 'static>(f: F) -> Box<dyn Function> {
-    Box::new(f)
+fn rcf<F: Function + 'static>(f: F) -> Rc<dyn Function> {
+    Rc::new(f)
 }
 
 // register builtins here
-// pub fn setup_context()->Context<'static> {
-//     use DataValue::FunctionVariable;
+pub fn setup_context()->Context {
+    let mut ctx=Context::new();
 
-//     let symbol_map:HashMap<&str,DataValue> = HashMap::new();
+    ctx.add_function("add", rcf(Add{}));
 
-//     let add=create_function(Add{});
-//     // let sub=create_function(Sub{});
-
-//     let mut sym_map:HashMap<&str,DataValue>=HashMap::new();
-//     sym_map.insert(ADD, FunctionVariable(&add));
-
-//     let ctx=Context::new(sym_map);
-//     ctx
-// }
+    ctx
+}
 
 // setup context by making the map of functions and pass it into Context::new, then pass it to nova_repl
 // this is how we can seed Context with map of refs to functions
@@ -44,20 +39,11 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     args.next();
     args.for_each(|s| println!("{}", s));
 
-    // use DataValue::FunctionVariable;
+    use DataValue::FunctionVariable;
 
-    // let symbol_map:HashMap<&str,DataValue> = HashMap::new();
-
-    // let add=create_function(Add{});
-    // // let sub=create_function(Sub{});
-
-    // let mut sym_map:HashMap<&str,DataValue>=HashMap::new();
-    // sym_map.insert(ADD, FunctionVariable(&add));
-
-    // let ctx=Context::new(sym_map);
+    let ctx=setup_context();
     
-    // evaluator::evaluator::evaluate();
-    // nova_repl(ctx);
+    nova_repl(ctx);
 }
 
 pub fn nova_repl(context:Context) {
