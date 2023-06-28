@@ -62,3 +62,8 @@ pub fn evaluate_list(_ctx:&Context, children:&Vec<ASTNode>)->Result<DataValue> {
     dbg!(children);
     Ok(Default)
 }
+
+pub fn evaluate_if(ctx:&Context, cond:&ASTNode, e1:&ASTNode, e2:&ASTNode)->Result<DataValue> {
+    println!("Received if eval: Cond: {} e1: {} e2: {}", cond.to_string(), e1.to_string(), e2.to_string());
+    Ok(Default)
+}

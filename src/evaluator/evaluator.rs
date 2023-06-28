@@ -55,8 +55,8 @@ pub (crate) fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
         Expression(children) => evaluate_expression(ctx, children),
         List(children) => evaluate_list(ctx, children),
         IfNode(children) => {
-            println!("Processed if: {}", node.to_string());
-            Ok(Default)
+            return evaluate_if(ctx, children.get(0).unwrap(), 
+                children.get(1).unwrap(), children.get(2).unwrap());
         }
     }
 }
