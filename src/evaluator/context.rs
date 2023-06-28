@@ -12,8 +12,6 @@ pub struct Context {
 // has function/variable: just check if ident in map. if it is, check the type
     // DataValue::FunctionVariable => function, else variable
 
-
-
 // take in a dyn Function and add to map
 impl Context {
     pub fn new()->Context {
@@ -45,8 +43,6 @@ impl Context {
             self.symbol_map.get(name)
         }
     }
-
-
 }
 
 #[cfg(test)]
@@ -81,5 +77,26 @@ pub mod tests {
 
         let add_rc_ref=ctx.get_function("add").unwrap();
         assert_eq!(Rc::strong_count(add_rc_ref), 2); // 2: both ctx and ctx2 point to it
+   }
+
+   #[test]
+   fn context_test_overwrite() {
+        let fnc=Add{};
+        let fnc_var=Rc::new(fnc);
+        let mut ctx=Context::new();
+
+        let num=Num(20);
+
+        ctx.add_function("add", fnc_var);
+        assert!(ctx.get_function("add").is_some());
+
+        ctx.add_variable("add", num);
+        assert!(ctx.get_function("add").is_none());
+
+        // can overwrite again
+        let fnc=Add{};
+        let fnc_var=Rc::new(fnc);
+        ctx.add_function("add", fnc_var);
+        assert!(ctx.get_function("add").is_some());
    }
 }
