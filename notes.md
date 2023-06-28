@@ -53,6 +53,58 @@ the only difference is builtin doesnt have a function body
 Just use trait Function, then write the builtin functions manually as structs impl Function
 then when you want to use just add them all to the hashmap: now builtins and user function are treated the exact same
 
+// references to functions: don't want to clone everything everytime we copy a ctx and pass to a new expression
+// just copy the refs
+// same for variables/identifiers: just copy
+// currying: always make a new function, don't need to mutate the old one (in fact we shouldn't mutate)
+// currying new context: also make a new context, but with new identifier added
+// copy all the old references into new ctx
+// identifiers: string => &DataValue
+
+// why separate maps: because to check if something is a function dont want to search the entire namespace
+// and also we want same namespace for functions and variables, otherwise i could just have a set of function names
+
+// functions: map (String => &Box<dyn Function>)
+// identifiers: map
+
+// idea:
+// variables: map (String => &DataValue)
+// include FunctionVariables
+// function_names: Set(String)
+// maintain invariant for shared namespace(?) e.g x=2, x=function, get x => should be a function
+
+// maintain a pointer to the previous context
+// copy: pass the pointer down
+
+// Context problem: how to copy contexts from one expression to a child expression
+// e.g first ctx: y=4, map=some function. second ctx to eval child expr: defines y=5, but should have access to map
+// child contexts should be able to overwrite but only within themselves not in the parents
+// 1. maintain pointers to parents
+// expensive: if we recurse down 1000 levels we need to search up to 1000 levels for a variable
+// 2. clone all the data each time
+// the most flexible solution, but would be good to not have to copy data like lists and functions
+// e.g a list with 10000 elements in context 1, copied to context 2 -> expensive
+
+// Function evaluation: needs to store context at time of creation, then arguments
+// needs to clone parent context: if we use a reference any changes would be reflected => can't have closure
+// but then if Context needs to copy by cloning -> Context needs to clone
+// but Ctx has DataValue -> does it need to deepcopy or just copying enums?
+
+// Function: has a inner Context (cloned, owns)
+// Context: has DataValue, if it has a function it has only a reference to the function
+
+// we dont want to deepcopy everything, but copying references is ok
+// clone: make a new hashmap, copy the strings, then copy the references to data (normal copy)
+// but if the map is of names to references, then when we add something it won't live long enough
+// since it will be dropped when that function exits
+// if the map is of names to owned data -> then we need to deepcopy
+
+// do we ever need to mutate functions => No
+// builtin: defined once, currying -> copy
+// user: defined once, currying -> copy
+
+// 1. function name set + map of names->DataValue
+// 2. how to convert Args
 
 Args {
     Evaluated(DataValue),
@@ -150,3 +202,19 @@ fn main() {
     dbg!(ok);
 
 }
+
+Map of string => DataValue
++ set of function names
+-> we need to keep set of var names and set of fn names disjoint
+
+assumption: set is already disjoint (base case: both empty, true)
+-> ident: x, new value: new
+    -> 1. currently a variable:
+        -> a. new is var: replace in map => still disjoint
+        -> b. new is function: repl, add to fn set => still disjoint 
+    -> 2. currently a function:
+        -> a. new is var: remove from fn set, repl in map -> remove from fn + add to var => disj
+        -> b. new is function: remove fron fn set, repl in map => set was already disjoint so ident is not in vars
+
+Rc vs Box
+https://stackoverflow.com/questions/49377231/when-to-use-rc-vs-box
