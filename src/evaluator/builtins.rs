@@ -11,12 +11,17 @@ use DataValue::*;
 // expect on data values inside args
 // pub fn expect_args(args:&Vec<Arg>, )
     // args.get(0).
+
+fn get_nums(args:Vec<Arg>)->Result<Vec<NumType>> {
+    let r:Result<Vec<NumType>>=Arg::expect_all_eval(args)
+    .and_then(|f| f.into_iter().map(|x| x.expect_num()).collect());
+    return r;
+}
+
 pub struct Add;
 impl Function for Add {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
-        let r:Result<Vec<NumType>>=Arg::expect_all_eval(args)
-        .and_then(|f| f.into_iter().map(|x| x.expect_num()).collect());
-        
+        let r=get_nums(args);
         let total:Result<NumType>=r.map(|v| v.into_iter().sum());
         total.map(|n| Num(n))
     }
@@ -29,8 +34,9 @@ impl Function for Add {
 pub struct Sub;
 impl Function for Sub {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
-
-        Ok(Default)
+        get_nums(args).map(|v| v.into_iter().reduce(|acc,e| acc-e))?
+        .ok_or(Ex::new("Could not subtract provided expression"))
+        .map(|x| Num(x))
     }
 
     fn to_string(&self) -> String {
