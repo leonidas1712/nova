@@ -76,3 +76,8 @@ pub fn evaluate_if(ctx:&Context, cond:&ASTNode, e1:&ASTNode, e2:&ASTNode)->Resul
 
     if condition { evaluate(ctx, e1) } else { evaluate(ctx, e2) }
 }
+
+pub fn evaluate_let(ctx:&Context, expressions:&Vec<ASTNode>)->Result<DataValue> {
+    println!("Let received eval:");
+    Ok(Default)
+}

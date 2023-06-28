@@ -57,6 +57,9 @@ pub (crate) fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
         IfNode(children) => {
             return evaluate_if(ctx, children.get(0).unwrap(), 
                 children.get(1).unwrap(), children.get(2).unwrap());
+        },
+        LetNode(children) => {
+            return evaluate_let(ctx, children)
         }
     }
 }

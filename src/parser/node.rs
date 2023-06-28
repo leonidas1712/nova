@@ -15,6 +15,7 @@ pub enum NodeValue {
     List(Vec<ASTNode>),
     Boolean(bool),
     IfNode(Vec<ASTNode>),
+    LetNode(Vec<ASTNode>)
 }
 
 pub use NodeValue::*;
@@ -62,6 +63,10 @@ impl ASTNode {
                 let v: Vec<String> = children.iter().map(|n| n.to_string()).collect();
                 format!("{}{}{}", OPEN_EXPR, v.join(SPACE), CLOSE_EXPR)
             },
+            LetNode(children)=>{
+                let v: Vec<String> = children.iter().map(|n| n.to_string()).collect();
+                format!("{}{}{}{}", OPEN_EXPR, LET_NAME, v.join(SPACE), CLOSE_EXPR)
+            }
             Boolean(b) => if *b { TRUE.to_string() } else { FALSE.to_string() },
         }
     }
