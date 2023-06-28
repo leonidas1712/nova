@@ -1,6 +1,7 @@
 use super::{context::*, data::*};
 use crate::message::*;
 use crate::parser::node::*;
+use super::eval_helpers::*;
 
 // 1. Check ast node type -> if terminal, convert to a DataValue -> put this method in context
 // terminal: num, bool, list, function variable, identifiers
@@ -24,10 +25,20 @@ use crate::parser::node::*;
 
 // Else: invalid, return error
 
-pub fn evaluate(ctx: &Context, node: &ASTNode) -> Result<DataValue> {
+// how to handle: ( (def f (x) x) (1) )
+    // i.e inline fn def + result
+        // make DataValue::FnDef -> contains Rc<fn> + optional result
+            // return out -> add to REPL context 
+        // lambda: can just return a normal FnVar
+
+// evaluate first child. if len==1, return
+    // elif first child is FnVar | FnDef => apply to arguments
+    // else: evaluate nodes in order, return result from last
+
+pub fn evaluate(ctx:&Context, node: &ASTNode) -> Result<DataValue> {
     // try to match terminals
     match &node.value {
-        Number(num) => return Ok(Num(*num)),
+        Number(num) => Ok(Num(*num)),
         Symbol(sym) => {
             let fnc=ctx.get_function(sym);
             if fnc.is_some() {
@@ -39,9 +50,11 @@ pub fn evaluate(ctx: &Context, node: &ASTNode) -> Result<DataValue> {
             if resolve.is_some() {
                 Ok(resolve.unwrap().clone())
             } else {
-                Err(Ex::new("Unrecognised symbol."))
+                Err(Ex::new("Unrecognised symbol.")) 
             }
-        }
-        _ => return Ok(DataValue::Default),
+        },
+        Expression(children) => evaluate_expression(ctx, children),
+        List(children) => evaluate_list(ctx, children),
+        _ => Ok(Default),
     }
 }
