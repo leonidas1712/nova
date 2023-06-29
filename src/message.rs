@@ -1,5 +1,7 @@
 #[derive(Debug)]
 // Ex for Exception
+
+// add macro to create error
 pub struct Ex {
     message: String,
     // type: Parse,Eval...

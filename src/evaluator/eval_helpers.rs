@@ -110,9 +110,8 @@ pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>) -> Result<DataVal
     // if var is None: expect symbol to assign
     // if var is Some: evaluate
 
-    for i in 0..n {
-        let nxt_node=expressions.get(i).unwrap();
-        if i == n-1 {
+    for (idx,nxt_node) in expressions.into_iter().enumerate() {
+        if idx == n-1 {
             return evaluate(&new_ctx, nxt_node);
         }
 

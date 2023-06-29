@@ -2,12 +2,12 @@ use crate::constants::*;
 use std::fmt::Display;
 use std::ops::Deref;
 
-#[derive(Debug, Display)]
-
 // todo: IfStmt, LetStmt, FnDef, Lambda, FunctionCall
 // FunctionCall: when we have a symbol or expression which is:
 // 1. nested inside another expression (more than 1 inside parent.value)
 // 2. is the first element inside that expression
+
+#[derive(Debug, Display)]
 pub enum NodeValue {
     Symbol(String),
     Number(NumType),
@@ -15,7 +15,7 @@ pub enum NodeValue {
     List(Vec<ASTNode>),
     Boolean(bool),
     IfNode(Vec<ASTNode>),
-    LetNode(Vec<(String,ASTNode)>)
+    LetNode(Vec<ASTNode>)
 }
 
 pub use NodeValue::*;
@@ -64,7 +64,7 @@ impl ASTNode {
                 format!("{}{}{}", OPEN_EXPR, v.join(SPACE), CLOSE_EXPR)
             },
             LetNode(children)=>{
-                let v: Vec<String> = children.iter().map(|n| n.to_string()).collect();
+                let v: Vec<String> = children.iter().map(|node| node.to_string()).collect();
                 format!("{}{} {}{}", OPEN_EXPR, LET_NAME, v.join(SPACE), CLOSE_EXPR)
             }
             Boolean(b) => if *b { TRUE.to_string() } else { FALSE.to_string() },
