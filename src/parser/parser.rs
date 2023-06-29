@@ -36,6 +36,16 @@ macro_rules! try_spec {
 
 pub const EMPTY_MSG:&'static str="Can't parse empty expression";
 
+fn get_brackets_error(s:String, open_token:&str)->String{
+    let close_token = if open_token.eq(OPEN_EXPR) { CLOSE_EXPR } else { CLOSE_LIST }; 
+    let open_token=open_token.to_string();
+
+    let open_count=s.chars().filter(|x| x.to_string().eq(&open_token)).count();
+    let close_count=s.chars().filter(|x| x.to_string().eq(&close_token.to_string())).count();
+
+    format!("Excess of {} opening brackets: '{}'.", open_count-close_count, open_token)
+}
+
 // Parser
 fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     let open_token = lex.next().unwrap();
@@ -74,7 +84,8 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
             };
         }   // ret index
         None => { 
-            let msg=format!("Expression was not well formed: expected bracket at index {}", lex.idx);
+            // let msg=format!("Expression was not well formed: expected bracket at index {}", lex.idx);
+            let msg=get_brackets_error(lex.to_string().clone(), &open_token);
             return err!(msg); 
         },
     };
@@ -318,7 +329,8 @@ pub mod tests {
     pub fn parse_list_expression_test_err() {
         let lex = &mut Lexer::new("(add".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap_err();
-        assert!(&res.format_error().contains("not well formed"));
+        // println!("{}", res.format_error());
+        assert!(&res.format_error().to_lowercase().contains("excess"));
 
         let lex = &mut Lexer::new("(1,2]".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap_err();
