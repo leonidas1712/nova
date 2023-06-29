@@ -7,6 +7,7 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
+use std::time::{Duration, Instant};
 pub mod constants;
 pub mod evaluator;
 pub mod lexer;
@@ -54,6 +55,7 @@ pub fn evaluate_input(inp:&str, context:&mut Context)->String {
         .and_then(|lex| parser::parser::parse(lex))
         .and_then(|node| evaluate(&context, &node, true));
 
+
     // context.add_function(name, function)
 
     use crate::evaluator::data::DataValue::*;
@@ -92,6 +94,8 @@ pub fn run(mut args: impl Iterator<Item = String>) {
 
     let ctx=setup_context();
 
+    use crate::time::bench;
+
     nova_repl(ctx);
 }
 
@@ -100,6 +104,7 @@ pub fn nova_repl(mut context:Context) {
 
     println!();
     println!("Welcome to Nova, a highly expressive, dynamically typed functional programming language.\nType an expression to get started.\n");
+
     loop {
         let readline = rl.readline(">>> ");
 
@@ -121,7 +126,7 @@ pub fn nova_repl(mut context:Context) {
                 }
 
                 rl.add_history_entry(inp.clone().trim()).unwrap();
-
+                
                 let res=evaluate_input(inp.as_str(), &mut context);
                 println!("{res}");
             }
