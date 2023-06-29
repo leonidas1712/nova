@@ -2,6 +2,7 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 #![allow(unused_macros)]
+#![recursion_limit = "5000"]
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;
@@ -39,6 +40,8 @@ pub fn setup_context()->Context {
     reg!(SUB,Sub);
     reg!(MULT, Mult);
     reg!(EQUALS, Equals);
+    reg!(INC, Succ);
+    reg!(DEC, Pred);
 
     ctx
 }

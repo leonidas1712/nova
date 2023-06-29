@@ -1,3 +1,4 @@
+#![recursion_limit = "5000"]
 use nova::{evaluate_input, evaluator::context::Context, setup_context};
 
 fn compare(inp:&str, expected:&str, ctx:&mut Context) {
@@ -42,8 +43,6 @@ fn if_test() {
 
 // (let x (if true (add 5 6), (sub (mul 10 20) (add 20 30) (if 1 2 3))),let y (let z (if (add 5 6) (sub 3 4) 0)),let z (add x y),let k (sub x y),(mul z k))
 
-
-
 #[test]
 fn let_test() {
     let inps=vec![
@@ -87,14 +86,34 @@ fn test_let_global() {
 #[test]
 pub fn fn_test() {
     let mut ctx=setup_context();
-    let e=evaluate_input("(def id (x) x)", &mut ctx);
- 
 
-    println!("{}",ctx.to_string());
-    let e2=evaluate_input("(id 1)", &mut ctx);
-    println!("{}", e2);
+    let inputs=vec![
+        "(def id (x) x)",
+        "(id 1)",
+        "(let x 2 y (def g (a) (add a x)) (y x))",
+        "(def recr (n) 
+            (if (eq n 0) 0 
+            (add n (recr (pred n)))
+        ))",
+        "(recr 10)",
+        "(recr 50)",
+        "(recr 10)"
+    ];
+
+    let expected=vec!["id(x) => x", "1","4", "recr(n) => (if (eq n 0) 0 (add n (recr (pred n))))", "55", "1275", "55"];
+
+    compare_many(inputs, expected, &mut ctx);
 }
 
 
+#[test]
+fn bench() {
+    let recr="(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))))";
+    let mut ctx=setup_context();
+    let res=evaluate_input(recr, &mut ctx);
+
+    let r2=evaluate_input("(recr 50)", &mut ctx);
+    println!("{}", r2);
+}
 
 // (let x 2,let y (let x 3),(add x y))

@@ -13,6 +13,23 @@ macro_rules! name  {
     };
 }
 
+macro_rules! ev {
+    ($args:expr) => {
+        Arg::expect_all_eval($args)?
+    }
+}
+
+
+macro_rules! check {
+    ($name:expr, $num:expr, $args:expr) => {
+        if $args.len()!=$num {
+            let msg=format!("'{}' expected {} arguments but received {}.",
+                $name, $num, $args.len());
+            return err!(msg);
+        }
+    };
+}
+
 fn get_nums(args: Vec<Arg>) -> Result<Vec<NumType>> {
     let r: Result<Vec<NumType>> =
         Arg::expect_all_eval(args).and_then(|f| f.into_iter().map(|x| x.expect_num()).collect());
@@ -61,19 +78,11 @@ impl Function for Mult {
     }
 }
 
-
-
-
 pub struct Equals;
 impl Function for Equals {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
-        let eval_args=Arg::expect_all_eval(args)?;
-
-        if eval_args.len()!=2 {
-            let msg=format!("'{}' expected {} arguments but received {}.",
-                EQUALS, 2, eval_args.len());
-            return err!(msg);
-        }
+        let eval_args=ev!(args);
+        check!(EQUALS, 2, eval_args);
 
         let left=eval_args.get(0).unwrap();
         let right=eval_args.get(1).unwrap();
@@ -85,3 +94,32 @@ impl Function for Equals {
         name!(EQUALS)
     }
 }
+
+pub struct Succ;
+impl Function for Succ {
+    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
+        let eval_args=get_nums(args)?;
+        check!(INC, 1, eval_args);
+
+       eval_args.get(0).map(|x| Num(x+1)).ok_or(Ex::new("Couldn't add num."))
+    }
+
+    fn to_string(&self) -> String {
+        name!(INC)
+    }
+}
+
+pub struct Pred;
+impl Function for Pred {
+    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
+        let eval_args=get_nums(args)?;
+        check!(DEC, 1, eval_args);
+
+       eval_args.get(0).map(|x| Num(x-1)).ok_or(Ex::new("Couldn't subtract num.")) // err unreachable
+    }
+
+    fn to_string(&self) -> String {
+        name!(DEC)
+    }
+}
+
