@@ -38,8 +38,7 @@ pub const EMPTY_MSG:&'static str="Can't parse empty expression";
 
 // Parser
 fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
-    let open_token = lex.next().expect(format!("{}:'{}'", EMPTY_MSG, lex.to_string()).as_str());
-
+    let open_token = lex.next().unwrap();
     let mut children: Vec<ASTNode> = Vec::new();
 
     // loop and get child expressions
@@ -55,11 +54,12 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     };
 
     if children.len()==0 {
+        let expr=if open_token.eq(OPEN_EXPR) { "()" } else { "[]" };
         if open_token.eq(OPEN_LIST) {
             // handle nil here
         }
 
-        return err!(format!("{}: '{}'", EMPTY_MSG, lex.to_string()));
+        return err!(format!("{}: '{}'", EMPTY_MSG, expr));
     }
 
     // compare first and last token: should match () or []
@@ -317,12 +317,19 @@ pub mod tests {
     pub fn parse_list_expression_test_err() {
         let lex = &mut Lexer::new("(add".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap_err();
-        dbg!(&res.format_error());
         assert!(&res.format_error().contains("not well formed"));
 
         let lex = &mut Lexer::new("(1,2]".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap_err();
         assert!(&res.format_error().contains("Mismatched brackets"));
+
+        let lex=&mut lex!("()");
+        let res = parse_list_expression(lex).unwrap_err();
+        assert!(res.format_error().contains("Can't parse empty expression: '()'"));
+
+        let lex=&mut lex!("(add 2 ())");
+        let res = parse_list_expression(lex).unwrap_err();
+        assert!(res.format_error().contains("Can't parse empty expression: '()'"));
         
     }
 }
