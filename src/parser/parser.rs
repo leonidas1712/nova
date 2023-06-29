@@ -4,7 +4,7 @@ use crate::message::*;
 use crate::parser::parse_node::*;
 use super::special::*;
 
-enum Special {
+pub (super) enum Special {
     If,
     Let,
     Fn
@@ -22,6 +22,16 @@ impl Special {
             _ => None
         }
     }
+}
+
+macro_rules! try_spec {
+    ($vec:ident) => {
+        let try_special=Special::get_special($vec.get(0).unwrap().to_string());
+
+        if try_special.is_some() {
+            return parse_special(try_special.unwrap(), $vec)
+        }
+    };
 }
 
 // Parser
@@ -71,14 +81,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 
     let try_special=Special::get_special(first.to_string());
 
-    if try_special.is_some() {
-        match try_special.unwrap() {
-            If => return parse_if_expression(children),
-            Let => return parse_let_expression(children),
-            Fn => return parse_fn_def(children)
-        }
-    }
-    // // end special
+    try_spec!(children);
 
     let node_val = if open_token == OPEN_EXPR {
         Expression(children)
@@ -157,7 +160,9 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
     let root: ASTNode = if nodes.len() == 1 {
         nodes.into_iter().next().unwrap()
     } else {
-        dbg!(&nodes);
+        let try_special=Special::get_special(nodes.get(0).unwrap().to_string());
+
+        try_spec!(nodes);
         ASTNode::new(Expression(nodes))
     };
 

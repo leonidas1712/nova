@@ -32,8 +32,11 @@ fn calc_test() {
 #[test]
 fn if_test() {
     let mut ctx=setup_context();
-    let exprs=vec!["(if (if true (add 0 0) (sub 5 4)) (add 10 20 30) (sub 5 (if 1 2 4) 7))"];
-    let expected=vec!["-4"];
+    let exprs=vec![
+        "(if (if true (add 0 0) (sub 5 4)) (add 10 20 30) (sub 5 (if 1 2 4) 7))",
+        "if (add 0 0) (add 5 6) (mul 5 6)" // no brackets for outermost if
+        ];
+    let expected=vec!["-4", "30"];
     compare_many(exprs, expected, &mut ctx);
 }
 
@@ -44,6 +47,7 @@ fn if_test() {
 #[test]
 fn let_test() {
     let inps=vec![
+        "let x 2 y 3 (add x y)",
         "(let x (add 5 (if 1 2 (sub 5 6))) x)",
         "(let x (let y (let z 5) y) x)",
         "(let x (let y (if true (add 1 2) (sub 55 66))) y (if true 20 30) (add x y))",
@@ -57,7 +61,7 @@ fn let_test() {
     
     ];
 
-    let exp=vec!["7","5","23","120"];
+    let exp=vec!["5","7","5","23","120"];
     let mut ctx=setup_context();
     compare_many(inps, exp, &mut ctx)
 }

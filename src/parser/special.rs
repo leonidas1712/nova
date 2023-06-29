@@ -6,6 +6,14 @@ use crate::message::*;
 use crate::parser::parse_node::*;
 use super::parser::*;
 
+pub (super) fn parse_special(spec_type: Special, children: Vec<ASTNode>)->Result<ASTNode> {
+    match spec_type {
+        Special::If => return parse_if_expression(children),
+        Special::Let => return parse_let_expression(children),
+        Special::Fn => return parse_fn_def(children)
+    }
+}
+
 pub (super) fn parse_fn_def(children: Vec<ASTNode>)->Result<ASTNode> {
     Ok(ASTNode::new(Symbol("FnDef".to_string())))
 }
