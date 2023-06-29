@@ -1,10 +1,12 @@
 use std::fmt::Display;
 use std::rc::Rc;
 
-use super::function::Function;
 use crate::constants::NumType;
 use crate::message::*;
 use crate::parser::parse_node::ASTNode;
+
+use super::function::Function;
+use super::context::Context;
 
 pub const NUM: &str = "Num";
 pub const BOOL: &str = "Bool";
@@ -13,6 +15,12 @@ pub const FNV: &str = "FunctionVariable";
 // Number, Boolean, List, String, Lambda, FunctionVariable(Box<dyn Function>)
 // when we have an enum that has a reference, then a vector of enums and I clone the vector what happens
 
+#[derive(Clone)]
+pub struct LetReturn {
+    context: Box<Context>,
+    value: Rc<DataValue>
+}
+
 // Function shouldn't get dropped until all refs in context/args are dropped -> use Rc
 #[derive(Clone, Display, AsRefStr)]
 pub enum DataValue {
@@ -20,7 +28,7 @@ pub enum DataValue {
     Bool(bool),
     FunctionVariable(Rc<dyn Function>), // we need to borrow the function from Context when doing this
     FnDef(Rc<dyn Function>),
-    SetVar(Box<DataValue>),
+    SetVar(LetReturn), // returned from 'let' if outer_call=true
     Default,
 }
 
