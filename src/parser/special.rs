@@ -146,18 +146,23 @@ fn parse_fn_test_valid() {
 
     let valid="(def fn (a) a)";
     let l=lex!(valid);
-    dbg!(parse(l));
     
     let valid="(def fn (a b c) (add a b c) (let x y z) (add 1 2 3))";
     let l=lex!(valid);
     assert_eq!(parse(l).unwrap().to_string(),valid.to_string());
 
 
-    let valid="def fn (a b c) (add a b c) (let x y z) (add 1 2)";
+    let valid="def fn (a b c) (add a b c), (let x y z), (add 1 2)";
     let l=lex!(valid);
     let p=parse(l).unwrap().to_string();
+
     let exp="(def fn (a b c) (add a b c) (let x y z) (add 1 2))";
     assert_eq!(p, exp);
+
+    let valid="def fn (a,b,c) (add a b c)"; // commas ok
+    let l=lex!(valid);
+    let p=parse(l).unwrap().to_string();
+    assert_eq!(p.to_string(), "(def fn (a b c) (add a b c))")
 }
   
 #[test]
