@@ -33,20 +33,30 @@ pub (super) fn parse_fn_def(children: Vec<ASTNode>, global:bool)->Result<ASTNode
 
     let name=name.unwrap();
 
-    // should be inside expression
-    let params=children.next().unwrap().get_expression();
-    if params.is_none() {
-        let msg=format!("Parameters for '{}' should be in an expression.",name);
-        return err!("Function parameters should be in an expression.");
+    // should be inside expression or just a symbol (flattened)
+    let nxt_node=children.next().unwrap();
+    let mut param_nodes:Vec<ASTNode>=vec![];
+
+    let get_symbol=nxt_node.get_symbol();
+    let get_expr=nxt_node.get_expression();
+
+    if get_symbol.is_some() {
+        param_nodes=vec![nxt_node];
+
+    } else if get_expr.is_some() {
+        param_nodes=get_expr.unwrap();
+    } else {
+        let msg=format!("Parameters for '{}' should be a symbol or in in an expression.",name);
+        return err!(msg);
     }
 
-    let params=params.unwrap();
-
-    let all_symbols:Option<Vec<String>>=params.iter().map(|p| p.get_symbol()).collect();
+    // get param names from nodes
+    let all_symbols:Option<Vec<String>>=param_nodes.iter().map(|p| p.get_symbol()).collect();
     if all_symbols.is_none() {
         return err!("Function parameters should contain only symbols");
     }
 
+    // check that all names are valid idents
     let all_symbols=all_symbols.unwrap();
     let all_ok:Result<Vec<String>>=all_symbols.iter().map(|s| is_valid_identifier(s)).collect();
 
@@ -131,7 +141,25 @@ fn parse_if_test() {
 // 2. Next should be an expression (args)
 // 3. the expression should only contain symbols
 // 4. all the symbols should be valid ident
+#[test]
+fn parse_fn_test_valid() {
 
+    let valid="(def fn (a) a)";
+    let l=lex!(valid);
+    dbg!(parse(l));
+    
+    let valid="(def fn (a b c) (add a b c) (let x y z) (add 1 2 3))";
+    let l=lex!(valid);
+    assert_eq!(parse(l).unwrap().to_string(),valid.to_string());
+
+
+    let valid="def fn (a b c) (add a b c) (let x y z) (add 1 2)";
+    let l=lex!(valid);
+    let p=parse(l).unwrap().to_string();
+    let exp="(def fn (a b c) (add a b c) (let x y z) (add 1 2))";
+    assert_eq!(p, exp);
+}
+  
 #[test]
 fn parse_fn_test() {
     let l=lex!("def fn (a)");
@@ -144,23 +172,13 @@ fn parse_fn_test() {
     assert!(parse(l).err().unwrap().format_error().contains("should be a symbol"));
 
     let l=lex!("(def fn a b (a b))");
-    assert!(parse(l).err().unwrap().format_error().contains("in an expression"));
+    let p=parse(l);
+    dbg!(&p);
+    // assert!(parse(l).err().unwrap().format_error().contains("in an expression"));
 
     let l=lex!("(def fn (a b 2) (a b))");
     assert!(parse(l).err().unwrap().format_error().contains("only symbols"));
 
     let l=lex!("(def fn (a b let) (add a b let))");
     assert!(parse(l).is_err());
-
-    let valid="(def fn (a b c) (add a b c) (let x y z) (add 1 2 3))";
-    let l=lex!(valid);
-    assert_eq!(parse(l).unwrap().to_string(),valid.to_string());
-
-
-    let valid="def fn (a b c) (add a b c) (let x y z) (add 1 2)";
-    let l=lex!(valid);
-    let p=parse(l).unwrap().to_string();
-    let exp="(def fn (a b c) (add a b c) (let x y z) (add 1 2))";
-    assert_eq!(p, exp);
-
 }
