@@ -22,10 +22,14 @@ pub trait Function {
 
 use crate::parser::parse_node::FnDef;
 
+// name, params, body
 #[derive(Clone)]
 pub struct UserFunction {
     context: Context,
-    fn_def:FnDef
+    name:String,
+    params:Vec<String>,
+    body: Vec<ASTNode>
+
 }
 
 // clone fn_def because it could have come from a closure: the original function still needs it
@@ -34,40 +38,44 @@ impl UserFunction {
     pub fn new(context:&Context, fn_def:&FnDef) -> UserFunction {
         UserFunction {
             context: context.clone(),
-            fn_def:fn_def.clone()
+            name:fn_def.name.clone(),
+            params: fn_def.params.clone(),
+            body: fn_def.body.clone()
         }
     }
 
     pub fn get_name(&self)->String {
-        self.fn_def.name.clone()
-    }
-
-    pub fn to_string(&self) -> String {
-        self.fn_def.to_string()
-    }
-}
-
-impl Function for UserFunction {
-    fn execute(&self, _args: Vec<Arg>, context: &Context) -> Result<DataValue> {
-        // just test by passing name
-        evaluator::eval!(
-            &context,
-            &ASTNode::new(ParseValue::Symbol(self.to_string()))
-        )?;
-
-        Ok(Default)
+        self.name.clone()
     }
 
     fn to_string(&self) -> String {
-        let fn_def=&self.fn_def;
-        let name=&fn_def.name;
-        let params=&fn_def.params;
-        let body=&fn_def.body;
+        let name=&self.name;
+        let params=&self.params;
+        let body=&self.body;
 
         let params=params.join(VAR_SEP);
         let body_string:Vec<String>=body.iter().map(|n| n.to_string()).collect();
         let body_string=body_string.join(SPACE);
 
         format!("{}{}{}{} => {}", name,OPEN_EXPR,params,CLOSE_EXPR, body_string)
+    }
+}
+
+impl Function for UserFunction {
+    fn execute(&self, args: Vec<Arg>, outer_ctx: &Context) -> Result<DataValue> {
+        // just test by passing name
+        let eval_ctx=self.context.merge_context(outer_ctx);
+        let fn_node=self.body.get(0).unwrap();
+        
+        evaluator::eval!(
+            &eval_ctx,
+            fn_node
+        )?;
+
+        Ok(Default)
+    }
+
+    fn to_string(&self) -> String {
+        self.to_string()
     }
 }

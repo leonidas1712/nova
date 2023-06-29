@@ -84,6 +84,17 @@ fn test_let_global() {
     assert_eq!(ctx.get_variable("x").unwrap().expect_num().unwrap(), 3);
 }
 
+#[test]
+pub fn fn_test() {
+    let mut ctx=setup_context();
+    let e=evaluate_input("(def id (x) x)", &mut ctx);
+    println!("{}",e);
+    println!("{}", ctx.get_function("id").unwrap().to_string());
+
+    let e2=evaluate_input("(id 1)", &mut ctx);
+    println!("{}", e2);
+}
+
 
 
 // (let x 2,let y (let x 3),(add x y))

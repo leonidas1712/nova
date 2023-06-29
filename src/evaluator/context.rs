@@ -19,6 +19,19 @@ impl Context {
         Context { symbol_map }
     }   
 
+    // take other context and merge with self => new context
+        // self context should take preced i.e if self has variable other shouldnt overwrite
+    pub fn merge_context(&self, other_ctx:&Context)->Context{
+        let mut new_ctx=self.clone();
+
+        for (key,value) in &other_ctx.symbol_map {
+            if new_ctx.get_data_value(&key).is_none() {
+                new_ctx.symbol_map.insert(key.clone(), value.clone());
+            }
+        }
+        new_ctx
+    }
+
     // overwrite self with other context
     pub fn write_context(&mut self, other_ctx:Context) {
         for (key,value) in other_ctx.symbol_map.into_iter() {
@@ -33,6 +46,11 @@ impl Context {
     pub fn add_function(&mut self, name: &str, function: Rc<dyn Function>) {
         let d = DataValue::FunctionVariable(function);
         self.symbol_map.insert(name.to_string(), d);
+    }
+
+    // for getting something either a variable or a function
+    pub fn get_data_value(&self, name:&String)->Option<&DataValue> {
+        self.symbol_map.get(name)
     }
 
     // reference is enough: we never have to mutate
@@ -149,5 +167,22 @@ pub mod tests {
         c2.add_variable("new", Num(5));
         assert_eq!(c.get_variable("new").is_none(), true);
         
+    }
+
+    #[test]
+    pub fn context_test_merge() {
+        let mut c = Context::new();
+        c.add_variable("x", Num(2));
+        c.add_variable("y", Num(3));
+
+        let mut c2=c.clone();
+        c2.add_variable("x", Num(5));
+        c2.add_variable("y", Num(10));
+        c2.add_variable("z", Num(10));
+
+        let c3=c.merge_context(&c2);
+        assert_eq!(c3.get_data_value(&"x".to_string()).unwrap().expect_num().unwrap(), 2);
+        assert_eq!(c3.get_data_value(&"z".to_string()).unwrap().expect_num().unwrap(), 10);
+
     }
 }
