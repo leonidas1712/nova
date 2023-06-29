@@ -198,16 +198,14 @@ pub mod tests {
         let res = it.clone().map(|s| parse_one(&s));
 
         // iter(exp, node string)
-        let mut zip = it.zip(res);
+        let zip = it.zip(res);
         let zip2:Vec<(String, String)>=zip.clone().collect();
-        // dbg!(&zip2);
 
         for tup in zip2.into_iter() {
             let left=tup.0;
             let right=tup.1;
             assert_eq!(left, right);
         }
-        // assert!(zip.all(|tup| tup.0.eq(&tup.1)));
     }
 
     // test for main parse function
