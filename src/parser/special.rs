@@ -30,7 +30,7 @@ pub (super) fn parse_fn_def(children: Vec<ASTNode>, global:bool)->Result<ASTNode
     if name.is_none() {
         return err!("Function name should be a symbol.");
     }
-    
+
     let name=name.unwrap();
 
     // should be inside expression
@@ -52,10 +52,16 @@ pub (super) fn parse_fn_def(children: Vec<ASTNode>, global:bool)->Result<ASTNode
 
     let params=all_ok?;
 
+    // end of err handling
+    let rest:Vec<ASTNode>=children.collect();
 
+    let fn_node=FnNode(FnDef {
+        name,
+        params,
+        body:rest
+    });
 
-    Ok(ASTNode::new(Symbol("FnDef".to_string())))
-
+    Ok(ASTNode::new(fn_node))
     // aim: return FnDef (name:String, args:Vec<String>, body: Vec<ASTNode>)
 }
 
@@ -145,5 +151,16 @@ fn parse_fn_test() {
 
     let l=lex!("(def fn (a b let) (add a b let))");
     assert!(parse(l).is_err());
+
+    let valid="(def fn (a b c) (add a b c) (let x y z) (add 1 2 3))";
+    let l=lex!(valid);
+    assert_eq!(parse(l).unwrap().to_string(),valid.to_string());
+
+
+    let valid="def fn (a b c) (add a b c) (let x y z) (add 1 2)";
+    let l=lex!(valid);
+    let p=parse(l).unwrap().to_string();
+    let exp="(def fn (a b c) (add a b c) (let x y z) (add 1 2))";
+    assert_eq!(p, exp);
 
 }

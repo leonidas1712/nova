@@ -9,10 +9,22 @@ use std::ops::Deref;
 
 #[derive(Debug,Clone)]
 pub struct FnDef {
-    name:String,
-    args:Vec<String>,
-    body: Vec<ASTNode> // can have multiple expressions in body
+    pub name:String,
+    pub params:Vec<String>,
+    pub body: Vec<ASTNode> // can have multiple expressions in body
+}
 
+impl Display for FnDef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let body_string:Vec<String>=self.body.iter().map(|n| n.to_string()).collect();
+        let body_string=body_string.join(SPACE);
+
+        let param_string=self.params.join(SPACE);
+        let param_string=format!("{}{}{}", OPEN_EXPR, param_string, CLOSE_EXPR);
+
+        let st=format!("{} {} {} {} {} {}", OPEN_EXPR, FN_NAME, self.name, self.params.join(SPACE), body_string, CLOSE_EXPR);
+        write!(f, "{}{} {} {} {}{}", OPEN_EXPR, FN_NAME, self.name, param_string, body_string, CLOSE_EXPR)
+    }
 }
 
 #[derive(Debug, Display,Clone)]
@@ -92,7 +104,7 @@ impl ASTNode {
                 format!("{}{} {}{}", OPEN_EXPR, LET_NAME, v.join(SPACE), CLOSE_EXPR)
             },
             FnNode(fn_def) => {
-                "FnNode from Parse".to_string()
+                fn_def.to_string()
             },
             Boolean(b) => if *b { TRUE.to_string() } else { FALSE.to_string() },
         }
