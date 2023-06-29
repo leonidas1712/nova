@@ -17,12 +17,21 @@ pub const FNV: &str = "FunctionVariable";
 
 #[derive(Clone)]
 pub struct LetReturn {
-    context: Box<Context>,
-    value: Rc<DataValue> // need to return out of function
+    pub context: Box<Context>,
+    pub value: Rc<DataValue> // need to return out of function
+}
+
+impl LetReturn {
+    pub fn new(context:Context, value: DataValue)->LetReturn{
+        LetReturn {
+            context: Box::new(context),
+            value: Rc::new(value)
+        }
+    }
 }
 
 // Function shouldn't get dropped until all refs in context/args are dropped -> use Rc
-#[derive(Clone, Display, AsRefStr)]
+#[derive(Clone, AsRefStr)]
 pub enum DataValue {
     Num(NumType),
     Bool(bool),
@@ -68,6 +77,9 @@ impl DataValue {
             Num(n) => n.to_string(),
             Bool(b) => b.to_string(),
             FunctionVariable(f) => f.to_string(),
+            SetVar(lr) => {
+                lr.value.to_string()
+            }
             Default => String::from("Default Data Value"),
             _ => String::from("unimplemented"),
         }

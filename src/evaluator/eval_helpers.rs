@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use super::{context::*, data::*, evaluator::{evaluate}};
 use crate::{constants::{DONT_ADD, RESERVED_KEYWORDS, SPLIT_TOKENS, LET_NAME}, eval, parser::parser::tests::test_parse};
 use crate::{message::*};
@@ -108,16 +110,31 @@ pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>, outer_call:bool) 
 
     // if var is None: expect symbol to assign
     // if var is Some: evaluate
+    let mut outer_res:Option<DataValue> = None;
 
     for (idx,nxt_node) in expressions.into_iter().enumerate() {
         if idx == n-1 {
-            return eval!(&new_ctx, nxt_node);
+            let res=eval!(&new_ctx, nxt_node)?;
+
+            if let Some(var_name) = var {
+                new_ctx.add_variable(var_name, res.clone());
+            }
+
+            outer_res.replace(res);
+            continue;
         }
 
         if var.is_some() {
-            let res=eval!(&new_ctx, &nxt_node)?;
+            let res= eval!(&new_ctx, &nxt_node)?;
+            outer_res.replace(res.clone());
+
             new_ctx.add_variable(var.unwrap(), res);
             var.take();
+            continue;
+        }
+        
+        // dont check last expression as var
+        if idx==n-1 {
             continue;
         }
 
@@ -134,5 +151,20 @@ pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>, outer_call:bool) 
         }
     }
 
-    Ok(Default)
+    // (let ) -> unrecognised
+
+    if outer_res.is_none() {
+        let msg=format!("'{}' received nothing to evaluate.", LET_NAME);
+        return err!(&msg);
+    }
+
+    let res=outer_res.unwrap();
+
+    // returned here
+    if !outer_call {
+        Ok(res)
+    } else {
+        let data=LetReturn::new(new_ctx, res);
+        Ok(SetVar(data))
+    }
 }

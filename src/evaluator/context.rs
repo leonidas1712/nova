@@ -17,6 +17,13 @@ impl Context {
     pub fn new() -> Context {
         let symbol_map: HashMap<String, DataValue> = HashMap::new();
         Context { symbol_map }
+    }   
+
+    // overwrite self with other context
+    pub fn write_context(&mut self, other_ctx:Context) {
+        for (key,value) in other_ctx.symbol_map.into_iter() {
+            self.add_variable(key.as_str(), value);
+        }
     }
 
     pub fn add_variable(&mut self, ident: &str, value: DataValue) {
@@ -99,6 +106,20 @@ pub mod tests {
         let fnc_var = Rc::new(fnc);
         ctx.add_function("add", fnc_var);
         assert!(ctx.get_function("add").is_some());
+
+        let mut c1=Context::new();
+        c1.add_variable("x", Num(2));
+        
+        let mut c2=Context::new();
+        c2.add_variable("y", Num(5));
+
+        c1.write_context(c2);
+
+        let c1x=c1.get_variable("x").unwrap().expect_num().unwrap();
+        assert_eq!(c1x, 2);
+
+        let c1y=c1.get_variable("y").unwrap().expect_num().unwrap();
+        assert_eq!(c1y, 5);
     }
 
     #[test]

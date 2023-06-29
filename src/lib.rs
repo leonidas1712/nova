@@ -52,8 +52,23 @@ pub fn evaluate_input(inp:&str, context:&mut Context)->String {
 
     // context.add_function(name, function)
 
+    use crate::evaluator::data::DataValue::*;
     match res {
-        Ok(val) => val.to_string(),
+        Ok(val) => { 
+            // dbg!(&val);
+            let mut string=val.to_string();
+
+            //set outer context here
+            if let SetVar(data) = val {
+                let ret_ctx=data.context;
+                let value=data.value;
+                string=value.to_string();
+                context.write_context(*ret_ctx);
+            }
+            // end set outer ctx
+
+            string
+        },
         Err(err) => err.format_error()
     }
 }
