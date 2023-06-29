@@ -48,7 +48,7 @@ pub fn setup_context()->Context {
 pub fn evaluate_input(inp:&str, context:&mut Context)->String {
     let res = lexer::Lexer::new(inp.to_string())
         .and_then(|lex| parser::parser::parse(lex))
-        .and_then(|node| evaluate(&context, &node));
+        .and_then(|node| evaluate(&context, &node, true));
 
     // context.add_function(name, function)
 

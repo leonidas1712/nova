@@ -18,7 +18,7 @@ pub const FNV: &str = "FunctionVariable";
 #[derive(Clone)]
 pub struct LetReturn {
     context: Box<Context>,
-    value: Rc<DataValue>
+    value: Rc<DataValue> // need to return out of function
 }
 
 // Function shouldn't get dropped until all refs in context/args are dropped -> use Rc

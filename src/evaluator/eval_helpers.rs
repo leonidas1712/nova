@@ -1,7 +1,8 @@
-use super::{context::*, data::*, evaluator::evaluate};
-use crate::constants::{DONT_ADD, RESERVED_KEYWORDS, SPLIT_TOKENS, LET_NAME};
+use super::{context::*, data::*, evaluator::{evaluate}};
+use crate::{constants::{DONT_ADD, RESERVED_KEYWORDS, SPLIT_TOKENS, LET_NAME}, eval, parser::parser::tests::test_parse};
 use crate::{message::*};
 use crate::parser::parse_node::*;
+use crate::lex;
 
 // evaluated args
 pub fn get_eval_args_from_nodes<'a>(
@@ -38,7 +39,7 @@ pub fn evaluate_expression(ctx: &Context, children: &Vec<ASTNode>) -> Result<Dat
     }
 
     let first_child = children.first().unwrap();
-    let res = evaluate(ctx, first_child)?;
+    let res = eval!(ctx, first_child)?;
 
     if children.len() == 1 {
         return Ok(res);
@@ -47,7 +48,7 @@ pub fn evaluate_expression(ctx: &Context, children: &Vec<ASTNode>) -> Result<Dat
     let mut rest = children.iter();
     rest.next();
 
-    let eval_rest = rest.clone().map(|node| evaluate(ctx, node));
+    let eval_rest = rest.clone().map(|node| eval!(ctx, node));
 
     // is function: check ArgType, gets arg, eval.
     match res.expect_function().ok() {
@@ -83,7 +84,7 @@ pub fn evaluate_list(_ctx: &Context, children: &Vec<ASTNode>) -> Result<DataValu
 
 pub fn evaluate_if(ctx: &Context, cond: &ASTNode, e1: &ASTNode, e2: &ASTNode) -> Result<DataValue> {
     // println!("Received if eval: Cond: {} e1: {} e2: {}", cond.to_string(), e1.to_string(), e2.to_string());
-    let cond_result = evaluate(ctx, cond)?;
+    let cond_result = eval!(ctx, cond)?;
 
     // add empty list as false later
     let condition = match cond_result {
@@ -93,15 +94,13 @@ pub fn evaluate_if(ctx: &Context, cond: &ASTNode, e1: &ASTNode, e2: &ASTNode) ->
     };
 
     if condition {
-        evaluate(ctx, e1)
+        eval!(ctx, e1)
     } else {
-        evaluate(ctx, e2)
+        eval!(ctx, e2)
     }
 }
 
-pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>) -> Result<DataValue> {
-    // println!("Let received eval:", expressions.);
-    // expressions.iter().for_each(|n| println!("{}", n.to_string()));
+pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>, outer_call:bool) -> Result<DataValue> {
     let mut new_ctx=ctx.clone();
     let n=expressions.len();
 
@@ -112,11 +111,11 @@ pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>) -> Result<DataVal
 
     for (idx,nxt_node) in expressions.into_iter().enumerate() {
         if idx == n-1 {
-            return evaluate(&new_ctx, nxt_node);
+            return eval!(&new_ctx, nxt_node);
         }
 
         if var.is_some() {
-            let res=evaluate(&new_ctx, &nxt_node)?;
+            let res=eval!(&new_ctx, &nxt_node)?;
             new_ctx.add_variable(var.unwrap(), res);
             var.take();
             continue;
@@ -137,12 +136,3 @@ pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>) -> Result<DataVal
 
     Ok(Default)
 }
-
-use crate::lexer::Lexer;
-#[test]
-fn let_test() {
-    let e="(let if 2)";
-  
-}
-
-

@@ -1,6 +1,6 @@
 use super::eval_helpers::*;
 use super::{context::*, data::*};
-use crate::message::*;
+use crate::{message::*, lex, setup_context};
 use crate::parser::parse_node::*;
 
 // 1. Check ast node type -> if terminal, convert to a DataValue -> put this method in context
@@ -31,7 +31,9 @@ use crate::parser::parse_node::*;
 // return out -> add to REPL context
 // lambda: can just return a normal FnVar
 
-pub(crate) fn evaluate(ctx: &Context, node: &ASTNode) -> Result<DataValue> {
+// default to false
+
+pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result<DataValue> {
     // try to match terminals
     match &node.value {
         Boolean(b) => Ok(Bool(*b)),
@@ -62,6 +64,49 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode) -> Result<DataValue> {
                 children.get(2).unwrap(),
             );
         }
-        LetNode(children) => return evaluate_let(ctx, children),
+        LetNode(children) => return evaluate_let(ctx, children, outer_call),
     }
+}
+
+// to call with default false outer_call
+#[macro_export]
+macro_rules! eval {
+    ($ctx:expr, $node:expr) => {
+        crate::evaluate($ctx, $node, false)
+    };
+}
+
+pub (crate) use eval;
+
+use crate::lexer::Lexer;
+use crate::parser::parser::parse;
+
+pub fn test_eval(expr:&str, expected:&str) {
+    let l=lex!(expr);
+    let p=parse(l).unwrap();
+    let ctx=setup_context();
+    let e=evaluate(&ctx, &p, true).unwrap().to_string();
+
+    assert_eq!(e, expected);
+}
+
+pub fn test_eval_many(exprs:Vec<&str>, expected:Vec<&str>) {
+    for tup in exprs.into_iter().zip(expected.into_iter()) {
+        test_eval(tup.0, tup.1);
+    }
+}
+
+
+#[test]
+fn let_test() {
+    let exprs=vec![
+        "(let x 2)", 
+        "(let x 3 y 4 (add x y))", 
+        "let x 3 y 4 (add x y)",
+        "let x 3 y (let x 10 x) (add x y) "
+    ];
+
+    let exp=vec!["2","7","7","13"];
+
+    test_eval_many(exprs, exp);
 }

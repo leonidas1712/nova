@@ -34,6 +34,7 @@ macro_rules! try_spec {
     };
 }
 
+
 pub const EMPTY_MSG:&'static str="Can't parse empty expression";
 
 // Parser
@@ -181,6 +182,8 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
 
     Ok(root)
 }
+
+
 
 // Tests
 #[cfg(test)]

@@ -40,9 +40,9 @@ impl UserFunction {
 impl Function for UserFunction {
     fn execute(&self, _args: Vec<Arg>, context: &Context) -> Result<DataValue> {
         // just test by passing name
-        evaluator::evaluate(
+        evaluator::eval!(
             &context,
-            &ASTNode::new(ParseValue::Symbol(self.name.clone())),
+            &ASTNode::new(ParseValue::Symbol(self.name.clone()))
         )?;
 
         Ok(Default)
