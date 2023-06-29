@@ -25,14 +25,14 @@ impl Special {
 }
 
 macro_rules! try_spec {
-    ($vec:ident) => {
+    ($vec:ident, $global:expr) => {
         let try_special=Special::get_special($vec.get(0).unwrap().to_string());
         // println!("{}", $vec.to_string());
         // for n in &$vec {
         //     println!("{}", n.to_string());
         // } 
         if try_special.is_some() {
-            return parse_special(try_special.unwrap(), $vec)
+            return parse_special(try_special.unwrap(), $vec, $global)
         }
     };
 }
@@ -96,7 +96,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 
     let try_special=Special::get_special(first.to_string());
 
-    try_spec!(children);
+    try_spec!(children, false);
 
     let node_val = if open_token == OPEN_EXPR {
         Expression(children)
@@ -178,8 +178,7 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
         nodes.into_iter().next().unwrap()
     } else {
         // if special: return that, otherwise make expr with nodes
-        println!("Here");
-        try_spec!(nodes);
+        try_spec!(nodes, true);
         println!("Not special");
         ASTNode::new(Expression(nodes))
     };

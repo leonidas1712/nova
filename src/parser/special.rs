@@ -6,15 +6,15 @@ use crate::message::*;
 use crate::parser::parse_node::*;
 use super::parser::*;
 
-pub (super) fn parse_special(spec_type: Special, children: Vec<ASTNode>)->Result<ASTNode> {
+pub (super) fn parse_special(spec_type: Special, children: Vec<ASTNode>, global:bool)->Result<ASTNode> {
     match spec_type {
         Special::If => return parse_if_expression(children),
-        Special::Let => return parse_let_expression(children),
-        Special::Fn => return parse_fn_def(children)
+        Special::Let => return parse_let_expression(children, global),
+        Special::Fn => return parse_fn_def(children, global)
     }
 }
 
-pub (super) fn parse_fn_def(children: Vec<ASTNode>)->Result<ASTNode> {
+pub (super) fn parse_fn_def(children: Vec<ASTNode>, global:bool)->Result<ASTNode> {
     Ok(ASTNode::new(Symbol("FnDef".to_string())))
 }
 
@@ -39,7 +39,7 @@ pub (super) fn parse_if_expression(children: Vec<ASTNode>)->Result<ASTNode> {
 
 
 // change to return tuple (ident, expr) since we are checking anyway
-pub (super) fn parse_let_expression(children: Vec<ASTNode>)->Result<ASTNode> {
+pub (super) fn parse_let_expression(children: Vec<ASTNode>, global:bool)->Result<ASTNode> {
     // when parsing symbol: do parse atomic, check valid ident
     // else: parse normally
     if children.len()==1 {
@@ -53,7 +53,7 @@ pub (super) fn parse_let_expression(children: Vec<ASTNode>)->Result<ASTNode> {
     
     let children=children.collect();
 
-    Ok(ASTNode::new(LetNode(children)))
+    Ok(ASTNode::new(LetNode(children, global)))
 }
 
 use lexer::*;

@@ -15,7 +15,7 @@ pub enum ParseValue {
     List(Vec<ASTNode>),
     Boolean(bool),
     IfNode(Vec<ASTNode>),
-    LetNode(Vec<ASTNode>)
+    LetNode(Vec<ASTNode>, bool)
 }
 
 pub use ParseValue::*;
@@ -63,7 +63,7 @@ impl ASTNode {
                 let v: Vec<String> = children.iter().map(|n| n.to_string()).collect();
                 format!("{}{} {}{}", OPEN_EXPR, IF_NAME, v.join(SPACE), CLOSE_EXPR)
             },
-            LetNode(children)=>{
+            LetNode(children, _)=>{
                 let v: Vec<String> = children.iter().map(|node| node.to_string()).collect();
                 format!("{}{} {}{}", OPEN_EXPR, LET_NAME, v.join(SPACE), CLOSE_EXPR)
             }

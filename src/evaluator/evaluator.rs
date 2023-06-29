@@ -65,7 +65,7 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result
                 children.get(2).unwrap(),
             );
         }
-        LetNode(children) => return evaluate_let(ctx, children, outer_call),
+        LetNode(children, global) => return evaluate_let(ctx, children, *global),
     }
 }
 
