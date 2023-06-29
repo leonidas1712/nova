@@ -157,6 +157,7 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
     let root: ASTNode = if nodes.len() == 1 {
         nodes.into_iter().next().unwrap()
     } else {
+        dbg!(&nodes);
         ASTNode::new(Expression(nodes))
     };
 
@@ -170,6 +171,7 @@ pub mod tests {
     use crate::lex;
 
     use super::*;
+    // parse helpers
     pub fn parse_one(exp: &str) -> String {
         let lex = crate::lexer::Lexer::new(exp.to_string()).unwrap();
         // dbg!(&lex);
