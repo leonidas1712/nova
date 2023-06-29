@@ -68,7 +68,5 @@ fn if_test() {
         "(if (3 4 5) (true false) false)",
     ];
 
-    // let p=parse(lex!("if 1 2"));
-    // dbg!(p.unwrap().to_string());
     test_parse(exprs);
 }

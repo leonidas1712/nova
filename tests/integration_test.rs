@@ -37,15 +37,30 @@ fn if_test() {
     compare_many(exprs, expected, &mut ctx);
 }
 
+// (let x (if true (add 5 6), (sub (mul 10 20) (add 20 30) (if 1 2 3))),let y (let z (if (add 5 6) (sub 3 4) 0)),let z (add x y),let k (sub x y),(mul z k))
+
+
+
 #[test]
 fn let_test() {
     let inps=vec![
         "(let x (add 5 (if 1 2 (sub 5 6))) x)",
         "(let x (let y (let z 5) y) x)",
-        "(let x (let y (if true (add 1 2) (sub 55 66))) y (if true 20 30) (add x y))"
+        "(let x (let y (if true (add 1 2) (sub 55 66))) y (if true 20 30) (add x y))",
+        "(
+            let x (if true (add 5 6), (sub (mul 10 20) (add 20 30) (if 1 2 3))),
+            y (let z (if (add 5 6) (sub 3 4) 0)),
+            z (add x y),
+            k (sub x y),
+            (mul z k)
+        )",
+    
     ];
 
-    let exp=vec!["7","5","23"];
+    let exp=vec!["7","5","23","120"];
     let mut ctx=setup_context();
     compare_many(inps, exp, &mut ctx)
 }
+
+
+// (let x 2,let y (let x 3),(add x y))
