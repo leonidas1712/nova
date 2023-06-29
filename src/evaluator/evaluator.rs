@@ -49,7 +49,7 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode) -> Result<DataValue> {
                 Ok(resolve.unwrap().clone())
             } else {
                 let err_string = format!("Unrecognised symbol: '{}'", sym);
-                Err(Ex::new(err_string.as_str()))
+                err!(err_string.as_str())
             }
         }
         Expression(children) => evaluate_expression(ctx, children),

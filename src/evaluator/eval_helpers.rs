@@ -20,10 +20,10 @@ pub fn is_valid_identifier(s:&str)->Result<bool> {
     let s=&s;
     if DONT_ADD.contains(s) || SPLIT_TOKENS.contains(s) {
         let msg=format!("Invalid identifier: {}", s);
-        return Err(Ex::new(&msg));
+        return err!(&msg);
     } else if RESERVED_KEYWORDS.contains(s) {
         let msg=format!("Invalid identifier: '{}' is a reserved keyword.", s);
-        return Err(Ex::new(&msg));
+        return err!(&msg);
     }
 
     Ok(true)
@@ -34,7 +34,7 @@ pub fn is_valid_identifier(s:&str)->Result<bool> {
 // else: evaluate nodes in order, return result from last
 pub fn evaluate_expression(ctx: &Context, children: &Vec<ASTNode>) -> Result<DataValue> {
     if children.is_empty() {
-        return Err(Ex::new("Received empty expression."));
+        return err!("Received empty expression.");
     }
 
     let first_child = children.first().unwrap();
@@ -130,7 +130,7 @@ pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>) -> Result<DataVal
             }
             _ => {
                 let msg=format!("'{}' expected a symbol but got '{}'", LET_NAME, nxt_node.to_string());
-                return Err(Ex::new(&msg));
+                return err!(&msg);
             }
         }
     }

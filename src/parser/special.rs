@@ -44,7 +44,7 @@ pub (super) fn parse_let_expression(children: Vec<ASTNode>)->Result<ASTNode> {
     // else: parse normally
     if children.len()==1 {
         let msg=format!("'{}' received 0 expressions or symbols", LET_NAME);
-        return Err(Ex::new(&msg));
+        return err!(&msg);
     }
 
     // remove let

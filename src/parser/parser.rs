@@ -34,9 +34,11 @@ macro_rules! try_spec {
     };
 }
 
+pub const EMPTY_MSG:&'static str="Received empty expression";
+
 // Parser
 fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
-    let open_token = lex.next().expect("Received empty expression");
+    let open_token = lex.next().expect(EMPTY_MSG);
 
     let mut children: Vec<ASTNode> = Vec::new();
 
@@ -53,7 +55,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     };
 
     if children.len()==0 {
-        return Err(Ex::new("Received empty expression."));
+        return err!(EMPTY_MSG);
     }
 
     // compare first and last token: should match () or []
@@ -62,10 +64,11 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
         Some(last_token) => {
             let cmp = (open_token.as_str(), last_token);
             if cmp != EXPR_TUP && cmp != LIST_TUP {
-                return Err(Ex::new("Mismatched brackets."));
+                // return bracket mismatch and index
+                return err!("Mismatched brackets");
             };
-        }
-        None => return Err(Ex::new("Expression was not well-formed.")),
+        }   // ret index
+        None => return err!("Expression was not well formed."),
     };
 
     lex.next(); // advance past the last token
@@ -95,7 +98,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 pub fn parse_atomic_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     let token_opt = lex.next();
     if token_opt.is_none() {
-        return Err(Ex::new("Problem parsing expression."));
+        return err!("Problem parsing expression.");
     }
 
     let token = token_opt.unwrap();
@@ -121,14 +124,14 @@ pub fn parse_atomic_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 pub fn parse_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     let token_peek = lex.peek();
     if let None = token_peek {
-        return Err(Ex::new("Unrecognised expression."));
+        return err!("Unrecognised expression.")
     }
 
     let token = token_peek.unwrap().as_str();
 
     // if first token is ), not well formed
     if CLOSE_TOKENS.contains(&token) {
-        return Err(Ex::new("Expression is not well formed."));
+        return err!("Expression is not well formed.")
     }
 
     // list
@@ -154,7 +157,7 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
     }
 
     if nodes.len() == 0 {
-        return Err(Ex::new("Parse received empty expression."));
+        return err!("Parse received empty expression.");
     };
 
     let root: ASTNode = if nodes.len() == 1 {
@@ -308,7 +311,8 @@ pub mod tests {
     pub fn parse_list_expression_test_err() {
         let lex = &mut Lexer::new("(add".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap_err();
-        assert!(&res.format_error().contains("not well-formed."));
+        dbg!(&res.format_error());
+        assert!(&res.format_error().contains("not well formed."));
 
         let lex = &mut Lexer::new("(1,2]".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap_err();

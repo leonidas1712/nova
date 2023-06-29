@@ -30,7 +30,7 @@ impl DataValue {
             Num(num) => Ok(*num),
             _ => {
                 let msg = format!("Expected a number but got '{}'", self.to_string());
-                Err(Ex::new(msg.as_str()))
+                err!(msg.as_str())
             }
         }
     }
@@ -40,7 +40,7 @@ impl DataValue {
             Bool(bool) => Ok(*bool),
             _ => {
                 let msg = format!("Expected a boolean but got '{}'", self.to_string());
-                Err(Ex::new(msg.as_str()))
+                err!(msg.as_str())
             }
         }
     }
@@ -50,7 +50,7 @@ impl DataValue {
             FunctionVariable(fn_ref) => Ok(fn_ref),
             _ => {
                 let msg = format!("Expected a function but got '{}'", self.to_string());
-                Err(Ex::new(msg.as_str()))
+                err!(msg.as_str())
             }
         }
     }
@@ -85,7 +85,7 @@ impl<'a> Arg<'a> {
             Evaluated(val) => Ok(val),
             Unevaluated(node) => {
                 let msg = format!("Expected evaluated: {}", node.to_string());
-                Err(Ex::new(msg.as_str()))
+                err!(msg.as_str())
             }
         }
     }
@@ -95,7 +95,7 @@ impl<'a> Arg<'a> {
             Unevaluated(node) => Ok(node),
             Evaluated(val) => {
                 let msg = format!("Expected unevaluated node: {}", val.to_string());
-                Err(Ex::new(msg.as_str()))
+                err!(msg.as_str())
             }
         }
     }
