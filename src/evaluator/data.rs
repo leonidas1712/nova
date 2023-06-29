@@ -32,7 +32,7 @@ impl LetReturn {
 
 #[derive(Clone)]
 pub struct FnDefReturn {
-    func: Rc<dyn Function>
+    func: Rc<UserFunction>
 }
 
 // Function shouldn't get dropped until all refs in context/args are dropped -> use Rc
@@ -42,7 +42,7 @@ pub enum DataValue {
     Bool(bool),
     FunctionVariable(Rc<dyn Function>), // we need to borrow the function from Context when doing this
     SetVar(LetReturn), // returned from 'let' if outer_call=true,
-    SetFn(Rc<dyn Function>),
+    SetFn(Rc<UserFunction>),
     Default,
 }
 

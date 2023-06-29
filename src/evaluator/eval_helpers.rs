@@ -178,11 +178,11 @@ use crate::parser::parse_node::FnDef;
 use super::function::*;
 pub fn evaluate_fn_node(ctx:&Context, fn_def:&FnDef, outer_call:bool)->Result<DataValue> {
     let func=UserFunction::new(&ctx, &fn_def);
-    let rc:Rc<dyn Function>=Rc::new(func);
+    let rc:Rc<UserFunction>=Rc::new(func);
 
     if !outer_call {
         return Ok(FunctionVariable(rc));
     }
-    
+
     Ok(SetFn(rc))
 }

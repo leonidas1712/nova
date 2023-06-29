@@ -38,6 +38,10 @@ impl UserFunction {
         }
     }
 
+    pub fn get_name(&self)->String {
+        self.fn_def.name.clone()
+    }
+
     pub fn to_string(&self) -> String {
         self.fn_def.to_string()
     }

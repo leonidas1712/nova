@@ -53,6 +53,8 @@ pub fn evaluate_input(inp:&str, context:&mut Context)->String {
     // context.add_function(name, function)
 
     use crate::evaluator::data::DataValue::*;
+    use evaluator::function::*;
+
     match res {
         Ok(val) => { 
             // dbg!(&val);
@@ -65,8 +67,13 @@ pub fn evaluate_input(inp:&str, context:&mut Context)->String {
                 string=value.to_string();
                 context.write_context(*ret_ctx);
             }
+            
+            else if let SetFn(rc) = val {
+                let name=rc.get_name();
+                let rc2:Rc<dyn Function>=rc;
+                context.add_function(&name, rc2);
+            }
             // end set outer ctx
-
             string
         },
         Err(err) => err.format_error()
