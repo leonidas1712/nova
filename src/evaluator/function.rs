@@ -2,7 +2,7 @@ use super::context::*;
 use super::data::*;
 use super::evaluator;
 use crate::message::*;
-use crate::parser::node::*;
+use crate::parser::parse_node::*;
 
 // &Context: need to be able to re-use the context
 pub trait Function {
@@ -42,7 +42,7 @@ impl Function for UserFunction {
         // just test by passing name
         evaluator::evaluate(
             &context,
-            &ASTNode::new(NodeValue::Symbol(self.name.clone())),
+            &ASTNode::new(ParseValue::Symbol(self.name.clone())),
         )?;
 
         Ok(Default)

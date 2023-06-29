@@ -3,7 +3,7 @@ use crate::constants::*;
 use crate::evaluator::eval_helpers::is_valid_identifier;
 use crate::lexer;
 use crate::message::*;
-use crate::parser::node::*;
+use crate::parser::parse_node::*;
 use super::parser::*;
 
 pub (super) fn parse_fn_def(children: Vec<ASTNode>)->Result<ASTNode> {

@@ -8,7 +8,7 @@ use std::ops::Deref;
 // 2. is the first element inside that expression
 
 #[derive(Debug, Display)]
-pub enum NodeValue {
+pub enum ParseValue {
     Symbol(String),
     Number(NumType),
     Expression(Vec<ASTNode>),
@@ -18,16 +18,16 @@ pub enum NodeValue {
     LetNode(Vec<ASTNode>)
 }
 
-pub use NodeValue::*;
+pub use ParseValue::*;
 
 // ASTNode
 #[derive(Debug)]
 pub struct ASTNode {
-    pub value: NodeValue,
+    pub value: ParseValue,
 }
 
 impl ASTNode {
-    pub fn new(value: NodeValue) -> ASTNode {
+    pub fn new(value: ParseValue) -> ASTNode {
         ASTNode { value }
     }
 
@@ -73,7 +73,7 @@ impl ASTNode {
 }
 
 impl Deref for ASTNode {
-    type Target = NodeValue;
+    type Target = ParseValue;
     fn deref(&self) -> &Self::Target {
         &self.value
     }

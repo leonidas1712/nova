@@ -1,7 +1,7 @@
 use crate::constants::*;
 use crate::lexer;
 use crate::message::*;
-use crate::parser::node::*;
+use crate::parser::parse_node::*;
 use super::special::*;
 
 enum Special {
@@ -274,7 +274,7 @@ pub mod tests {
     pub fn parse_list_expression_test_nest() {
         let mut lex = &mut Lexer::new("(2)".to_string()).unwrap();
         let res = parse_list_expression(&mut lex).unwrap();
-        if let NodeValue::Number(num) = res.value {
+        if let ParseValue::Number(num) = res.value {
             assert_eq!(num, 2);
         } else {
             assert!(false);
@@ -282,7 +282,7 @@ pub mod tests {
 
         let lex = &mut Lexer::new("(((((((2)))))))".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap();
-        if let NodeValue::Number(num) = res.value {
+        if let ParseValue::Number(num) = res.value {
             assert_eq!(num, 2);
         } else {
             assert!(false);
@@ -292,7 +292,7 @@ pub mod tests {
         let lex = &mut Lexer::new("[2]".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap();
 
-        if let NodeValue::List(vc) = res.value {
+        if let ParseValue::List(vc) = res.value {
             assert_eq!(vc.len(), 1);
         } else {
             assert!(false);

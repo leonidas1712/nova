@@ -4,7 +4,7 @@ use std::rc::Rc;
 use super::function::Function;
 use crate::constants::NumType;
 use crate::message::*;
-use crate::parser::node::ASTNode;
+use crate::parser::parse_node::ASTNode;
 
 pub const NUM: &str = "Num";
 pub const BOOL: &str = "Bool";
