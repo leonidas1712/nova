@@ -61,7 +61,7 @@ impl ASTNode {
             },
             IfNode(children) => {
                 let v: Vec<String> = children.iter().map(|n| n.to_string()).collect();
-                format!("{}{}{}", OPEN_EXPR, v.join(SPACE), CLOSE_EXPR)
+                format!("{}{} {}{}", OPEN_EXPR, IF_NAME, v.join(SPACE), CLOSE_EXPR)
             },
             LetNode(children)=>{
                 let v: Vec<String> = children.iter().map(|node| node.to_string()).collect();

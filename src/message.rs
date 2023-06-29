@@ -1,7 +1,16 @@
-#[derive(Debug)]
 // Ex for Exception
 
 // add macro to create error
+#[macro_export]
+macro_rules! err {
+    ($msg:expr) => {
+        Err(Ex::new(&$msg))
+    };
+}
+
+pub use err;
+
+#[derive(Debug)]
 pub struct Ex {
     message: String,
     // type: Parse,Eval...

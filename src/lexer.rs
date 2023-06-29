@@ -1,6 +1,15 @@
 use crate::constants::{DONT_ADD, SPACE, SPLIT_TOKENS};
 use crate::message::*;
 
+#[macro_export]
+macro_rules! lex {
+    ($inp:expr) => {
+        Lexer::new($inp.to_string()).unwrap()
+    };
+}
+
+pub use lex;
+
 #[derive(Debug)]
 pub struct Lexer {
     tokens: Vec<String>,

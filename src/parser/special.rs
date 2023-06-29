@@ -6,30 +6,24 @@ use crate::message::*;
 use crate::parser::node::*;
 use super::parser::*;
 
-pub (super) fn parse_fn_def(lex: &mut lexer::Lexer)->Result<ASTNode> {
-    lex.next();
+pub (super) fn parse_fn_def(children: Vec<ASTNode>)->Result<ASTNode> {
     Ok(ASTNode::new(Symbol("FnDef".to_string())))
 }
 
-pub (super) fn parse_if_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
-    lex.next();
-    let cond=parse_expression(lex);
-    let e1=parse_expression(lex);
-    let e2=parse_expression(lex);
-
-    let all:Vec<Result<ASTNode>> = vec![cond,e1,e2];
-    let checked:Result<Vec<ASTNode>>=all.into_iter().collect();
-
-    let res=checked?;
-
-    let last=lex.peek();
-
-    match last {
-        Some(token) if !token.eq(CLOSE_EXPR)=> {
-            return Err(Ex::new("'if' received too many expressions."))
-        },
-        _ => ()
+pub (super) fn parse_if_expression(children: Vec<ASTNode>)->Result<ASTNode> {    
+    if children.len()!=4 {
+        let msg=format!("'{}' expected 3 expressions but got {}.", IF_NAME, children.len());
+        return err!(msg);
     }
+
+    let mut children=children.into_iter();
+    children.next();
+
+    let cond=children.next().unwrap();
+    let e1=children.next().unwrap();
+    let e2=children.next().unwrap();
+
+    let res=vec![cond,e1,e2];
 
     let node_val=IfNode(res);
     Ok(ASTNode::new(node_val))
@@ -37,57 +31,44 @@ pub (super) fn parse_if_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
 
 
 // change to return tuple (ident, expr) since we are checking anyway
-pub (super) fn parse_let_expression(lex: &mut lexer::Lexer)->Result<ASTNode> {
-    lex.next();
-
-    let mut expect_result=false; // if false, we expect a symbol for identiifier
-
+pub (super) fn parse_let_expression(children: Vec<ASTNode>)->Result<ASTNode> {
     // when parsing symbol: do parse atomic, check valid ident
     // else: parse normally
-    let mut children:Vec<ASTNode>=vec![];
-
-    while let Some(token)=lex.peek() {
-        if token==CLOSE_EXPR {
-            break;
-        }
-
-        if expect_result {
-            let res=parse_expression(lex)?;
-            children.push(res);
-            expect_result=!expect_result;
-            continue;
-        }
-
-        // None: use parse atomic
-        let res=parse_expression(lex)?;
-
-        match &res.value {
-            Symbol(string) => {
-                is_valid_identifier(string)?;
-                children.push(res);
-                expect_result=!expect_result;
-
-            },
-            _ => {
-                let msg=format!("'let' expected identfier but got: {}", res.to_string());
-                return Err(Ex::new(&msg));
-            }
-        }
-
-        
-    }
-
-    if children.len()==0 {
+    if children.len()==1 {
         let msg=format!("'{}' received 0 expressions or symbols", LET_NAME);
         return Err(Ex::new(&msg));
     }
 
+    // remove let
+    let mut children=children.into_iter();
+    children.next();
+    
+    let children=children.collect();
+
     Ok(ASTNode::new(LetNode(children)))
 }
 
+use lexer::*;
+use super::parser::tests::*;
+
 #[test]
-fn let_test() {
-    let lex=lexer::Lexer::new("(let x 2 (add x y))".to_string()).unwrap();
-    let p=parse(lex);
-    dbg!(p);
+pub fn parse_let_test() {
+    let e1="(let x 2)";
+    let e2="(let x 2 x)";
+    let e3="(let x 2 y 3 (add x y))";
+    let e4="(let x 2 (add x y))";
+    test_parse(vec![e1,e2,e3,e4]);
+}
+
+#[test]
+fn if_test() {
+    let exprs=vec![
+        "(if 1 2 3)",
+        "(if (if 0 1 2) (add 5 6) (sub x (mul 4 5)))",
+        "(if (3 4 5) (true false) false)",
+    ];
+
+    // let p=parse(lex!("if 1 2"));
+    // dbg!(p.unwrap().to_string());
+    test_parse(exprs);
 }

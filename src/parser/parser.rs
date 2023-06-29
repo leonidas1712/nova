@@ -42,6 +42,10 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
         children.push(res);
     };
 
+    if children.len()==0 {
+        return Err(Ex::new("Received empty expression."));
+    }
+
     // compare first and last token: should match () or []
     // if we broke out of loop without a closing token => not well formed e.g  (2
     match opt_token {
@@ -61,6 +65,20 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
         let node = children.into_iter().next().unwrap();
         return Ok(node);
     }
+
+    // special
+    let first=children.get(0).unwrap();
+
+    let try_special=Special::get_special(first.to_string());
+
+    if try_special.is_some() {
+        match try_special.unwrap() {
+            If => return parse_if_expression(children),
+            Let => return parse_let_expression(children),
+            Fn => return parse_fn_def(children)
+        }
+    }
+    // // end special
 
     let node_val = if open_token == OPEN_EXPR {
         Expression(children)
@@ -114,18 +132,6 @@ pub fn parse_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     if OPEN_TOKENS.contains(&token) {
         return parse_list_expression(lex);
     }
-
-    // Special cases: uneval list
-    let try_special=Special::get_special(token.to_string());
-
-    if try_special.is_some() {
-        match try_special.unwrap() {
-            If => return parse_if_expression(lex),
-            Let => return parse_let_expression(lex),
-            Fn => return parse_fn_def(lex)
-        }
-    }
-
     // Check cases in order, last is atomic expression
     parse_atomic_expression(lex)
 }
@@ -148,8 +154,6 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
         return Err(Ex::new("Parse received empty expression."));
     };
 
-    // nodes.into_iter().next()
-
     let root: ASTNode = if nodes.len() == 1 {
         nodes.into_iter().next().unwrap()
     } else {
@@ -163,21 +167,24 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
 #[cfg(test)]
 use lexer::Lexer;
 pub mod tests {
+    use crate::lex;
+
     use super::*;
-    fn parse_one(exp: &str) -> String {
+    pub fn parse_one(exp: &str) -> String {
         let lex = crate::lexer::Lexer::new(exp.to_string()).unwrap();
+        // dbg!(&lex);
         let res = parse(lex).unwrap();
+        // dbg!(&res);
         res.to_string()
-        // parse(lex).unwrap().to_string()
     }
 
-    fn get_node_value_strings(v: &ASTNode) -> Option<Vec<String>> {
+    pub fn get_node_value_strings(v: &ASTNode) -> Option<Vec<String>> {
         v.get_children()
             .map(|children| children.iter().map(|x| x.value.to_string()).collect())
     }
 
     // checks if parsing the strings == node string
-    fn test_parse(exprs: Vec<&str>) -> bool {
+    pub fn test_parse(exprs: Vec<&str>) {
         let it = exprs.iter().map(|s| s.trim().to_string());
 
         // node strings after parsing
@@ -185,7 +192,15 @@ pub mod tests {
 
         // iter(exp, node string)
         let mut zip = it.zip(res);
-        zip.all(|tup| tup.0 == tup.1)
+        let zip2:Vec<(String, String)>=zip.clone().collect();
+        // dbg!(&zip2);
+
+        for tup in zip2.into_iter() {
+            let left=tup.0;
+            let right=tup.1;
+            assert_eq!(left, right);
+        }
+        // assert!(zip.all(|tup| tup.0.eq(&tup.1)));
     }
 
     // test for main parse function
@@ -210,15 +225,7 @@ pub mod tests {
             "[1,2,(add 5 6),[3,4,[5,6,(sub 4 5)]]]",
         ];
 
-        assert!(test_parse(exps));
-    }
-
-    #[test]
-    pub fn parse_let_test() {
-        let exp="(let x 2)";
-        let e2="(let if 2)";
-        let mut lex = Lexer::new(e2.to_string()).unwrap();
-        let p=parse(lex);
+        test_parse(exps);
     }
 
     #[test]
