@@ -66,5 +66,24 @@ fn let_test() {
     compare_many(inps, exp, &mut ctx)
 }
 
+// let x 2 => x=2 in global
+// (let x 2) => x not assigned
+#[test]
+fn test_let_global() {
+    let mut ctx=setup_context();
+    let expr="(let x 2)";
+    evaluate_input(expr, &mut ctx);
+    assert!(ctx.get_variable("x").is_none());
+
+    let expr="let x 2";
+    evaluate_input(expr, &mut ctx);
+    assert!(ctx.get_variable("x").is_some());
+
+    let expr="let x 3";
+    evaluate_input(expr, &mut ctx);
+    assert_eq!(ctx.get_variable("x").unwrap().expect_num().unwrap(), 3);
+}
+
+
 
 // (let x 2,let y (let x 3),(add x y))

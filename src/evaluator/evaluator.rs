@@ -1,6 +1,6 @@
 use super::eval_helpers::*;
 use super::{context::*, data::*};
-use crate::{message::*, lex, setup_context};
+use crate::{message::*, lex, setup_context, evaluate_input};
 use crate::parser::parse_node::*;
 
 // 1. Check ast node type -> if terminal, convert to a DataValue -> put this method in context
@@ -110,6 +110,4 @@ fn let_test() {
     let exp=vec!["2","7","7","13"];
 
     test_eval("(let x 2)", "2");
-
-    // test_eval_many(exprs, exp);
 }
