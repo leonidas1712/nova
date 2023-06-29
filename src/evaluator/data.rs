@@ -47,6 +47,33 @@ pub enum DataValue {
 }
 
 impl DataValue {
+    pub fn num_equals(&self, other:&DataValue)->bool {
+        if let Ok(num) = self.expect_num() {
+            match other {
+                Num(other_num) => num.eq(other_num),
+                _ => false
+            }
+        } else { false } 
+    }
+
+    pub fn bool_equals(&self, other:&DataValue)->bool {
+        if let Ok(b) = self.expect_bool() {
+            match other {
+                Bool(other_b) => b.eq(other_b),
+                _ => false
+            }
+        } else { false } 
+    }
+
+    pub fn equals(&self, right: &DataValue)->bool {
+        match self {
+            Num(n) => self.num_equals(right),
+            Bool(b) => self.bool_equals(right),
+            _ => false
+        }
+    }
+
+    
     pub fn expect_num(&self) -> Result<NumType> {
         match self {
             Num(num) => Ok(*num),

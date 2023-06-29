@@ -38,6 +38,7 @@ pub fn setup_context()->Context {
     reg!(ADD,Add);
     reg!(SUB,Sub);
     reg!(MULT, Mult);
+    reg!(EQUALS, Equals);
 
     ctx
 }

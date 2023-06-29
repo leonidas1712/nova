@@ -60,3 +60,28 @@ impl Function for Mult {
         name!(MULT)
     }
 }
+
+
+
+
+pub struct Equals;
+impl Function for Equals {
+    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
+        let eval_args=Arg::expect_all_eval(args)?;
+
+        if eval_args.len()!=2 {
+            let msg=format!("'{}' expected {} arguments but received {}.",
+                EQUALS, 2, eval_args.len());
+            return err!(msg);
+        }
+
+        let left=eval_args.get(0).unwrap();
+        let right=eval_args.get(1).unwrap();
+
+        Ok(Bool(left.equals(right)))
+    }
+
+    fn to_string(&self) -> String {
+        name!(EQUALS)
+    }
+}
