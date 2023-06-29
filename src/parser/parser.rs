@@ -175,7 +175,6 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
     } else {
         // if special: return that, otherwise make expr with nodes
         try_spec!(nodes, true);
-        println!("Not special");
         ASTNode::new(Expression(nodes))
     };
 

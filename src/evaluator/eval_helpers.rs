@@ -93,7 +93,6 @@ pub fn evaluate_list(_ctx: &Context, children: &Vec<ASTNode>) -> Result<DataValu
 }
 
 pub fn evaluate_if(ctx: &Context, cond: &ASTNode, e1: &ASTNode, e2: &ASTNode) -> Result<DataValue> {
-    // println!("Received if eval: Cond: {} e1: {} e2: {}", cond.to_string(), e1.to_string(), e2.to_string());
     let cond_result = eval!(ctx, cond)?;
 
     // add empty list as false later

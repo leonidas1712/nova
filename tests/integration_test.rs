@@ -24,7 +24,7 @@ fn calc_test() {
         "(add sub 5)"
     ];
 
-    let expected=vec!["21","70", "18", "Error: Expected a number but got 'true'","Error: Expected a number but got 'sub'"];
+    let expected=vec!["21","70", "18", "Error: Expected a number but got 'true'","Error: Expected a number but got '<function 'sub'>'"];
 
     compare_many(exprs, expected, &mut ctx);
 }

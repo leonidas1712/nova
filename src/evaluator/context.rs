@@ -56,9 +56,12 @@ impl Context {
 pub mod tests {
     use super::*;
     use crate::{constants::NumType, evaluator::builtins::*};
+    
     #[test]
     fn context_test() {
         let fnc = Add {};
+        let fnc_name=fnc.to_string();
+
         let fnc_var = Rc::new(fnc);
         let mut ctx = Context::new();
 
@@ -72,7 +75,7 @@ pub mod tests {
         assert_eq!(g.unwrap().expect_num().unwrap(), exp);
 
         let f = ctx.get_function("add");
-        assert_eq!(f.unwrap().to_string(), "add".to_string());
+        assert_eq!(f.unwrap().to_string(), fnc_name);
 
         let mut ctx2 = Context::new();
 
@@ -81,7 +84,7 @@ pub mod tests {
         // can clone from a previous context -> maintains Rc pointers
         let add_clone = ctx.get_function("add").unwrap().clone();
         ctx2.add_function("my_add", add_clone);
-        assert_eq!(ctx2.get_function("my_add").unwrap().to_string(), "add");
+        assert_eq!(ctx2.get_function("my_add").unwrap().to_string(), fnc_name);
 
         let add_rc_ref = ctx.get_function("add").unwrap();
         assert_eq!(Rc::strong_count(add_rc_ref), 2); // 2: both ctx and ctx2 point to it

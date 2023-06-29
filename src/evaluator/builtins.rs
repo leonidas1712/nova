@@ -7,9 +7,11 @@ use super::function::*;
 
 use DataValue::*;
 
-// expect on data values inside args
-// pub fn expect_args(args:&Vec<Arg>, )
-// args.get(0).
+macro_rules! name  {
+    ($name:expr) => {
+        String::from(format!("<function '{}'>", $name))
+    };
+}
 
 fn get_nums(args: Vec<Arg>) -> Result<Vec<NumType>> {
     let r: Result<Vec<NumType>> =
@@ -26,7 +28,8 @@ impl Function for Add {
     }
 
     fn to_string(&self) -> String {
-        ADD.to_string()
+        // ADD.to_string()
+        name!(ADD)
     }
 }
 
@@ -40,7 +43,7 @@ impl Function for Sub {
     }
 
     fn to_string(&self) -> String {
-        SUB.to_string()
+        name!(SUB)
     }
 }
 
@@ -54,6 +57,6 @@ impl Function for Mult {
     }
 
     fn to_string(&self) -> String {
-        MULT.to_string()
+        name!(MULT)
     }
 }

@@ -17,7 +17,6 @@ pub (super) fn parse_special(spec_type: Special, children: Vec<ASTNode>, global:
 // create FnNode
     // def, name, args, body
 pub (super) fn parse_fn_def(children: Vec<ASTNode>, global:bool)->Result<ASTNode> {
-    // children.iter().for_each(|n| println!("{}", n.to_string()));
     if children.len() < 4 {
         return err!("Function definitions should have at least 3 parts: a name, parameters and a body.");
     }
