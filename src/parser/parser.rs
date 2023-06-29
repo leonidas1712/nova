@@ -34,11 +34,11 @@ macro_rules! try_spec {
     };
 }
 
-pub const EMPTY_MSG:&'static str="Received empty expression";
+pub const EMPTY_MSG:&'static str="Can't parse empty expression";
 
 // Parser
 fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
-    let open_token = lex.next().expect(EMPTY_MSG);
+    let open_token = lex.next().expect(format!("{}:'{}'", EMPTY_MSG, lex.to_string()).as_str());
 
     let mut children: Vec<ASTNode> = Vec::new();
 
@@ -55,7 +55,11 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     };
 
     if children.len()==0 {
-        return err!(EMPTY_MSG);
+        if open_token.eq(OPEN_LIST) {
+            // handle nil here
+        }
+
+        return err!(format!("{}: '{}'", EMPTY_MSG, lex.to_string()));
     }
 
     // compare first and last token: should match () or []
@@ -65,10 +69,14 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
             let cmp = (open_token.as_str(), last_token);
             if cmp != EXPR_TUP && cmp != LIST_TUP {
                 // return bracket mismatch and index
-                return err!("Mismatched brackets");
+                let msg=format!("Mismatched brackets: '{}' for '{}' at index {}.", last_token, open_token, lex.idx);
+                return err!(msg);
             };
         }   // ret index
-        None => return err!("Expression was not well formed."),
+        None => { 
+            let msg=format!("Expression was not well formed: expected bracket at index {}", lex.idx);
+            return err!(msg); 
+        },
     };
 
     lex.next(); // advance past the last token
@@ -98,7 +106,8 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 pub fn parse_atomic_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     let token_opt = lex.next();
     if token_opt.is_none() {
-        return err!("Problem parsing expression.");
+        let msg=format!("Problem parsing expression at index {}.", lex.idx);
+        return err!(msg);
     }
 
     let token = token_opt.unwrap();
@@ -124,14 +133,14 @@ pub fn parse_atomic_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 pub fn parse_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     let token_peek = lex.peek();
     if let None = token_peek {
-        return err!("Unrecognised expression.")
+        return err!(format!("Empty expression at index {}.", lex.idx));
     }
 
     let token = token_peek.unwrap().as_str();
 
     // if first token is ), not well formed
     if CLOSE_TOKENS.contains(&token) {
-        return err!("Expression is not well formed.")
+        return err!(format!("Found '{}' at index: {}", token, lex.idx));
     }
 
     // list
@@ -157,7 +166,8 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
     }
 
     if nodes.len() == 0 {
-        return err!("Parse received empty expression.");
+        let msg=format!("{}:'{}'", EMPTY_MSG, lex.to_string());
+        return err!(msg);
     };
 
     let root: ASTNode = if nodes.len() == 1 {
@@ -245,10 +255,6 @@ pub mod tests {
         } else {
             assert!(false);
         }
-
-        // let lex=&mut Lexer::new("(add 2 3)".to_string()).unwrap().result;
-        // let res=parser::parse_list_expression(lex).unwrap();
-        // dbg!(res);
     }
 
     #[test]
@@ -312,10 +318,11 @@ pub mod tests {
         let lex = &mut Lexer::new("(add".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap_err();
         dbg!(&res.format_error());
-        assert!(&res.format_error().contains("not well formed."));
+        assert!(&res.format_error().contains("not well formed"));
 
         let lex = &mut Lexer::new("(1,2]".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap_err();
         assert!(&res.format_error().contains("Mismatched brackets"));
+        
     }
 }

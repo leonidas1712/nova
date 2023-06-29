@@ -13,11 +13,13 @@ pub use lex;
 #[derive(Debug)]
 pub struct Lexer {
     tokens: Vec<String>,
-    idx: usize,
+    pub idx: usize,
+    original:String
 }
 
 impl Lexer {
     pub fn new(input: String) -> Result<Lexer> {
+        let original=input.clone();
         let mut filtered = input;
 
         if filtered.len() == 0 {
@@ -40,13 +42,17 @@ impl Lexer {
             .map(|x| x.to_string())
             .collect();
 
-        let lex = Lexer { tokens, idx: 0 };
+        let lex = Lexer { tokens, idx: 0, original };
 
         Ok(lex)
     }
 
     pub fn to_vec(&self) -> Vec<String> {
         self.tokens.clone()
+    }
+
+    pub fn to_string(&self)->&String {
+        &self.original
     }
 
     pub fn peek(&self) -> Option<&String> {
