@@ -35,6 +35,7 @@ use crate::parser::parse_node::*;
 
 pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result<DataValue> {
     // try to match terminals
+
     match &node.value {
         Boolean(b) => Ok(Bool(*b)),
         Number(num) => Ok(Num(*num)),

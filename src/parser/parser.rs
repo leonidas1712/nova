@@ -27,7 +27,10 @@ impl Special {
 macro_rules! try_spec {
     ($vec:ident) => {
         let try_special=Special::get_special($vec.get(0).unwrap().to_string());
-
+        // println!("{}", $vec.to_string());
+        // for n in &$vec {
+        //     println!("{}", n.to_string());
+        // } 
         if try_special.is_some() {
             return parse_special(try_special.unwrap(), $vec)
         }
@@ -174,9 +177,10 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
     let root: ASTNode = if nodes.len() == 1 {
         nodes.into_iter().next().unwrap()
     } else {
-        let try_special=Special::get_special(nodes.get(0).unwrap().to_string());
-
+        // if special: return that, otherwise make expr with nodes
+        println!("Here");
         try_spec!(nodes);
+        println!("Not special");
         ASTNode::new(Expression(nodes))
     };
 
