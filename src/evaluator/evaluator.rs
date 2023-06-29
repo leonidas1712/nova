@@ -66,9 +66,8 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result
             );
         }
         LetNode(children, global) => return evaluate_let(ctx, children, *global),
-        FnNode(_) => {
-            println!("FnNode eval");
-            return Ok(Num(42));
+        FnNode(fn_def) => {
+            return evaluate_fn_node(&ctx, fn_def)
         },
     }
 }
@@ -114,4 +113,14 @@ fn let_test() {
     let exp=vec!["2","7","7","13"];
 
     test_eval("(let x 2)", "2");
+}
+
+// test that we can define functions
+#[test]
+fn fn_eval_test() {
+    let l=lex!("(def id (a) a)");
+    let p=parse(l);
+    let ctx=Context::new();
+    let e=evaluate(&ctx, &p.unwrap(), true);
+    println!("{}",e.unwrap().to_string());
 }

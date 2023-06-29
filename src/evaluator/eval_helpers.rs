@@ -67,8 +67,6 @@ pub fn evaluate_expression(ctx: &Context, children: &Vec<ASTNode>) -> Result<Dat
                 let results = get_eval_args_from_nodes(eval_rest.clone())?;
                 func.execute(results, ctx)
 
-                // let strings:Vec<String>=results.into_iter().map(|x| x.to_string()).collect();
-                // dbg!(strings);
             } else {
                 // just ast nodes
                 let args: Vec<Arg> = children.into_iter().map(|x| Unevaluated(x)).collect();
@@ -176,6 +174,8 @@ pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>, outer_call:bool) 
     }
 }
 
-pub fn evaluate_fn_node() {
-
+use crate::parser::parse_node::FnDef;
+pub fn evaluate_fn_node(ctx:&Context, fn_def:&FnDef)->Result<DataValue> {
+    println!("got to eval_fn");
+    Ok(Default)
 }
