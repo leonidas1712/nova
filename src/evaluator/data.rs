@@ -3,9 +3,9 @@ use std::rc::Rc;
 
 use crate::constants::NumType;
 use crate::message::*;
-use crate::parser::parse_node::ASTNode;
+use crate::parser::parse_node::{ASTNode, FnDef};
 
-use super::function::Function;
+use super::function::{Function, UserFunction};
 use super::context::Context;
 
 pub const NUM: &str = "Num";
@@ -30,14 +30,19 @@ impl LetReturn {
     }
 }
 
+#[derive(Clone)]
+pub struct FnDefReturn {
+    func: Rc<dyn Function>
+}
+
 // Function shouldn't get dropped until all refs in context/args are dropped -> use Rc
 #[derive(Clone, AsRefStr)]
 pub enum DataValue {
     Num(NumType),
     Bool(bool),
     FunctionVariable(Rc<dyn Function>), // we need to borrow the function from Context when doing this
-    FnDef(Rc<dyn Function>),
-    SetVar(LetReturn), // returned from 'let' if outer_call=true
+    SetVar(LetReturn), // returned from 'let' if outer_call=true,
+    SetFn(Rc<dyn Function>),
     Default,
 }
 
@@ -79,7 +84,8 @@ impl DataValue {
             FunctionVariable(f) => f.to_string(),
             SetVar(lr) => {
                 lr.value.to_string()
-            }
+            },
+            SetFn(func) => func.to_string(),
             Default => String::from("Default Data Value"),
             _ => String::from("unimplemented"),
         }

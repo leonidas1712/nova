@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use super::{context::*, data::*, evaluator::{evaluate}};
-use crate::{constants::{DONT_ADD, RESERVED_KEYWORDS, SPLIT_TOKENS, LET_NAME}, eval, parser::parser::tests::test_parse};
+use crate::{constants::{DONT_ADD, RESERVED_KEYWORDS, SPLIT_TOKENS, LET_NAME}, eval, parser::parser::tests::test_parse, evaluator::function::UserFunction};
 use crate::{message::*};
 use crate::parser::parse_node::*;
 use crate::lex;
@@ -175,7 +175,14 @@ pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>, outer_call:bool) 
 }
 
 use crate::parser::parse_node::FnDef;
-pub fn evaluate_fn_node(ctx:&Context, fn_def:&FnDef)->Result<DataValue> {
-    println!("got to eval_fn");
-    Ok(Default)
+use super::function::*;
+pub fn evaluate_fn_node(ctx:&Context, fn_def:&FnDef, outer_call:bool)->Result<DataValue> {
+    let func=UserFunction::new(&ctx, &fn_def);
+    let rc:Rc<dyn Function>=Rc::new(func);
+
+    if !outer_call {
+        return Ok(FunctionVariable(rc));
+    }
+    
+    Ok(SetFn(rc))
 }
