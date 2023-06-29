@@ -31,6 +31,7 @@ pub (super) fn parse_fn_def(children: Vec<ASTNode>, global:bool)->Result<ASTNode
     }
 
     let name=name.unwrap();
+    is_valid_identifier(name.as_str())?;
 
     // should be inside expression or just a symbol (flattened)
     let nxt_node=children.next().unwrap();

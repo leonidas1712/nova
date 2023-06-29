@@ -115,25 +115,3 @@ fn let_test() {
 
     test_eval("(let x 2)", "2");
 }
-
-// test that we can define functions
-// use super::function::*;
-// use std::rc::Rc;
-// #[test]
-// fn fn_eval_test() {
-//     let l=lex!("(def id (a) a)");
-//     let p=parse(l);
-//     let mut ctx=Context::new();
-//     let e=evaluate(&ctx, &p.unwrap(), true);
-//     // println!("{}",e.unwrap().to_string());
-    
-//     let e=e.unwrap();
-//     let id:Rc<dyn Function>=e.expect_function().unwrap();
-//     ctx.add_function("id", id);
-
-//     let l=lex!("(id 1)");
-//     let p=parse(l);
-//     let e2=evaluate(&ctx, &p.unwrap(), true);
-//     dbg!(e2.err().unwrap());
-
-// }

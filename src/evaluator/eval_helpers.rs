@@ -19,6 +19,8 @@ pub fn get_eval_args_from_nodes<'a>(
     Ok(results)
 }
 
+use crate::constants::{RESERVED_SET,INVALID_SET};
+
 // returns Result so I can unwrap using ?
 pub fn is_valid_identifier(s:&str)->Result<String> {
     let s=&s;
@@ -29,16 +31,39 @@ pub fn is_valid_identifier(s:&str)->Result<String> {
         return err!(&msg);
     }
 
-    if DONT_ADD.contains(s) || SPLIT_TOKENS.contains(s) {
+    let s=s.to_string();
+
+    if INVALID_SET.contains(&s) {
         let msg=format!("Invalid identifier -  {}", s);
         return err!(&msg);
-    } else if RESERVED_KEYWORDS.contains(s) {
+    } else if RESERVED_SET.contains(&s) {
         let msg=format!("Invalid identifier - {}' is a reserved keyword.", s);
         return err!(&msg);
     }
 
-    Ok(s.to_string())
+    Ok(s)
 }
+
+// // returns Result so I can unwrap using ?
+// pub fn is_valid_identifier(s:&str)->Result<String> {
+//     let s=&s;
+//     let try_num:std::result::Result<i64,_>=s.parse();
+
+//     if try_num.is_ok() {
+//         let msg=format!("Invalid identifier - '{}' is a number. ", s); 
+//         return err!(&msg);
+//     }
+
+//     if DONT_ADD.contains(s) || SPLIT_TOKENS.contains(s) {
+//         let msg=format!("Invalid identifier -  {}", s);
+//         return err!(&msg);
+//     } else if RESERVED_KEYWORDS.contains(s) {
+//         let msg=format!("Invalid identifier - {}' is a reserved keyword.", s);
+//         return err!(&msg);
+//     }
+
+//     Ok(s.to_string())
+// }
 
 // evaluate first child. if len==1, return
 // elif first child is FnVar | FnDef => apply to arguments

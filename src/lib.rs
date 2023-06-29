@@ -5,6 +5,9 @@
 #![recursion_limit = "5000"]
 extern crate strum;
 #[macro_use]
+extern crate lazy_static;
+
+#[macro_use]
 extern crate strum_macros;
 
 use std::time::{Duration, Instant};
@@ -43,6 +46,7 @@ pub fn setup_context()->Context {
     reg!(EQUALS, Equals);
     reg!(INC, Succ);
     reg!(DEC, Pred);
+
 
     ctx
 }
