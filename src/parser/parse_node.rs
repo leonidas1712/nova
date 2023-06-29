@@ -7,7 +7,15 @@ use std::ops::Deref;
 // 1. nested inside another expression (more than 1 inside parent.value)
 // 2. is the first element inside that expression
 
-#[derive(Debug, Display)]
+#[derive(Debug,Clone)]
+pub struct FnDef {
+    name:String,
+    args:Vec<String>,
+    body: Vec<ASTNode> // can have multiple expressions in body
+
+}
+
+#[derive(Debug, Display,Clone)]
 pub enum ParseValue {
     Symbol(String),
     Number(NumType),
@@ -15,13 +23,30 @@ pub enum ParseValue {
     List(Vec<ASTNode>),
     Boolean(bool),
     IfNode(Vec<ASTNode>),
-    LetNode(Vec<ASTNode>, bool)
+    LetNode(Vec<ASTNode>, bool),
+    FnNode(FnDef)
+}
+
+impl ParseValue {
+    pub fn get_symbol(&self)->Option<String> {
+        match self {
+            Symbol(sym) => Some(sym.to_string()),
+            _ => None
+        }
+    }
+
+    pub fn get_expression(&self)->Option<Vec<ASTNode>> {
+        match self {
+            Expression(nodes) => Some(nodes.clone().to_vec()),
+            _ => None
+        }
+    }
 }
 
 pub use ParseValue::*;
 
 // ASTNode
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct ASTNode {
     pub value: ParseValue,
 }
@@ -34,7 +59,6 @@ impl ASTNode {
     pub fn empty() -> ASTNode {
         ASTNode::new(Symbol("empty".to_string()))
     }
-
     pub fn get_children(&self) -> Option<&Vec<ASTNode>> {
         if let Expression(children) | List(children) = &self.value {
             Some(&children)
@@ -66,7 +90,10 @@ impl ASTNode {
             LetNode(children, _)=>{
                 let v: Vec<String> = children.iter().map(|node| node.to_string()).collect();
                 format!("{}{} {}{}", OPEN_EXPR, LET_NAME, v.join(SPACE), CLOSE_EXPR)
-            }
+            },
+            FnNode(fn_def) => {
+                "FnNode from Parse".to_string()
+            },
             Boolean(b) => if *b { TRUE.to_string() } else { FALSE.to_string() },
         }
     }

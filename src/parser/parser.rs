@@ -27,10 +27,6 @@ impl Special {
 macro_rules! try_spec {
     ($vec:ident, $global:expr) => {
         let try_special=Special::get_special($vec.get(0).unwrap().to_string());
-        // println!("{}", $vec.to_string());
-        // for n in &$vec {
-        //     println!("{}", n.to_string());
-        // } 
         if try_special.is_some() {
             return parse_special(try_special.unwrap(), $vec, $global)
         }

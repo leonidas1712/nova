@@ -66,6 +66,10 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result
             );
         }
         LetNode(children, global) => return evaluate_let(ctx, children, *global),
+        FnNode(_) => {
+            println!("FnNode eval");
+            return Ok(Num(42));
+        },
     }
 }
 

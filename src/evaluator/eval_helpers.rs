@@ -19,17 +19,25 @@ pub fn get_eval_args_from_nodes<'a>(
     Ok(results)
 }
 
-pub fn is_valid_identifier(s:&str)->Result<bool> {
+// returns Result so I can unwrap using ?
+pub fn is_valid_identifier(s:&str)->Result<String> {
     let s=&s;
-    if DONT_ADD.contains(s) || SPLIT_TOKENS.contains(s) {
-        let msg=format!("Invalid identifier: {}", s);
-        return err!(&msg);
-    } else if RESERVED_KEYWORDS.contains(s) {
-        let msg=format!("Invalid identifier: '{}' is a reserved keyword.", s);
+    let try_num:std::result::Result<i64,_>=s.parse();
+
+    if try_num.is_ok() {
+        let msg=format!("Invalid identifier - '{}' is a number. ", s); 
         return err!(&msg);
     }
 
-    Ok(true)
+    if DONT_ADD.contains(s) || SPLIT_TOKENS.contains(s) {
+        let msg=format!("Invalid identifier -  {}", s);
+        return err!(&msg);
+    } else if RESERVED_KEYWORDS.contains(s) {
+        let msg=format!("Invalid identifier - {}' is a reserved keyword.", s);
+        return err!(&msg);
+    }
+
+    Ok(s.to_string())
 }
 
 // evaluate first child. if len==1, return
@@ -167,4 +175,8 @@ pub fn evaluate_let(ctx: &Context, expressions: &Vec<ASTNode>, outer_call:bool) 
         let data=LetReturn::new(new_ctx, res);
         Ok(SetVar(data))
     }
+}
+
+pub fn evaluate_fn_node() {
+
 }
