@@ -68,6 +68,15 @@ impl Context {
             self.symbol_map.get(name)
         }
     }
+    
+    pub fn to_string(&self)->String {
+        let mut pairs:Vec<String>=vec![];
+        for (key,value) in self.symbol_map.iter() {
+            let m=format!("{}: {}", key.to_string(), value.to_string());
+            pairs.push(m);
+        }
+        pairs.join("\n")
+    }
 }
 
 #[cfg(test)]

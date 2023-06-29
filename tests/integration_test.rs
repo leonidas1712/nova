@@ -88,9 +88,9 @@ fn test_let_global() {
 pub fn fn_test() {
     let mut ctx=setup_context();
     let e=evaluate_input("(def id (x) x)", &mut ctx);
-    println!("{}",e);
-    println!("{}", ctx.get_function("id").unwrap().to_string());
+ 
 
+    println!("{}",ctx.to_string());
     let e2=evaluate_input("(id 1)", &mut ctx);
     println!("{}", e2);
 }

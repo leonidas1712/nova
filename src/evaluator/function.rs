@@ -44,6 +44,30 @@ impl UserFunction {
         }
     }
 
+    pub fn curry(&self, args:Vec<Arg>)->Result<Context> {
+        let mut new_ctx=Context::new();
+        let eval_args=Arg::expect_all_eval(args)?;
+
+        if eval_args.len()!=self.params.len() {
+            let msg=format!("'{}' expected {} arguments but received {}.",
+                self.get_name(), self.params.len(), eval_args.len());
+            return err!(msg);
+        }
+
+        // add args to context using params
+        let zipped=self.params.clone()
+            .into_iter()
+            .zip(eval_args.into_iter());
+
+        zipped.for_each(|tup| {
+            new_ctx.add_variable(tup.0.as_str(), tup.1);
+        });
+
+        let new_ctx=new_ctx.merge_context(&self.context);
+
+        Ok(new_ctx)
+    }
+
     pub fn get_name(&self)->String {
         self.name.clone()
     }
@@ -63,16 +87,27 @@ impl UserFunction {
 
 impl Function for UserFunction {
     fn execute(&self, args: Vec<Arg>, outer_ctx: &Context) -> Result<DataValue> {
-        // just test by passing name
-        let eval_ctx=self.context.merge_context(outer_ctx);
+        // first clone + add arguments using params and args
+
+        let strings:Vec<String>=args.iter().map(|x| x.to_string()).collect();
+        let strings=strings.join(" ");
+
+
+        let eval_ctx=self.curry(args)?;
+
+        // then merge outer_ctx 
+            // args > inner_ctx > outer_ctx
+
+        let eval_ctx=eval_ctx.merge_context(outer_ctx);
+
         let fn_node=self.body.get(0).unwrap();
-        
-        evaluator::eval!(
+
+        let res=evaluator::eval!(
             &eval_ctx,
             fn_node
         )?;
 
-        Ok(Default)
+        return Ok(res);
     }
 
     fn to_string(&self) -> String {

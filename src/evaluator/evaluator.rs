@@ -44,7 +44,8 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result
 
             let fnc = ctx.get_function(sym);
             if fnc.is_some() {
-                return Ok(FunctionVariable(fnc.unwrap().clone()));
+                let k=fnc.unwrap().clone();
+                return Ok(FunctionVariable(k));
             }
 
             let resolve = ctx.get_variable(sym);
