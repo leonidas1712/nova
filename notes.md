@@ -219,11 +219,7 @@ assumption: set is already disjoint (base case: both empty, true)
 Rc vs Box
 https://stackoverflow.com/questions/49377231/when-to-use-rc-vs-box
 
-TCO:
-- three structures:
-    - exprs stack - Expression(&ctx, &ast node)
-    - fn stack - FunctionCall(&Function, &ctx, &astnode)
-    - results queue - DataValue
+
 
 - dont eval until arg parent matches fn_st parent
 Push onto stack:
@@ -232,8 +228,53 @@ Push onto stack:
 add rule: 
 - first keyword should be 'let' OR a function call
     - otherwise invalid
+
 e.g (2 2 3) -> invalid
 (x 2 3) where x is not a function -> invalid
+
+0. append expr in reverse to call_st
+1. call_ast[-1].parent != fn_ast[-1].parent : eval call[-1], append to res_q
+2. != : inter=prepend from back of res
+
+TCO:
+- three structures:
+    - exprs stack - Expression(&ctx, &ast node)
+
+    - fn stack: Expression(&ctx, &ast node)
+        - only evaluate when needed not eagerly - to make parent checking easier
+            - e.g (map fn) -> we can check (map fn) ast.parent directly
+
+    - results queue - ResultNode(&DataValue,&ast)
+        -> &ast represents result node ast for parent checking
+        
+ Mark ast nodes during parsing as function calls or not: based on is it the first node in expr
+        -> during promotion we simply look at the mark to decide if function result goes to
+            fn_stack or res_queue
+ -> then when we check parent ast it will be accurate (with the correct parent node)
+                in case the function variable comes from another expression e.g If, Let, Expr..
+            
+
+TCO algorithm:
+init: call_st, fn_st, res_q
+Before: add initial expression to call_st
+0. Pop from call_st
+1. Resolve terminals first -> everything but expression
+    -> currently: recursion for fn defs and let
+2. Expression: (brackets)
+    a. Add children in reverse to call_st
+    b. Index 0: add to function variable stack -> don't evaluate until needed
+
+3. Now check call_st[-1] and fn_st[-1]:
+    a. if they share the same parent: resolve call_st[-1], push to res_q
+    b. (call_st is empty or) else: f=fn_st[-1]
+        b.1 args = go from the back of res_q, prepend until we reach a res that is not same parent
+            -> then evaluate f(args) and append to res_q
+                -> when appending: 'promote' f(args) so its parent becomes f.parent.parent
+4. return res_q[-1]
+
+           
+    
+   
 
 
  cases:

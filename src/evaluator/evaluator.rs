@@ -35,13 +35,12 @@ use crate::parser::parse_node::*;
 
 pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result<DataValue> {
     // try to match terminals
-    println!("Node type: {}", node.get_type());
+    println!("Node type: {}, Expr: {}", node.get_type(), node.to_string());
     match &node.value {
         Boolean(b) => Ok(Bool(*b)),
         Number(num) => Ok(Num(*num)),
         Symbol(sym) => {
             // Boolean
-
             let fnc = ctx.get_function(sym);
             if fnc.is_some() {
                 let k=fnc.unwrap().clone();
@@ -56,7 +55,6 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result
                 err!(err_string.as_str())
             }
         }
-        Expression(children) => evaluate_expression(ctx, children),
         List(children) => evaluate_list(ctx, children),
         IfNode(children) => {
             return evaluate_if(
@@ -70,6 +68,8 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result
         FnNode(fn_def) => {
             return evaluate_fn_node(&ctx, fn_def, outer_call)
         },
+        Expression(children) => evaluate_expression(ctx, children),
+        
     }
 }
 

@@ -117,3 +117,6 @@ fn bench() {
 }
 
 // (let x 2,let y (let x 3),(add x y))
+
+// ((map fn) x) -> (map fn) res is fn call
+// (g (map fn) x) -> (map fn) res is variable

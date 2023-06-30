@@ -103,6 +103,10 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 
     let try_special=Special::get_special(first.to_string());
 
+    // try_spec: bool for global
+        // global means whether to take return value to set in outer ctx
+        // false: expr just returns normal value
+
     try_spec!(children, false);
 
     let node_val = if open_token == OPEN_EXPR {
@@ -185,6 +189,7 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
         nodes.into_iter().next().unwrap()
     } else {
         // if special: return that, otherwise make expr with nodes
+        // global true: so that 'let' without brackets can be used for var assignment
         try_spec!(nodes, true);
         ASTNode::new(Expression(nodes))
     };
