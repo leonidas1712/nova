@@ -68,6 +68,10 @@ impl ASTNode {
         ASTNode { value }
     }
 
+    pub fn get_type(&self)->String {
+        self.value.to_string()
+    }
+
     pub fn empty() -> ASTNode {
         ASTNode::new(Symbol("empty".to_string()))
     }

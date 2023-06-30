@@ -221,11 +221,20 @@ https://stackoverflow.com/questions/49377231/when-to-use-rc-vs-box
 
 TCO:
 - three structures:
-    - exprs stack
-    - fn stack
-    - results queue
+    - exprs stack - Expression(&ctx, &ast node)
+    - fn stack - FunctionCall(&Function, &ctx, &astnode)
+    - results queue - DataValue
 
 - dont eval until arg parent matches fn_st parent
+Push onto stack:
+- ASTNode x original s
+
+add rule: 
+- first keyword should be 'let' OR a function call
+    - otherwise invalid
+e.g (2 2 3) -> invalid
+(x 2 3) where x is not a function -> invalid
+
 
  cases:
  - function is curried 
@@ -233,6 +242,16 @@ TCO:
  - other nestings
  - if exprs
  - let - context - how to manage ctx
+
+- possibly: eliminate ctx copying by using a ctx stack + bin search
+    -> how would it work for functions with closures? - maybe only this case needs copying,
+        -> then it just becomes another ctx to add?
+
+when do we copy ctx:
+- let exprs
+    - can be done iteratively by reversing the expression and maintaining an ident stack + ctx stack (?)
+- fn curry
+
 
 
 
