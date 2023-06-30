@@ -10,7 +10,6 @@ use crate::lex;
 pub fn get_eval_args_from_nodes<'a>(
     iter: impl Iterator<Item = Result<DataValue>> + Clone,
 ) -> Result<Vec<Arg<'a>>> {
-    // let eval_rest=nodes.iter().map(|node| evaluate(ctx, node));
     let res_iter: Result<Vec<DataValue>> = iter.clone().into_iter().collect();
     let results = res_iter.map(|v| {
         let args: Vec<Arg> = v.into_iter().map(|x| Arg::Evaluated(x)).collect();
@@ -43,27 +42,6 @@ pub fn is_valid_identifier(s:&str)->Result<String> {
 
     Ok(s)
 }
-
-// // returns Result so I can unwrap using ?
-// pub fn is_valid_identifier(s:&str)->Result<String> {
-//     let s=&s;
-//     let try_num:std::result::Result<i64,_>=s.parse();
-
-//     if try_num.is_ok() {
-//         let msg=format!("Invalid identifier - '{}' is a number. ", s); 
-//         return err!(&msg);
-//     }
-
-//     if DONT_ADD.contains(s) || SPLIT_TOKENS.contains(s) {
-//         let msg=format!("Invalid identifier -  {}", s);
-//         return err!(&msg);
-//     } else if RESERVED_KEYWORDS.contains(s) {
-//         let msg=format!("Invalid identifier - {}' is a reserved keyword.", s);
-//         return err!(&msg);
-//     }
-
-//     Ok(s.to_string())
-// }
 
 // evaluate first child. if len==1, return
 // elif first child is FnVar | FnDef => apply to arguments

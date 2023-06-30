@@ -218,3 +218,23 @@ assumption: set is already disjoint (base case: both empty, true)
 
 Rc vs Box
 https://stackoverflow.com/questions/49377231/when-to-use-rc-vs-box
+
+TCO:
+- three structures:
+    - exprs stack
+    - fn stack
+    - results queue
+
+- dont eval until arg parent matches fn_st parent
+
+ cases:
+ - function is curried 
+ - lambdas
+ - other nestings
+ - if exprs
+ - let - context - how to manage ctx
+
+
+
+
+

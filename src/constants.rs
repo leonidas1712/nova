@@ -91,8 +91,6 @@ OPEN_LIST,CLOSE_LIST,TRUE,FALSE,AND,OR,LCAR,LCDR,LCONS,GT,LT,LAMBDA_TYPE,COMP_OP
 use std::{collections::HashSet, hash::Hash};
 
 lazy_static! {
-    // pub static ref EXAMPLE: u8 = 42;
-
     pub static ref RESERVED_SET:HashSet<String> = {
         let mut reserved_set=HashSet::new();
         for word in RESERVED_KEYWORDS {
