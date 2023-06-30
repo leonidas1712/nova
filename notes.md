@@ -232,10 +232,22 @@ add rule:
 e.g (2 2 3) -> invalid
 (x 2 3) where x is not a function -> invalid
 
-0. append expr in reverse to call_st
-1. call_ast[-1].parent != fn_ast[-1].parent : eval call[-1], append to res_q
+0. append expr in reverse to call_st (only if condition1 satisfied)
+1. call_ast[-1].parent == fn_ast[-1].parent : eval call[-1], append to res_q
 2. != : inter=prepend from back of res
+3. when promoting: 
+-> if result is a function and parent is marked as fn call: push to function stack with new ast
+-> else, push to result
+    -> this way we can keep evaluating when res is a function
 
+( sum ((map fn) lst)  x)-> what happens when need to eval (map fn) to get func var
+    -> still works as long as we promote properly: (map fn) result is promoted
+    -> but this wont work completely for lambdas until we add @ parent
+        // ex: (g->x->g)(1)(2)
+
+        -> because e.g f->x->y will receive 2 arguments instead of 1
+            -> 
+ 
 TCO:
 - three structures:
     - exprs stack - Expression(&ctx, &ast node)
@@ -264,9 +276,18 @@ Before: add initial expression to call_st
     a. Add children in reverse to call_st
     b. Index 0: add to function variable stack -> don't evaluate until needed
 
+while call_st or fn_st:
 3. Now check call_st[-1] and fn_st[-1]:
     a. if they share the same parent: resolve call_st[-1], push to res_q
     b. (call_st is empty or) else: f=fn_st[-1]
+            -> if f is not a function variable: decompose f and push to call_st, continue
+                -> decomp: if its an expression unpack it here, dont push to call_st first
+                    -> otherwise we have below issue
+                
+                -> issue here with (sum ((map fn) 1) ) ***
+                    -> when you want to push (map fn) onto f, sum and (map fn) prt dont match
+                    -> solve by either using @ to separate expressions or eval fn eagerly
+
         b.1 args = go from the back of res_q, prepend until we reach a res that is not same parent
             -> then evaluate f(args) and append to res_q
                 -> when appending: 'promote' f(args) so its parent becomes f.parent.parent
