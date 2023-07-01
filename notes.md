@@ -385,8 +385,6 @@ handle if specially: IfNode => evaluate to Expression with the correct branch
     -> resolve if: returned Expr parent is set to IfNode's parent
 let and fn_def: how to handle ctx return
 
-https://stackoverflow.com/questions/72168278/how-to-create-collections-of-a-specific-enum-variant
-
 **4.FnCall:
 -> for now: evaluate the first term recursively and see if we get a function out
 -> returned expression: make the parent = fn_st[-1].ast.parent (promotion step)

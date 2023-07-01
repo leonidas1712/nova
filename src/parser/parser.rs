@@ -391,12 +391,12 @@ pub mod tests {
                 let p_ref=&p;
                 assert_eq!(c1_parent, p_ref);
 
-                // cloned expr is equal - should be unequal
+                // cloned expr should be unequal
                     // (fn 1 (fn 2 3)) where (fn 2 3) = (add a b)
                         // 1 is in resq when doing (fn 2 3)
                         // 1's parent is e here but could be a more nested expr where
                             // 1's parent is (add a b) while in queue
-                            // then fn takes too many arguments out
+                            // then fn2 takes too many arguments out
                 assert_ne!(c1_parent,&c1_parent_cloned);
 
                 // but same expr is not equal (essentially compare by ref)

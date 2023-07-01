@@ -23,7 +23,7 @@ pub trait Function {
 use crate::parser::parse_node::FnDef;
 
 // name, params, body
-#[derive(Clone)]
+// #[derive(Clone)]
 pub struct UserFunction {
     context: Context,
     name: String,

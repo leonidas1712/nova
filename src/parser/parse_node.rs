@@ -41,7 +41,7 @@ impl Display for FnDef {
     }
 }
 
-#[derive(Debug, Display, Clone)]
+#[derive(Debug, Display,Clone)]
 pub enum ParseValue {
     Symbol(String),
     Number(NumType),
@@ -76,7 +76,7 @@ pub use ParseValue::*;
 // 2. or compare Rc's
 // ASTNode
 use uuid::Uuid;
-#[derive(Debug,Clone)]
+#[derive(Debug)]
 pub struct ASTNode {
     pub value: ParseValue,
     // when there is a parent, we need the parent ref to be valid -> needs Rc
@@ -85,6 +85,16 @@ pub struct ASTNode {
         // then the initial parent can get dropped and the children get dropped successively
     pub parent: Option<Rc<ASTNode>>,
     original:Uuid
+}
+
+impl Clone for ASTNode {
+    fn clone(&self) -> Self {
+        ASTNode {
+            value:self.value.clone(),
+            parent:self.parent.clone(),
+            original:Uuid::new_v4()
+        }
+    }
 }
 
 // compare by id instead of checking values (too much time)

@@ -8,9 +8,6 @@ use crate::parser::parse_node::{ASTNode, FnDef};
 use super::context::Context;
 use super::function::{Function, UserFunction};
 
-pub const NUM: &str = "Num";
-pub const BOOL: &str = "Bool";
-pub const FNV: &str = "FunctionVariable";
 
 // Number, Boolean, List, String, Lambda, FunctionVariable(Box<dyn Function>)
 // when we have an enum that has a reference, then a vector of enums and I clone the vector what happens
