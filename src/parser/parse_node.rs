@@ -71,6 +71,9 @@ impl ParseValue {
 
 pub use ParseValue::*;
 
+
+// 1. compare some uniquely gen id
+// 2. or compare Rc's
 // ASTNode
 #[derive(Debug,Clone)]
 pub struct ASTNode {
