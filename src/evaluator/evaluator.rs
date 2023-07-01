@@ -37,7 +37,6 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call: bool) -> Resul
     // try to match terminals
     // println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
 
-   
     match &node.value {
         Boolean(b) => Ok(Bool(*b)),
         Number(num) => Ok(Num(*num)),

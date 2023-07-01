@@ -392,6 +392,9 @@ let and fn_def: how to handle ctx return
 
 General rule:
 -> when eval fn_st[-1]: the returned value parent is set to fn_st[-1].parent
+
+return if: expr parent set to ifnode parent
+return fndef: returned
 -----
 if call_st empty and fn_st empty: unroll expr by default
 -> maybe first time unroll
