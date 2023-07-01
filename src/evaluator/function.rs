@@ -39,7 +39,7 @@ impl UserFunction {
             context: context.clone(),
             name: fn_def.name.clone(),
             params: fn_def.params.clone(),
-            body: fn_def.body.clone(),
+            body: fn_def.body.clone(), // ASTNode.clone
         }
     }
 

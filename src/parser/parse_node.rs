@@ -2,6 +2,7 @@ use crate::constants::*;
 use std::fmt::Display;
 use std::ops::Deref;
 use std::rc::{Rc, Weak};
+use std::cell::RefCell;
 
 // todo: IfStmt, LetStmt, FnDef, Lambda, FunctionCall
 // FunctionCall: when we have a symbol or expression which is:
@@ -71,22 +72,66 @@ impl ParseValue {
 pub use ParseValue::*;
 
 // ASTNode
-#[derive(Debug, Clone)]
+#[derive(Debug,Clone)]
 pub struct ASTNode {
     pub value: ParseValue,
-    pub parent: Weak<ASTNode>,
+    // when there is a parent, we need the parent ref to be valid -> needs Rc
+        // otherwise we can't do evaluation properly
+    pub parent: Option<Rc<ASTNode>>
 }
+
+// node.clone: the cloned should be considered same as this node
 
 impl ASTNode {
     pub fn new(value: ParseValue) -> ASTNode {
-        ASTNode {
-            value,
-            parent: Weak::new(),
+        // let original=ASTNode::empty()
+        // let clone=original.clone() // equality compared by id so clone is same
+        // original=Rc::new(original)
+        // if value has children: child.set_parent(original) for child in value
+        // original.value=value
+        // return original => still return ASTNode instead of Rc
+
+        // when clone node: value set to value.clone, parent set to None
+
+        let match_val=value.clone();
+
+        match match_val {
+            Expression(children) => {
+                let original=ASTNode::empty();
+                let original=Rc::new(original);
+
+                ASTNode {
+                    value,
+                    parent: Some(Rc::clone(&original))
+                }
+            },
+            _ => {
+                 ASTNode {
+                    value,
+                    parent: None,
+                }
+            }
         }
+
+        // let original=ASTNode::empty();
+        // let original=Rc::new(original);
+
+        // ASTNode {
+        //     value,
+        //     parent: Rc::downgrade(&original)
+        // }
+
+
+
+        // works:
+            // ASTNode {
+            //     value,
+            //     parent: Weak::new(),
+            // }
     }
 
     pub fn empty() -> ASTNode {
-        ASTNode::new(Symbol("empty".to_string()))
+        ASTNode::new(Symbol("Default parent".to_string()))
     }
 
     pub fn get_type(&self) -> String {
@@ -105,15 +150,15 @@ impl ASTNode {
         self.get_children().and_then(|v| v.get(index))
     }
 
-    // sets parent of children
-    pub fn set_parents(parent: Rc<ASTNode>, children: &mut Vec<ASTNode>) {
-        for child in children.iter_mut() {
-            child.parent = Rc::downgrade(&parent);
-        }
-    }
+    // // sets parent of children
+    // pub fn set_parents(parent: Rc<ASTNode>, children: &mut Vec<ASTNode>) {
+    //     for child in children.iter_mut() {
+    //         child.parent = Rc::downgrade(&parent);
+    //     }
+    // }
 
     pub fn to_string_with_parent(&self)->String {
-        let parent_string = match self.parent.upgrade() {
+        let parent_string = match &self.parent {
             Some(prt) => {
                 prt.to_string()
             },
