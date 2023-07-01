@@ -40,13 +40,14 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result
         Boolean(b) => Ok(Bool(*b)),
         Number(num) => Ok(Num(*num)),
         Symbol(sym) => {
-            // Boolean
+            // Function
             let fnc = ctx.get_function(sym);
             if fnc.is_some() {
-                let k=fnc.unwrap().clone();
-                return Ok(FunctionVariable(k));
+                let cloned=fnc.unwrap().clone();
+                return Ok(FunctionVariable(cloned));
             }
-
+            
+            // Variable
             let resolve = ctx.get_variable(sym);
             if resolve.is_some() {
                 Ok(resolve.unwrap().clone())

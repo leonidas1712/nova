@@ -100,8 +100,9 @@ impl Function for UserFunction {
 
         let eval_ctx=eval_ctx.merge_context(outer_ctx);
 
-        let fn_node=self.body.get(0).unwrap();
+        let fn_node=self.body.get(0).unwrap(); // currently on first part
 
+        println!("Fn_node:{}", fn_node);
         let res=evaluator::eval!(
             &eval_ctx,
             fn_node

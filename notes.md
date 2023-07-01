@@ -293,7 +293,41 @@ while call_st or fn_st:
                 -> when appending: 'promote' f(args) so its parent becomes f.parent.parent
 4. return res_q[-1]
 
+prepend until reach parent not same
+and call_st: check parent to see if we need to eval
+when f_st[-1] and call_st[-1] same parent but call_st[-1] is a expr: unroll the expr, dont eval it
+    -> but otherwise we can try to resolve directly
+
+first: eagerly evaluate function variables (the first exp)
+    -> once @ is added: can delay eval
+
+two cases for fn eval:
+1. when call_st becomes empty
+2. when call_st[-1] and fn_st[-1] not same parent
+    -> then we go through res_q from back, prepend, etc.
+
+returning from a fn:
+-> if res ast marked as fn: put on fn_st
+-> else: put on call_st 
+
+call_st: has expressions
+-> could be terminal or non-terminal
            
+Expression(DataValue, &ctx, body:&astnode, ast:&astnode) - &DataValue?
+-> separate body from ast -> ast to use for checking parent etc, body to use for eval
+    -> e.g (fn x) -> (succ x) -> eval use (succ x), checking use (fn x)
+    -> expr unrolling: use actual body as parent
+
+FnCall: need to set parent of ret expr properly
+-> eval: use parent of fn symbol inside expr
+
+FnCall(Rc<dyn Function>, ctx, body, ast) -> possibly just the Rc
+Result(DataValue,ast)
+
+Expression struct: ctx,body, ast
+-> data: enum
+    -> FnCall or Data
+
     
    
 
@@ -313,9 +347,5 @@ when do we copy ctx:
 - let exprs
     - can be done iteratively by reversing the expression and maintaining an ident stack + ctx stack (?)
 - fn curry
-
-
-
-
 
 

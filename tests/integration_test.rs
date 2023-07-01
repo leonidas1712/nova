@@ -109,11 +109,11 @@ pub fn fn_test() {
 #[test]
 fn bench() {
     let recr="(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))))";
-    let mut ctx=setup_context();
-    let res=evaluate_input(recr, &mut ctx);
+    // let mut ctx=setup_context();
+    // let res=evaluate_input(recr, &mut ctx);
 
-    let r2=evaluate_input("(recr 50)", &mut ctx);
-    println!("{}", r2);
+    // let r2=evaluate_input("(recr 50)", &mut ctx);
+    // println!("{}", r2);
 }
 
 // (let x 2,let y (let x 3),(add x y))

@@ -73,7 +73,7 @@ impl DataValue {
         }
     }
 
-    
+    // expect functions    
     pub fn expect_num(&self) -> Result<NumType> {
         match self {
             Num(num) => Ok(*num),
