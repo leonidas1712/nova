@@ -1,23 +1,39 @@
-use super::eval_helpers::*;
-use super::{context::*, data::*};
-use crate::parser::parse_node::*;
-use crate::{evaluate_input, lex, message::*, setup_context};
 use std::rc::Rc;
 
-struct DeferredExpression {
-    ctx:Rc<Context>,
-    body:Rc<ASTNode>,
+use crate::parser::parse_node::*;
+use crate::{evaluate_input, lex, message::*, setup_context};
+
+use super::eval_helpers::*;
+use super::{context::*, data::*, function::*};
+
+pub struct FunctionCall {
+    func:Rc<dyn Function>,
+    ast:Rc<ASTNode>,
     parent:Rc<ASTNode>
 }
 
-struct EvaluatedExpression {
-    data:DataValue,
+// an expression on the call stack
+    // separate struct because parent pointer is always set after returning from another function
+    // so inside a sub-function we can just return part of it and centralise setting of the parent ptr
+pub struct StackExpression {
+    expr:Expression,
     parent:Rc<ASTNode>
 }
 
-enum Expression {
+pub enum Expression {
     Deferred(DeferredExpression),
     Result(EvaluatedExpression)
+}
+
+// body: used for eval, parent: used for checking
+pub struct DeferredExpression {
+    ctx:Rc<Context>,
+    body:Rc<ASTNode>,
+}
+
+// this will get transferred to the result queue
+pub struct EvaluatedExpression {
+    data:DataValue,
 }
 
 pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call: bool) -> Result<DataValue> {
