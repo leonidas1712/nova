@@ -14,6 +14,8 @@ fn main() {
     nova::run(args);
 }
 
+// (range 5 10) >> for_each $ puts => prints 5,6,7,..10
+
 // (recr 1)
 // (add 2 (id 1) (id 1) 3)
 // (id (id 1))
