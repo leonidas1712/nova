@@ -62,17 +62,18 @@ pub fn evaluate_expression(ctx: &Context, children: &Vec<ASTNode>) -> Result<Dat
     if children.len() == 1 {
         return Ok(res);
     }
-
+    // cant use same ref from UF exec because we use body to unroll: need to clone and change ref
     let mut rest = children.iter();
     rest.next();
 
     let eval_rest = rest.clone().map(|node| eval!(ctx, node));
 
     // is function: check ArgType, gets arg, eval.
+        // if err: insert eval_rest.clone() again
     match res.expect_function().ok() {
         Some(func) => {
             if func.get_arg_type() == ArgType::Evaluated {
-                let results = get_eval_args_from_nodes(eval_rest.clone())?;
+                let results = get_eval_args_from_nodes(eval_rest)?;
                 func.execute(results, ctx)
             } else {
                 // just ast nodes
@@ -82,7 +83,7 @@ pub fn evaluate_expression(ctx: &Context, children: &Vec<ASTNode>) -> Result<Dat
         }
         // not a function: evaluate in order and return last
         None => {
-            let res_iter: Result<Vec<DataValue>> = eval_rest.clone().into_iter().collect();
+            let res_iter: Result<Vec<DataValue>> = eval_rest.into_iter().collect();
             res_iter?
                 .into_iter()
                 .last()
