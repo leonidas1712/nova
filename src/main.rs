@@ -13,3 +13,9 @@ fn main() {
     let args = args().into_iter();
     nova::run(args);
 }
+
+// (recr 1)
+// (add 2 (id 1) (id 1) 3)
+// (id (id 1))
+// (fn (a) (succ a))
+    // (add 2 (fn 1) 3)
