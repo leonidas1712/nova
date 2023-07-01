@@ -219,6 +219,7 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
 use lexer::Lexer;
 pub mod tests {
     use crate::lex;
+    use crate::lexer::Lexer;
 
     use super::*;
     // parse helpers
@@ -366,5 +367,46 @@ pub mod tests {
         assert!(res
             .format_error()
             .contains("Can't parse empty expression: '()'"));
+    }
+
+    fn test_equality_expr(s:&str) {
+        let l=lex!("(let x 2 y 3)");
+        let p=parse(l).unwrap();
+
+        let l2=lex!("(let x 2 y 3)");
+        let p2=parse(l2).unwrap();
+
+        println!("{}", p.to_string_with_parent());
+
+        match &p.value {
+            Expression(children) | IfNode(children) | LetNode(children, _) => {
+                let c1=children.get(0).unwrap();
+                
+                let c1_parent=c1.parent.clone().unwrap();
+                let c1_parent=c1_parent.as_ref();
+
+                let c1_parent_cloned=c1_parent.clone();
+                
+                // child's parent compares equal to original
+                let p_ref=&p;
+                assert_eq!(c1_parent, p_ref);
+
+                // cloned expr is equal
+                assert_eq!(c1_parent,&c1_parent_cloned);
+
+                // but same expr is not equal (essentially compare by ref)
+                assert_ne!(&p, &p2);
+            },
+            _ => {
+
+            }
+        }
+    }
+
+    #[test]
+    pub fn test_equality() {
+        test_equality_expr("(add 2 3)");
+        test_equality_expr("(if 1 2 3)");
+        test_equality_expr("(let x 2 y 3)");
     }
 }

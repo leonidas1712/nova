@@ -75,6 +75,7 @@ pub use ParseValue::*;
 // 1. compare some uniquely gen id
 // 2. or compare Rc's
 // ASTNode
+use uuid::Uuid;
 #[derive(Debug,Clone)]
 pub struct ASTNode {
     pub value: ParseValue,
@@ -82,17 +83,29 @@ pub struct ASTNode {
         // otherwise we can't do evaluation properly
     // the cycle ends when we reach root with parent=None
         // then the initial parent can get dropped and the children get dropped successively
-    pub parent: Option<Rc<ASTNode>>
+    pub parent: Option<Rc<ASTNode>>,
+    original:Uuid
 }
 
-// node.clone: the cloned should be considered same as this node
+// compare by id instead of checking values (too much time)
+impl PartialEq for ASTNode {
+    fn eq(&self, other: &Self) -> bool {
+        self.original.eq(&other.original)
+    }
+}
+
+impl Eq for ASTNode{}
 
 impl ASTNode {
     pub fn new(mut value: ParseValue) -> ASTNode {
         // when clone node: the clone node should return true on equals cmp
+
+        let original_ref=Uuid::new_v4();
+
         let original=ASTNode {
             value:value.clone(),
-            parent:None
+            parent:None,
+            original:original_ref
         };
         let original=Rc::new(original);
 
@@ -109,13 +122,15 @@ impl ASTNode {
 
                 ASTNode {
                     value:value,
-                    parent:None
+                    parent:None,
+                    original:original_ref
                 }
             },
             _ => {
                  ASTNode {
                     value,
                     parent: None,
+                    original:original_ref
                 }
             }
         }
