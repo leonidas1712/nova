@@ -37,4 +37,3 @@ fn nova_error_test_new() {
     let ne = Ex::new("Some error");
     assert_eq!(ne.format_error(), "Error: Some error");
 }
-

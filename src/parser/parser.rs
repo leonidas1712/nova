@@ -1,49 +1,62 @@
+use std::io::empty;
+use std::rc::Rc;
+
+use super::special::*;
 use crate::constants::*;
 use crate::lexer;
 use crate::message::*;
 use crate::parser::parse_node::*;
-use super::special::*;
 
-pub (super) enum Special {
+pub(super) enum Special {
     If,
     Let,
-    Fn
+    Fn,
 }
 
 use Special::*;
 
 impl Special {
-    fn get_special(token:String)->Option<Special> {
-        let token=token.as_str();
+    fn get_special(token: String) -> Option<Special> {
+        let token = token.as_str();
         match token {
             IF_NAME => Some(If),
             LET_NAME => Some(Let),
-            FN_NAME=> Some(Fn),
-            _ => None
+            FN_NAME => Some(Fn),
+            _ => None,
         }
     }
 }
 
 macro_rules! try_spec {
     ($vec:ident, $global:expr) => {
-        let try_special=Special::get_special($vec.get(0).unwrap().to_string());
+        let try_special = Special::get_special($vec.get(0).unwrap().to_string());
         if try_special.is_some() {
-            return parse_special(try_special.unwrap(), $vec, $global)
+            return parse_special(try_special.unwrap(), $vec, $global);
         }
     };
 }
 
+pub const EMPTY_MSG: &'static str = "Can't parse empty expression";
 
-pub const EMPTY_MSG:&'static str="Can't parse empty expression";
+fn get_brackets_error(s: String, open_token: &str) -> String {
+    let close_token = if open_token.eq(OPEN_EXPR) {
+        CLOSE_EXPR
+    } else {
+        CLOSE_LIST
+    };
+    let open_token = open_token.to_string();
 
-fn get_brackets_error(s:String, open_token:&str)->String{
-    let close_token = if open_token.eq(OPEN_EXPR) { CLOSE_EXPR } else { CLOSE_LIST }; 
-    let open_token=open_token.to_string();
+    let open_count = s.chars().filter(|x| x.to_string().eq(&open_token)).count();
+    let close_count = s
+        .chars()
+        .filter(|x| x.to_string().eq(&close_token.to_string()))
+        .count();
 
-    let open_count=s.chars().filter(|x| x.to_string().eq(&open_token)).count();
-    let close_count=s.chars().filter(|x| x.to_string().eq(&close_token.to_string())).count();
-
-    format!("Excess of {} opening brackets: '{}'.", open_count-close_count, open_token)
+    format!(
+        "Excess of {} opening brackets: '{}'.",
+        open_count - close_count,
+        open_token
+    )
 }
 
 // Parser
@@ -63,8 +76,8 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
         children.push(res);
     };
 
-    if children.len()==0 {
-        let expr=if open_token.eq(OPEN_EXPR) { "()" } else { "[]" };
+    if children.len() == 0 {
+        let expr = if open_token.eq(OPEN_EXPR) { "()" } else { "[]" };
         if open_token.eq(OPEN_LIST) {
             // handle nil here
         }
@@ -79,15 +92,18 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
             let cmp = (open_token.as_str(), last_token);
             if cmp != EXPR_TUP && cmp != LIST_TUP {
                 // return bracket mismatch and index
-                let msg=format!("Mismatched brackets: '{}' for '{}' at index {}.", last_token, open_token, lex.idx);
+                let msg = format!(
+                    "Mismatched brackets: '{}' for '{}' at index {}.",
+                    last_token, open_token, lex.idx
+                );
                 return err!(msg);
             };
-        }   // ret index
-        None => { 
+        } // ret index
+        None => {
             // let msg=format!("Expression was not well formed: expected bracket at index {}", lex.idx);
-            let msg=get_brackets_error(lex.to_string().clone(), &open_token);
-            return err!(msg); 
-        },
+            let msg = get_brackets_error(lex.to_string().clone(), &open_token);
+            return err!(msg);
+        }
     };
 
     lex.next(); // advance past the last token
@@ -99,17 +115,18 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     }
 
     // special
-    let first=children.get(0).unwrap();
+    let first = children.get(0).unwrap();
 
-    let try_special=Special::get_special(first.to_string());
+    let try_special = Special::get_special(first.to_string());
 
     // try_spec: bool for global
-        // global means whether to take return value to set in outer ctx
-        // false: expr just returns normal value
+    // global means whether to take return value to set in outer ctx
+    // false: expr just returns normal value
 
     try_spec!(children, false);
 
     let node_val = if open_token == OPEN_EXPR {
+        
         Expression(children)
     } else {
         List(children)
@@ -121,7 +138,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
 pub fn parse_atomic_expression(lex: &mut lexer::Lexer) -> Result<ASTNode> {
     let token_opt = lex.next();
     if token_opt.is_none() {
-        let msg=format!("Problem parsing expression at index {}.", lex.idx);
+        let msg = format!("Problem parsing expression at index {}.", lex.idx);
         return err!(msg);
     }
 
@@ -181,7 +198,7 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
     }
 
     if nodes.len() == 0 {
-        let msg=format!("{}:'{}'", EMPTY_MSG, lex.to_string());
+        let msg = format!("{}:'{}'", EMPTY_MSG, lex.to_string());
         return err!(msg);
     };
 
@@ -196,8 +213,6 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<ASTNode> {
 
     Ok(root)
 }
-
-
 
 // Tests
 #[cfg(test)]
@@ -229,11 +244,11 @@ pub mod tests {
 
         // iter(exp, node string)
         let zip = it.zip(res);
-        let zip2:Vec<(String, String)>=zip.clone().collect();
+        let zip2: Vec<(String, String)> = zip.clone().collect();
 
         for tup in zip2.into_iter() {
-            let left=tup.0;
-            let right=tup.1;
+            let left = tup.0;
+            let right = tup.1;
             assert_eq!(left, right);
         }
     }
@@ -276,8 +291,7 @@ pub mod tests {
 
     #[test]
     pub fn parse_list_expression_test_many() {
-        let lex = &mut Lexer::new("(sum (map lst (take 5)) (succ 5) [1,2])".to_string())
-            .unwrap();
+        let lex = &mut Lexer::new("(sum (map lst (take 5)) (succ 5) [1,2])".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap();
 
         let first_layer = get_node_value_strings(&res);
@@ -341,13 +355,16 @@ pub mod tests {
         let res = parse_list_expression(lex).unwrap_err();
         assert!(&res.format_error().contains("Mismatched brackets"));
 
-        let lex=&mut lex!("()");
+        let lex = &mut lex!("()");
         let res = parse_list_expression(lex).unwrap_err();
-        assert!(res.format_error().contains("Can't parse empty expression: '()'"));
+        assert!(res
+            .format_error()
+            .contains("Can't parse empty expression: '()'"));
 
-        let lex=&mut lex!("(add 2 ())");
+        let lex = &mut lex!("(add 2 ())");
         let res = parse_list_expression(lex).unwrap_err();
-        assert!(res.format_error().contains("Can't parse empty expression: '()'"));
-        
+        assert!(res
+            .format_error()
+            .contains("Can't parse empty expression: '()'"));
     }
 }

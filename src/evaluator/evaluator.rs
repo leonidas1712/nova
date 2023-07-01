@@ -1,7 +1,7 @@
 use super::eval_helpers::*;
 use super::{context::*, data::*};
-use crate::{message::*, lex, setup_context, evaluate_input};
 use crate::parser::parse_node::*;
+use crate::{evaluate_input, lex, message::*, setup_context};
 
 // 1. Check ast node type -> if terminal, convert to a DataValue -> put this method in context
 // terminal: num, bool, list, function variable, identifiers
@@ -33,9 +33,9 @@ use crate::parser::parse_node::*;
 
 // default to false
 
-pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result<DataValue> {
+pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call: bool) -> Result<DataValue> {
     // try to match terminals
-    println!("Node type: {}, Expr: {}", node.get_type(), node.to_string());
+    println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
     match &node.value {
         Boolean(b) => Ok(Bool(*b)),
         Number(num) => Ok(Num(*num)),
@@ -43,10 +43,10 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result
             // Function
             let fnc = ctx.get_function(sym);
             if fnc.is_some() {
-                let cloned=fnc.unwrap().clone();
+                let cloned = fnc.unwrap().clone();
                 return Ok(FunctionVariable(cloned));
             }
-            
+
             // Variable
             let resolve = ctx.get_variable(sym);
             if resolve.is_some() {
@@ -66,11 +66,8 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call:bool) -> Result
             );
         }
         LetNode(children, global) => return evaluate_let(ctx, children, *global),
-        FnNode(fn_def) => {
-            return evaluate_fn_node(&ctx, fn_def, outer_call)
-        },
+        FnNode(fn_def) => return evaluate_fn_node(&ctx, fn_def, outer_call),
         Expression(children) => evaluate_expression(ctx, children),
-        
     }
 }
 
@@ -82,37 +79,36 @@ macro_rules! eval {
     };
 }
 
-pub (crate) use eval;
+pub(crate) use eval;
 
 use crate::lexer::Lexer;
 use crate::parser::parser::parse;
 
-pub fn test_eval(expr:&str, expected:&str) {
-    let l=lex!(expr);
-    let p=parse(l).unwrap();
-    let ctx=setup_context();
-    let e=evaluate(&ctx, &p, true).unwrap().to_string();
+pub fn test_eval(expr: &str, expected: &str) {
+    let l = lex!(expr);
+    let p = parse(l).unwrap();
+    let ctx = setup_context();
+    let e = evaluate(&ctx, &p, true).unwrap().to_string();
 
     assert_eq!(e, expected);
 }
 
-pub fn test_eval_many(exprs:Vec<&str>, expected:Vec<&str>) {
+pub fn test_eval_many(exprs: Vec<&str>, expected: Vec<&str>) {
     for tup in exprs.into_iter().zip(expected.into_iter()) {
         test_eval(tup.0, tup.1);
     }
 }
 
-
 #[test]
 fn let_test() {
-    let exprs=vec![
-        "(let x 2)", 
-        "(let x 3 y 4 (add x y))", 
+    let exprs = vec![
+        "(let x 2)",
+        "(let x 3 y 4 (add x y))",
         "let x 3 y 4 (add x y)",
-        "let x 3 y (let x 10 x) (add x y) "
+        "let x 3 y (let x 10 x) (add x y) ",
     ];
 
-    let exp=vec!["2","7","7","13"];
+    let exp = vec!["2", "7", "7", "13"];
 
     test_eval("(let x 2)", "2");
 }

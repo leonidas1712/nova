@@ -14,12 +14,12 @@ pub use lex;
 pub struct Lexer {
     tokens: Vec<String>,
     pub idx: usize,
-    original:String
+    original: String,
 }
 
 impl Lexer {
     pub fn new(input: String) -> Result<Lexer> {
-        let original=input.clone();
+        let original = input.clone();
         let mut filtered = input;
 
         if filtered.len() == 0 {
@@ -42,7 +42,11 @@ impl Lexer {
             .map(|x| x.to_string())
             .collect();
 
-        let lex = Lexer { tokens, idx: 0, original };
+        let lex = Lexer {
+            tokens,
+            idx: 0,
+            original,
+        };
 
         Ok(lex)
     }
@@ -51,7 +55,7 @@ impl Lexer {
         self.tokens.clone()
     }
 
-    pub fn to_string(&self)->&String {
+    pub fn to_string(&self) -> &String {
         &self.original
     }
 

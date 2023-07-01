@@ -7,7 +7,7 @@ use super::function::*;
 
 use DataValue::*;
 
-macro_rules! name  {
+macro_rules! name {
     ($name:expr) => {
         String::from(format!("<function '{}'>", $name))
     };
@@ -16,15 +16,18 @@ macro_rules! name  {
 macro_rules! ev {
     ($args:expr) => {
         Arg::expect_all_eval($args)?
-    }
+    };
 }
-
 
 macro_rules! check {
     ($name:expr, $num:expr, $args:expr) => {
-        if $args.len()!=$num {
-            let msg=format!("'{}' expected {} arguments but received {}.",
-                $name, $num, $args.len());
+        if $args.len() != $num {
+            let msg = format!(
+                "'{}' expected {} arguments but received {}.",
+                $name,
+                $num,
+                $args.len()
+            );
             return err!(msg);
         }
     };
@@ -81,11 +84,11 @@ impl Function for Mult {
 pub struct Equals;
 impl Function for Equals {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
-        let eval_args=ev!(args);
+        let eval_args = ev!(args);
         check!(EQUALS, 2, eval_args);
 
-        let left=eval_args.get(0).unwrap();
-        let right=eval_args.get(1).unwrap();
+        let left = eval_args.get(0).unwrap();
+        let right = eval_args.get(1).unwrap();
 
         Ok(Bool(left.equals(right)))
     }
@@ -98,10 +101,13 @@ impl Function for Equals {
 pub struct Succ;
 impl Function for Succ {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
-        let eval_args=get_nums(args)?;
+        let eval_args = get_nums(args)?;
         check!(INC, 1, eval_args);
 
-       eval_args.get(0).map(|x| Num(x+1)).ok_or(Ex::new("Couldn't add num."))
+        eval_args
+            .get(0)
+            .map(|x| Num(x + 1))
+            .ok_or(Ex::new("Couldn't add num."))
     }
 
     fn to_string(&self) -> String {
@@ -112,14 +118,16 @@ impl Function for Succ {
 pub struct Pred;
 impl Function for Pred {
     fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
-        let eval_args=get_nums(args)?;
+        let eval_args = get_nums(args)?;
         check!(DEC, 1, eval_args);
 
-       eval_args.get(0).map(|x| Num(x-1)).ok_or(Ex::new("Couldn't subtract num.")) // err unreachable
+        eval_args
+            .get(0)
+            .map(|x| Num(x - 1))
+            .ok_or(Ex::new("Couldn't subtract num.")) // err unreachable
     }
 
     fn to_string(&self) -> String {
         name!(DEC)
     }
 }
-

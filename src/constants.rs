@@ -9,7 +9,7 @@ pub const CLOSE_LIST: &str = "]";
 pub const SPACE: &str = " ";
 pub const EMPTY: &str = "\0";
 
-pub type NumType=i64;
+pub type NumType = i64;
 
 // Keywords
 pub const LET_NAME: &str = "let";
@@ -84,23 +84,55 @@ pub const STRING: &str = "string";
 // REPL commands
 pub const QUIT_STRINGS: [&'static str; 4] = ["quit", "quit()", "exit", "exit()"];
 
-pub const RESERVED_KEYWORDS:[&'static str; 34]= [LET_NAME,FN_NAME,IF_NAME,EQUALS,PUTS,PRINT,OR,AND,IMPORT,
-CHAIN,CONS,SET,GET,CAR,CDR,LAMBDA,VAR_SEP,OPEN_EXPR, CLOSE_EXPR,
-OPEN_LIST,CLOSE_LIST,TRUE,FALSE,AND,OR,LCAR,LCDR,LCONS,GT,LT,LAMBDA_TYPE,COMP_OPR,COMP_LEFT,PIPE];
+pub const RESERVED_KEYWORDS: [&'static str; 34] = [
+    LET_NAME,
+    FN_NAME,
+    IF_NAME,
+    EQUALS,
+    PUTS,
+    PRINT,
+    OR,
+    AND,
+    IMPORT,
+    CHAIN,
+    CONS,
+    SET,
+    GET,
+    CAR,
+    CDR,
+    LAMBDA,
+    VAR_SEP,
+    OPEN_EXPR,
+    CLOSE_EXPR,
+    OPEN_LIST,
+    CLOSE_LIST,
+    TRUE,
+    FALSE,
+    AND,
+    OR,
+    LCAR,
+    LCDR,
+    LCONS,
+    GT,
+    LT,
+    LAMBDA_TYPE,
+    COMP_OPR,
+    COMP_LEFT,
+    PIPE,
+];
 
 use std::{collections::HashSet, hash::Hash};
 
 lazy_static! {
-    pub static ref RESERVED_SET:HashSet<String> = {
-        let mut reserved_set=HashSet::new();
+    pub static ref RESERVED_SET: HashSet<String> = {
+        let mut reserved_set = HashSet::new();
         for word in RESERVED_KEYWORDS {
             reserved_set.insert(word.to_string());
         }
         reserved_set
     };
-
-    pub static ref INVALID_SET:HashSet<String> = {
-        let mut invalid_set=HashSet::new();
+    pub static ref INVALID_SET: HashSet<String> = {
+        let mut invalid_set = HashSet::new();
         for word in DONT_ADD {
             invalid_set.insert(word.to_string());
         }
@@ -111,5 +143,4 @@ lazy_static! {
 
         invalid_set
     };
-
 }

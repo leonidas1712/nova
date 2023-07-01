@@ -17,14 +17,14 @@ impl Context {
     pub fn new() -> Context {
         let symbol_map: HashMap<String, DataValue> = HashMap::new();
         Context { symbol_map }
-    }   
+    }
 
     // take other context and merge with self => new context
-        // self context should take preced i.e if self has variable other shouldnt overwrite
-    pub fn merge_context(&self, other_ctx:&Context)->Context{
-        let mut new_ctx=self.clone();
+    // self context should take preced i.e if self has variable other shouldnt overwrite
+    pub fn merge_context(&self, other_ctx: &Context) -> Context {
+        let mut new_ctx = self.clone();
 
-        for (key,value) in &other_ctx.symbol_map {
+        for (key, value) in &other_ctx.symbol_map {
             if new_ctx.get_data_value(&key).is_none() {
                 new_ctx.symbol_map.insert(key.clone(), value.clone());
             }
@@ -33,8 +33,8 @@ impl Context {
     }
 
     // overwrite self with other context
-    pub fn write_context(&mut self, other_ctx:Context) {
-        for (key,value) in other_ctx.symbol_map.into_iter() {
+    pub fn write_context(&mut self, other_ctx: Context) {
+        for (key, value) in other_ctx.symbol_map.into_iter() {
             self.add_variable(key.as_str(), value);
         }
     }
@@ -49,7 +49,7 @@ impl Context {
     }
 
     // for getting something either a variable or a function
-    pub fn get_data_value(&self, name:&String)->Option<&DataValue> {
+    pub fn get_data_value(&self, name: &String) -> Option<&DataValue> {
         self.symbol_map.get(name)
     }
 
@@ -68,11 +68,11 @@ impl Context {
             self.symbol_map.get(name)
         }
     }
-    
-    pub fn to_string(&self)->String {
-        let mut pairs:Vec<String>=vec![];
-        for (key,value) in self.symbol_map.iter() {
-            let m=format!("{}: {}", key.to_string(), value.to_string());
+
+    pub fn to_string(&self) -> String {
+        let mut pairs: Vec<String> = vec![];
+        for (key, value) in self.symbol_map.iter() {
+            let m = format!("{}: {}", key.to_string(), value.to_string());
             pairs.push(m);
         }
         pairs.join("\n")
@@ -83,11 +83,11 @@ impl Context {
 pub mod tests {
     use super::*;
     use crate::{constants::NumType, evaluator::builtins::*};
-    
+
     #[test]
     fn context_test() {
         let fnc = Add {};
-        let fnc_name=fnc.to_string();
+        let fnc_name = fnc.to_string();
 
         let fnc_var = Rc::new(fnc);
         let mut ctx = Context::new();
@@ -137,18 +137,18 @@ pub mod tests {
         ctx.add_function("add", fnc_var);
         assert!(ctx.get_function("add").is_some());
 
-        let mut c1=Context::new();
+        let mut c1 = Context::new();
         c1.add_variable("x", Num(2));
-        
-        let mut c2=Context::new();
+
+        let mut c2 = Context::new();
         c2.add_variable("y", Num(5));
 
         c1.write_context(c2);
 
-        let c1x=c1.get_variable("x").unwrap().expect_num().unwrap();
+        let c1x = c1.get_variable("x").unwrap().expect_num().unwrap();
         assert_eq!(c1x, 2);
 
-        let c1y=c1.get_variable("y").unwrap().expect_num().unwrap();
+        let c1y = c1.get_variable("y").unwrap().expect_num().unwrap();
         assert_eq!(c1y, 5);
     }
 
@@ -158,24 +158,23 @@ pub mod tests {
         c.add_variable("x", Num(2));
         c.add_variable("y", Num(3));
 
-        let mut c2=c.clone();
+        let mut c2 = c.clone();
         c2.add_variable("x", Num(5));
 
-        let x=c.get_variable("x").unwrap().expect_num().unwrap();
-        assert_eq!(x,2);
+        let x = c.get_variable("x").unwrap().expect_num().unwrap();
+        assert_eq!(x, 2);
 
-        let y=c.get_variable("y").unwrap().expect_num().unwrap(); 
-        assert_eq!(y,3);
+        let y = c.get_variable("y").unwrap().expect_num().unwrap();
+        assert_eq!(y, 3);
 
-        let x=c2.get_variable("x").unwrap().expect_num().unwrap();
-        assert_eq!(x,5);
+        let x = c2.get_variable("x").unwrap().expect_num().unwrap();
+        assert_eq!(x, 5);
 
-        let y=c2.get_variable("y").unwrap().expect_num().unwrap(); 
-        assert_eq!(y,3);
+        let y = c2.get_variable("y").unwrap().expect_num().unwrap();
+        assert_eq!(y, 3);
 
         c2.add_variable("new", Num(5));
         assert_eq!(c.get_variable("new").is_none(), true);
-        
     }
 
     #[test]
@@ -184,14 +183,25 @@ pub mod tests {
         c.add_variable("x", Num(2));
         c.add_variable("y", Num(3));
 
-        let mut c2=c.clone();
+        let mut c2 = c.clone();
         c2.add_variable("x", Num(5));
         c2.add_variable("y", Num(10));
         c2.add_variable("z", Num(10));
 
-        let c3=c.merge_context(&c2);
-        assert_eq!(c3.get_data_value(&"x".to_string()).unwrap().expect_num().unwrap(), 2);
-        assert_eq!(c3.get_data_value(&"z".to_string()).unwrap().expect_num().unwrap(), 10);
-
+        let c3 = c.merge_context(&c2);
+        assert_eq!(
+            c3.get_data_value(&"x".to_string())
+                .unwrap()
+                .expect_num()
+                .unwrap(),
+            2
+        );
+        assert_eq!(
+            c3.get_data_value(&"z".to_string())
+                .unwrap()
+                .expect_num()
+                .unwrap(),
+            10
+        );
     }
 }

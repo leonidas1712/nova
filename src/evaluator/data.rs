@@ -5,8 +5,8 @@ use crate::constants::NumType;
 use crate::message::*;
 use crate::parser::parse_node::{ASTNode, FnDef};
 
-use super::function::{Function, UserFunction};
 use super::context::Context;
+use super::function::{Function, UserFunction};
 
 pub const NUM: &str = "Num";
 pub const BOOL: &str = "Bool";
@@ -18,62 +18,60 @@ pub const FNV: &str = "FunctionVariable";
 #[derive(Clone)]
 pub struct LetReturn {
     pub context: Box<Context>,
-    pub value: Rc<DataValue> // need to return out of function
+    pub value: Rc<DataValue>, // need to return out of function
 }
 
 impl LetReturn {
-    pub fn new(context:Context, value: DataValue)->LetReturn{
+    pub fn new(context: Context, value: DataValue) -> LetReturn {
         LetReturn {
             context: Box::new(context),
-            value: Rc::new(value)
+            value: Rc::new(value),
         }
     }
 }
-
-#[derive(Clone)]
-pub struct FnDefReturn {
-    func: Rc<UserFunction>
-}
-
 // Function shouldn't get dropped until all refs in context/args are dropped -> use Rc
 #[derive(Clone, AsRefStr)]
 pub enum DataValue {
     Num(NumType),
     Bool(bool),
     FunctionVariable(Rc<dyn Function>), // we need to borrow the function from Context when doing this
-    SetVar(LetReturn), // returned from 'let' if outer_call=true,
+    SetVar(LetReturn),                  // returned from 'let' if outer_call=true,
     SetFn(Rc<UserFunction>),
     Default,
 }
 
 impl DataValue {
-    pub fn num_equals(&self, other:&DataValue)->bool {
+    pub fn num_equals(&self, other: &DataValue) -> bool {
         if let Ok(num) = self.expect_num() {
             match other {
                 Num(other_num) => num.eq(other_num),
-                _ => false
+                _ => false,
             }
-        } else { false } 
-    }
-
-    pub fn bool_equals(&self, other:&DataValue)->bool {
-        if let Ok(b) = self.expect_bool() {
-            match other {
-                Bool(other_b) => b.eq(other_b),
-                _ => false
-            }
-        } else { false } 
-    }
-
-    pub fn equals(&self, right: &DataValue)->bool {
-        match self {
-            Num(n) => self.num_equals(right),
-            Bool(b) => self.bool_equals(right),
-            _ => false
+        } else {
+            false
         }
     }
 
-    // expect functions    
+    pub fn bool_equals(&self, other: &DataValue) -> bool {
+        if let Ok(b) = self.expect_bool() {
+            match other {
+                Bool(other_b) => b.eq(other_b),
+                _ => false,
+            }
+        } else {
+            false
+        }
+    }
+
+    pub fn equals(&self, right: &DataValue) -> bool {
+        match self {
+            Num(n) => self.num_equals(right),
+            Bool(b) => self.bool_equals(right),
+            _ => false,
+        }
+    }
+
+    // expect functions
     pub fn expect_num(&self) -> Result<NumType> {
         match self {
             Num(num) => Ok(*num),
@@ -109,12 +107,9 @@ impl DataValue {
             Num(n) => n.to_string(),
             Bool(b) => b.to_string(),
             FunctionVariable(f) => f.to_string(),
-            SetVar(lr) => {
-                lr.value.to_string()
-            },
+            SetVar(lr) => lr.value.to_string(),
             SetFn(func) => func.to_string(),
             Default => String::from("Default Data Value"),
-            _ => String::from("unimplemented"),
         }
     }
 }

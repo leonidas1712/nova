@@ -14,51 +14,49 @@ use std::time::{Duration, Instant};
 pub mod constants;
 pub mod evaluator;
 pub mod lexer;
+pub mod macros;
 pub mod message;
 pub mod parser;
 pub mod time;
-pub mod macros;
 
 use std::rc::Rc;
 
 use crate::{
-    constants::*, 
-    evaluator::{context::Context,builtins::*, evaluator::evaluate}
+    constants::*,
+    evaluator::{builtins::*, context::Context, evaluator::evaluate},
 };
 use rustyline::{error::ReadlineError, DefaultEditor};
 
 // register builtins here
-pub fn setup_context()->Context {
-    let mut ctx=Context::new();
+pub fn setup_context() -> Context {
+    let mut ctx = Context::new();
     macro_rules! reg {
         ($name:literal, $struct:ident) => {
-            ctx.add_function($name, Rc::new($struct{}));
+            ctx.add_function($name, Rc::new($struct {}));
         };
 
         ($name:expr, $struct:ident) => {
-            ctx.add_function($name, Rc::new($struct{}));
+            ctx.add_function($name, Rc::new($struct {}));
         };
     }
 
-    reg!(ADD,Add);
-    reg!(SUB,Sub);
+    reg!(ADD, Add);
+    reg!(SUB, Sub);
     reg!(MULT, Mult);
     reg!(EQUALS, Equals);
     reg!(INC, Succ);
     reg!(DEC, Pred);
 
-
     ctx
 }
 
 // main function to take a string -> get a string representing output
-    // take a mut ctx -> in only 2 cases we need to add something:
-        // FnDef and (set x...) => have special types in DataValue for this
-pub fn evaluate_input(inp:&str, context:&mut Context)->String {
+// take a mut ctx -> in only 2 cases we need to add something:
+// FnDef and (set x...) => have special types in DataValue for this
+pub fn evaluate_input(inp: &str, context: &mut Context) -> String {
     let res = lexer::Lexer::new(inp.to_string())
         .and_then(|lex| parser::parser::parse(lex))
         .and_then(|node| evaluate(&context, &node, true));
-
 
     // context.add_function(name, function)
 
@@ -66,27 +64,25 @@ pub fn evaluate_input(inp:&str, context:&mut Context)->String {
     use evaluator::function::*;
 
     match res {
-        Ok(val) => { 
+        Ok(val) => {
             // dbg!(&val);
-            let mut string=val.to_string();
+            let mut string = val.to_string();
 
             //set outer context here
             if let SetVar(data) = val {
-                let ret_ctx=data.context;
-                let value=data.value;
-                string=value.to_string();
+                let ret_ctx = data.context;
+                let value = data.value;
+                string = value.to_string();
                 context.write_context(*ret_ctx);
-            }
-            
-            else if let SetFn(rc) = val {
-                let name=rc.get_name();
-                let rc2:Rc<dyn Function>=rc;
+            } else if let SetFn(rc) = val {
+                let name = rc.get_name();
+                let rc2: Rc<dyn Function> = rc;
                 context.add_function(&name, rc2);
             }
             // end set outer ctx
             string
-        },
-        Err(err) => err.format_error()
+        }
+        Err(err) => err.format_error(),
     }
 }
 
@@ -96,14 +92,14 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     args.next();
     args.for_each(|s| println!("{}", s));
 
-    let ctx=setup_context();
+    let ctx = setup_context();
 
     use crate::time::bench;
 
     nova_repl(ctx);
 }
 
-pub fn nova_repl(mut context:Context) {
+pub fn nova_repl(mut context: Context) {
     let mut rl = DefaultEditor::new().unwrap();
 
     println!();
@@ -123,15 +119,15 @@ pub fn nova_repl(mut context:Context) {
                     println!("See you again!");
                     break;
                 }
-                
+
                 if ["cl", "clear"].contains(&inp.as_str()) {
-                    let _=rl.clear_screen();
+                    let _ = rl.clear_screen();
                     continue;
                 }
 
                 rl.add_history_entry(inp.clone().trim()).unwrap();
-                
-                let res=evaluate_input(inp.as_str(), &mut context);
+
+                let res = evaluate_input(inp.as_str(), &mut context);
                 println!("{res}");
             }
 
