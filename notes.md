@@ -340,6 +340,7 @@ Expression struct: ctx,body,ast (replace with parent?)
 -> data: enum
     -> FnCall or Data
 
+issue if clones considered equal: because when evaluating function bodies need to clone nodes(?)
 
 **1.Expr(&ctx, &body_ast, &parent_ast)  -> body and parent separate -> body.parent not always parent
 -> unrolling an expr: 

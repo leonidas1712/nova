@@ -99,6 +99,8 @@ impl Eq for ASTNode{}
 impl ASTNode {
     pub fn new(mut value: ParseValue) -> ASTNode {
         // when clone node: the clone node should return true on equals cmp
+        // issue now is just that if we do node.parent.value, that value wont be the
+            // same as node -> but we only care about checking parent equality for now
 
         let original_ref=Uuid::new_v4();
 
