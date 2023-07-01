@@ -337,7 +337,7 @@ pub mod tests {
         let lex = &mut Lexer::new("[2]".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap();
 
-        if let ParseValue::List(vc) = res.value {
+        if let ParseValue::List(vc) = &res.value {
             assert_eq!(vc.len(), 1);
         } else {
             assert!(false);

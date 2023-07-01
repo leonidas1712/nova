@@ -77,32 +77,36 @@ pub struct ASTNode {
     pub value: ParseValue,
     // when there is a parent, we need the parent ref to be valid -> needs Rc
         // otherwise we can't do evaluation properly
+    // the cycle ends when we reach root with parent=None
+        // then the initial parent can get dropped and the children get dropped successively
     pub parent: Option<Rc<ASTNode>>
 }
 
 // node.clone: the cloned should be considered same as this node
 
 impl ASTNode {
-    pub fn new(value: ParseValue) -> ASTNode {
-        // let original=ASTNode::empty()
-        // let clone=original.clone() // equality compared by id so clone is same
-        // original=Rc::new(original)
-        // if value has children: child.set_parent(original) for child in value
-        // original.value=value
-        // return original => still return ASTNode instead of Rc
+    pub fn new(mut value: ParseValue) -> ASTNode {
+        // when clone node: the clone node should return true on equals cmp
+        let original=ASTNode {
+            value:value.clone(),
+            parent:None
+        };
+        let original=Rc::new(original);
 
-        // when clone node: value set to value.clone, parent set to None
-
-        let match_val=value.clone();
-
-        match match_val {
-            Expression(children) => {
-                let original=ASTNode::empty();
-                let original=Rc::new(original);
+        match &mut value {
+            Expression(ref mut children) | 
+            List(ref mut children)       |
+            LetNode(ref mut children, _) |
+            IfNode(ref mut children)
+            => {
+                children.iter_mut().for_each(|child| {
+                    child.parent=Some(Rc::clone(&original))
+                }
+                );
 
                 ASTNode {
-                    value,
-                    parent: Some(Rc::clone(&original))
+                    value:value,
+                    parent:None
                 }
             },
             _ => {
