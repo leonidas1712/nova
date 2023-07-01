@@ -7,10 +7,9 @@
 // (recr_t 6000 0)
 use nova;
 use nova::parser::parser::parse;
-use std::{env::args};
+use std::{env::args, rc::Rc};
 
 fn main() {
-
     let args = args().into_iter();
     nova::run(args);
 }

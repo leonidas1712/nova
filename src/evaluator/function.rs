@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use super::context::*;
 use super::data::*;
 use super::evaluator;
@@ -31,16 +33,22 @@ pub struct UserFunction {
     body: Vec<ASTNode>,
 }
 
+struct Test<'a> {
+    context:Rc<&'a Context>
+}
 // clone fn_def because it could have come from a closure: the original function still needs it
 // same reason for context: to impl closure we need to capture ctx at time of creation
 impl UserFunction {
-    // fn ret_node(&self)->&ASTNode {
-    //     let y = self.body.get(0);
-    //     let x=y.unwrap();
-    //     let z = x;
-    //     println!("{}", x.to_string());
-    //     z
-    // }
+    fn ret_node(&self, args:Vec<Arg>, outer_ctx:&Context)->Test {
+        let y = self.body.get(0);
+        let x=y.unwrap();
+        let z = x;
+        println!("{}", x.to_string());
+
+        let new_ctx=self.curry(args).unwrap();
+        
+        Test { context: Rc::new(&self.context) }
+    }
 
     pub fn new(context: &Context, fn_def: &FnDef) -> UserFunction {
         UserFunction {

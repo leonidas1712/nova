@@ -328,10 +328,7 @@ e.g (id 1) -> id's ast is (id 1), not id
 -> then comparison is fn_st[-1].ast==call_st[-1].parent
 -> eval(f_st[-1], res) => return expr.parent=f_st[-1].ast
 
--> unroll expr: 
-    -> all children parents set to expr that was unrolled
-    -> only the first expr is set as "function call" and has ast set to expr (not parent)
-***
+
 FnCall(Rc<dyn Function>, ctx, body, Rc<ast>) 
 Result(DataValue,Rc<parent>) 
 
@@ -352,11 +349,18 @@ issue if clones considered equal: because when evaluating function bodies need t
         -> this is a subtype of expr so that we can make all functions return a general Expression
             -> even though its basically the same as 'Result'
         -> this helps us implement currying: so that functions with < req args can return curried fn
+-> ctx: Rc<Context>
+    -> when unrolling: Rc::clone
+    -> return from function: make Rc of merged context -> transferred ownership 
+-> body_ast:Rc<ASTNode>
+    -> return from function: clone the node and make into new Rc (clones unequal)
+-> parent_ast: Rc<ASTNode>
+    -> use Rc::clone when unrolling to set parent
 
 -> comparison: fn_st[-1].ast == call_st[-1].parent
     -> equals: compare by some id
 
-**2.FnCall(~~&ctx~~, &Rc<dyn Function>, &ast, &parent) 
+**2.FnCall(&Rc<dyn Function>, &ast, &parent) 
 - ast used for comparison with expr.parent_ast
 - parent used for which ast to promote result to (result_expr's parent becomes this parent)
     -> FnCall: need to set parent of ret expr properly
@@ -425,6 +429,39 @@ places that may cause real left recursion:
 -> resolution of functionvariable
 -> resolution of if cond result e.g  if (recr n-1) ...
 
+
+
+
+
+// 1. Check ast node type -> if terminal, convert to a DataValue -> put this method in context
+// terminal: num, bool, list, function variable, identifiers
+// identifiers: look at context
+// num,bool,list: can do directly
+
+// 2. non-terminals but handled differently: IfStmt, LetStmt, FnDef
+// if node has that type => pass to those methods for eval (handle_if, handle_let, resolve_function)
+
+// 3. Covered: Number, List, IfStmt, LetStmt, FnDef
+
+// 4. Left with expression
+// Resolve based on first element: if first element resolves to function call (first could also be an expression), call the function with
+// the rest of the expressions as arguments
+// We are in an expression + First subexpr resolves to FunctionVariable + length of expr > 1 => eval
+
+// FunctionCall: check if evaluated or unevaluated, then decide to eval or not the rest of the subexprs
+// Need a way to check - trait
+// else, evaluate the other subexpressions in order and return the result from the last eval
+// e.g (puts 1) (puts 2 ) (puts 3) => should print 1 2 3
+
+// Else: invalid, return error
+
+// how to handle: ( (def f (x) x) (1) )
+// i.e inline fn def + result
+// make DataValue::FnDef -> contains Rc<fn> + optional result
+// return out -> add to REPL context
+// lambda: can just return a normal FnVar
+
+// default to false
 
 ---
 

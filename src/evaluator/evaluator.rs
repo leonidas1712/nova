@@ -2,36 +2,23 @@ use super::eval_helpers::*;
 use super::{context::*, data::*};
 use crate::parser::parse_node::*;
 use crate::{evaluate_input, lex, message::*, setup_context};
+use std::rc::Rc;
 
-// 1. Check ast node type -> if terminal, convert to a DataValue -> put this method in context
-// terminal: num, bool, list, function variable, identifiers
-// identifiers: look at context
-// num,bool,list: can do directly
+struct DeferredExpression {
+    ctx:Rc<Context>,
+    body:Rc<ASTNode>,
+    parent:Rc<ASTNode>
+}
 
-// 2. non-terminals but handled differently: IfStmt, LetStmt, FnDef
-// if node has that type => pass to those methods for eval (handle_if, handle_let, resolve_function)
+struct EvaluatedExpression {
+    data:DataValue,
+    parent:Rc<ASTNode>
+}
 
-// 3. Covered: Number, List, IfStmt, LetStmt, FnDef
-
-// 4. Left with expression
-// Resolve based on first element: if first element resolves to function call (first could also be an expression), call the function with
-// the rest of the expressions as arguments
-// We are in an expression + First subexpr resolves to FunctionVariable + length of expr > 1 => eval
-
-// FunctionCall: check if evaluated or unevaluated, then decide to eval or not the rest of the subexprs
-// Need a way to check - trait
-// else, evaluate the other subexpressions in order and return the result from the last eval
-// e.g (puts 1) (puts 2 ) (puts 3) => should print 1 2 3
-
-// Else: invalid, return error
-
-// how to handle: ( (def f (x) x) (1) )
-// i.e inline fn def + result
-// make DataValue::FnDef -> contains Rc<fn> + optional result
-// return out -> add to REPL context
-// lambda: can just return a normal FnVar
-
-// default to false
+enum Expression {
+    Deferred(DeferredExpression),
+    Result(EvaluatedExpression)
+}
 
 pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call: bool) -> Result<DataValue> {
     // try to match terminals
