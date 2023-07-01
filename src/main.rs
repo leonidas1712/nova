@@ -6,10 +6,39 @@
 
 // (recr_t 6000 0)
 use nova;
-use std::{env::args, cell::RefCell, rc::Rc};
+use nova::parser::parser::parse;
+use std::{env::args};
+
 use crate::nova::parser::parse_node::*;
+use crate::nova::lex;
+use crate::Expression;
+use std::ptr;
 
 fn main() {
+    use crate::nova::lexer::Lexer;
+    let l=lex!("(add 2 3)");
+    let p=parse(l).unwrap();
+
+    println!("{}", p.to_string_with_parent());
+
+    match &p.value {
+        Expression(children) => {
+            println!("Node itself: {}", p.to_string_with_parent());
+            let c1=children.get(0).unwrap();
+            println!("First child:{}", c1.to_string_with_parent());
+            
+            let c1_parent=c1.parent.clone().unwrap();
+            let c1_parent=c1_parent.as_ref();
+
+            let p_ref=&p;
+            println!("eq:{}", ptr::eq(c1_parent, p_ref));
+
+        },
+        _ => {
+
+        }
+    }
+
     let args = args().into_iter();
     nova::run(args);
 }

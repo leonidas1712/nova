@@ -173,7 +173,7 @@ impl ASTNode {
 
         let self_string=self.to_string();
         
-        format!("\n[\n\tself:{},\n\tparent:{}\n]\n",self_string,parent_string)
+        format!("\n[\n\ttype:{}\n\tself:{},\n\tparent:{}\n]\n",self.get_type(), self_string,parent_string)
     }
 
     pub fn to_string(&self) -> String {

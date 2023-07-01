@@ -309,28 +309,122 @@ two cases for fn eval:
 returning from a fn:
 -> if res ast marked as fn: put on fn_st
 -> else: put on call_st 
+    -> includes both deferred exprs and resolved data values
 
 call_st: has expressions
 -> could be terminal or non-terminal
-           
+
+***
 Expression(DataValue, &ctx, body:&astnode, ast:&astnode) - &DataValue?
 -> separate body from ast -> ast to use for checking parent etc, body to use for eval
     -> e.g (fn x) -> (succ x) -> eval use (succ x), checking use (fn x)
     -> expr unrolling: use actual body as parent
 
+***
 FnCall: need to set parent of ret expr properly
 -> eval: use parent of fn symbol inside expr
+when flattening to fn call: set fn call ast to the parent of the symbol 
+e.g (id 1) -> id's ast is (id 1), not id
+-> then comparison is fn_st[-1].ast==call_st[-1].parent
+-> eval(f_st[-1], res) => return expr.parent=f_st[-1].ast
 
-FnCall(Rc<dyn Function>, ctx, body, ast) -> possibly just the Rc
-Result(DataValue,ast)
+-> unroll expr: 
+    -> all children parents set to expr that was unrolled
+    -> only the first expr is set as "function call" and has ast set to expr (not parent)
+***
+FnCall(Rc<dyn Function>, ctx, body, Rc<ast>) 
+Result(DataValue,Rc<parent>) 
 
-Expression struct: ctx,body, ast
+Expression struct: ctx,body,ast (replace with parent?)
+-> ast used for cmp
 -> data: enum
     -> FnCall or Data
 
-    
-   
 
+**1.Expr(&ctx, &body_ast, &parent_ast)  -> body and parent separate -> body.parent not always parent
+-> unrolling an expr: 
+    -> all children going on call_st (i.e all except first) have parent set to unrolled expr
+    -> fn_call expr: has ast set to unrolled expr
+-> Expr: two types
+    -> Deferred(ctx, body, parent)
+    -> Evaluated(data_value, parent) -> when we see this we can transfer it to a result
+        -> this is a subtype of expr so that we can make all functions return a general Expression
+            -> even though its basically the same as 'Result'
+        -> this helps us implement currying: so that functions with < req args can return curried fn
+
+-> comparison: fn_st[-1].ast == call_st[-1].parent
+    -> equals: compare by some id
+
+**2.FnCall(&ctx, &Rc<dyn Function>, &ast, &parent) 
+- ast used for comparison with expr.parent_ast
+- parent used for which ast to promote result to (result_expr's parent becomes this parent)
+    -> FnCall: need to set parent of ret expr properly
+    -> eval: use parent of fn symbol inside expr
+    -> may need to store extra &parent -> yes
+    -> need to clone fn_body when returning out as expression so that parent can be set
+        -> original body's parent should remain as None since it changes with every call
+
+    when flattening to fn call: set fn call ast to the parent of the symbol 
+    e.g (id 1) -> id's ast is (id 1), not id
+    -> then comparison is fn_st[-1].ast==call_st[-1].parent
+    -> eval(f_st[-1], res) => return expr.parent=f_st[-1].ast.parent**
+        -> i.e promote to f_st[-1].ast.parent
+        -> store parent ref in FnCall as well to avoid cloning
+
+**3.ExprResult(DataValue, &parent)
+    -> transfer from call_st to res_q: just use parent pt
+
+resolve function: when parents match, what to do
+    -> expr: unroll it -> parents of exprs on call_st = expr, fn_call.ast is expr,
+        -> and fn_call.parent is expr.parent
+    -> everything else: resolve to ExprResult, push to res_q
+        -> return value: Result<Option<ExprResult>>
+    
+handle if specially: IfNode => evaluate to Expression with the correct branch
+    -> resolve if: returned Expr parent is set to IfNode's parent
+let and fn_def: how to handle ctx return
+
+https://stackoverflow.com/questions/72168278/how-to-create-collections-of-a-specific-enum-variant
+
+**4.FnCall:
+-> for now: evaluate the first term recursively and see if we get a function out
+-> returned expression: make the parent = fn_st[-1].ast.parent (promotion step)
+-> if returned is a function and promoted ast is marked as fn_call: need to add to fn_stack instead
+
+General rule:
+-> when eval fn_st[-1]: the returned value parent is set to fn_st[-1].parent
+-----
+if call_st empty and fn_st empty: unroll expr by default
+-> maybe first time unroll
+
+call_st and fn_st: then check call[-1] and fn[-1] prt match
+    -> match: resolve call[-1] (if expr, means unroll)
+    -> else: eval using fn[-1] and call[-1]
+
+call_st empty but fn_st: apply fn[-1] to results from res[-1]..0 (where prts match)
+
+eval of a function:
+-> set ast of returned expr to fn ast's parent
+e.g (succ 5) => 6's ast becomes (succ 5)
+(sum x) -> (add 2 (succ x))
+-> eval (sum 5) => (add 2 (succ x)) ast becomes (sum 5) not just sum
+
+
+
+eval function: return expr node needs to be cloned uniquely
+e.g (recr 2)'s body should be different from (recr 1)'s body even though its the same if node
+-> in fact (recr 1) may be different from (recr 1) e.g fn(a,b,c)=>a+b+c
+
+(fn 1 (fn 1 2 0) 2) => 6
+
+
+
+places that may cause real left recursion:
+-> resolution of functionvariable
+-> resolution of if cond result e.g  if (recr n-1) ...
+
+
+---
 
  cases:
  - function is curried 
