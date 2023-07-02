@@ -62,6 +62,44 @@ pub struct ExpressionResult {
 
 // (def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))))
 // (def recr (n) (if (eq n 0) 0 (recr (pred n))))
+use std::cell::RefCell;
+thread_local! {
+    pub (crate) static DEPTH_TCO: RefCell<u64> = RefCell::new(0);
+    pub (crate) static MAX_DEPTH_TCO:RefCell<u64>=RefCell::new(0);
+}
+
+pub (crate) fn update_depth_tco() {
+    DEPTH_TCO.with(|x| {
+        let mut rf = x.borrow_mut();
+        let val = *rf;
+        *rf = val + 1;
+
+        MAX_DEPTH_TCO.with(|r| {
+            let mut max_depth = r.borrow_mut();
+            let max_value = *max_depth;
+            *max_depth = max_value.max(val + 1);
+
+            // println!("Max depth: {}", *max_depth);
+        });
+    });
+}
+
+pub (crate) fn subtract_depth_tco() {
+    DEPTH_TCO.with(|x| {
+        let mut rf = x.borrow_mut();
+        let val = *rf;
+        *rf = val - 1;
+        // println!("Subtracted depth:{}", *rf);
+    });
+}
+
+pub (crate) fn print_max_depth_tco() {
+    MAX_DEPTH_TCO.with(|x|{
+        let mut rf=x.borrow();
+        println!("Max depth:{}", *rf);
+    });
+}
+
 pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: bool,) -> Result<DataValue> {
     // try to match terminals
     // println!(
@@ -69,7 +107,8 @@ pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: boo
     //     node.get_type(),
     //     node.to_string_with_parent()
     // );
-
+    
+    update_depth_tco();
     let deferred = DeferredExpression {
         ctx: ctx.clone(),
         body: Rc::clone(&node),
@@ -80,7 +119,9 @@ pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: boo
         parent: node.parent.clone(),
     };
 
-    evaluate_tco(stack_expr, outer_call)
+    let res=evaluate_tco(stack_expr, outer_call);
+    subtract_depth_tco();
+    res
 }
 
 // why does this take EvalContext without ref:

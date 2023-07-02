@@ -114,11 +114,11 @@ impl Function for UserFunction {
         let cloned = fn_node.as_ref().clone();
 
         let equals = cloned.eq(&fn_node);
-        println!("USER FUNCTION NODE EQUALS CLONED?:{}", equals);
+        // println!("USER FUNCTION NODE EQUALS CLONED?:{}", equals);
 
         let e_read=eval_ctx.read();
         let get_func=e_read.get_function(&self.name).unwrap();
-        println!("Get func:{}", get_func.to_string());
+        // println!("Get func:{}", get_func.to_string());
  
 
         let res = DeferredExpression {

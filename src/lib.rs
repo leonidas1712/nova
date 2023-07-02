@@ -21,6 +21,8 @@ pub mod time;
 
 use std::rc::Rc;
 
+use crate::evaluator::evaluator::print_max_depth;
+use crate::evaluator::evaluator_tco::print_max_depth_tco;
 use crate::{
     constants::*,
     evaluator::{
@@ -38,7 +40,7 @@ pub fn evaluate_input_tco(inp: &str, context: &mut evaluator::context_tco::EvalC
     let res = lexer::Lexer::new(inp.to_string())
         .and_then(|lex| parser::parser::parse(lex))
         .and_then(|node| evaluator::evaluator_tco::evaluate_outer(context.clone(), node, true));
-
+    print_max_depth_tco();
     // context.add_function(name, function)
 
     use crate::evaluator::data::DataValue::*;
@@ -76,7 +78,7 @@ pub fn evaluate_input(inp: &str, context: &mut EvalContext) -> String {
     let res = lexer::Lexer::new(inp.to_string())
         .and_then(|lex| parser::parser::parse(lex))
         .and_then(|node| evaluate(context.clone(), node, true));
-
+    print_max_depth();
     // context.add_function(name, function)
 
     use crate::evaluator::data::DataValue::*;

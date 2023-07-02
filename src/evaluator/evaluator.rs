@@ -14,7 +14,7 @@ thread_local! {
     pub (crate) static MAX_DEPTH:RefCell<u64>=RefCell::new(0);
 }
 
-fn update_depth() {
+pub (crate) fn update_depth() {
     DEPTH.with(|x| {
         let mut rf = x.borrow_mut();
         let val = *rf;
@@ -25,17 +25,24 @@ fn update_depth() {
             let max_value = *max_depth;
             *max_depth = max_value.max(val + 1);
 
-            println!("Max depth: {}", *max_depth);
+            // println!("Max depth: {}", *max_depth);
         });
     });
 }
 
-fn subtract_depth() {
+pub (crate) fn subtract_depth() {
     DEPTH.with(|x| {
         let mut rf = x.borrow_mut();
         let val = *rf;
         *rf = val - 1;
         // println!("Subtracted depth:{}", *rf);
+    });
+}
+
+pub (crate) fn print_max_depth() {
+    MAX_DEPTH.with(|x|{
+        let mut rf=x.borrow();
+        println!("Max depth:{}", *rf);
     });
 }
 // why does this take EvalContext without ref:
@@ -46,7 +53,7 @@ pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) ->
     // try to match terminals
     // println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
 
-    // update_depth();
+    update_depth();
 
     let result = match &node.value {
         Boolean(b) => Ok(Bool(*b)),
@@ -81,7 +88,7 @@ pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) ->
         ParseExpression(children) => evaluate_expression(&ctx, children),
     };
 
-    // subtract_depth();
+    subtract_depth();
     result
 }
 
