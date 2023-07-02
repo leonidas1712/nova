@@ -74,6 +74,8 @@ pub fn evaluate_expression(ctx: &Context, children: &Vec<ASTNode>) -> Result<Dat
         Some(func) => {
             if func.get_arg_type() == ArgType::Evaluated {
                 let results = get_eval_args_from_nodes(eval_rest)?;
+                // has to return out the merged_ctx in DeferredExpr
+                    // but merged_ctx is local
                 func.execute(results, ctx)
             } else {
                 // just ast nodes

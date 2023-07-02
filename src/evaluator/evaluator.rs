@@ -9,7 +9,7 @@ use super::{context::*, data::*, function::*};
 pub struct FunctionCall {
     func:Rc<dyn Function>,
     ast:Rc<ASTNode>,
-    parent:Rc<ASTNode>
+    parent:Option<Rc<ASTNode>>
 }
 
 // an expression on the call stack
@@ -17,7 +17,7 @@ pub struct FunctionCall {
     // so inside a sub-function we can just return part of it and centralise setting of the parent ptr
 pub struct StackExpression {
     expr:Expression,
-    parent:Rc<ASTNode>
+    parent:Option<Rc<ASTNode>>
 }
 
 pub enum Expression {
@@ -39,6 +39,7 @@ pub struct EvaluatedExpression {
 pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call: bool) -> Result<DataValue> {
     // try to match terminals
     // println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
+  
 
     match &node.value {
         Boolean(b) => Ok(Bool(*b)),
