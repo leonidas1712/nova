@@ -7,8 +7,8 @@ use crate::constants::VAR_SEP;
 use crate::message::*;
 use crate::parser::parse_node::*;
 
-use super::context::*;
-use super::data::*;
+use super::context_tco::*;
+use super::data_tco::*;
 use super::evaluator_tco::*;
 
 // &Context: need to be able to re-use the context

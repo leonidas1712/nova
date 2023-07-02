@@ -1,13 +1,13 @@
 use std::rc::Rc;
 
 use super::evaluator_tco::*;
-use super::{context::*, data::*};
+use super::{context_tco::*, data_tco::*};
 use crate::lex;
 use crate::message::*;
 use crate::parser::parse_node::*;
 use crate::{
     constants::{DONT_ADD, LET_NAME, RESERVED_KEYWORDS, SPLIT_TOKENS},
-    evaluator::function::UserFunction,
+    evaluator::function_tco::UserFunction,
     parser::parser::tests::test_parse,
 };
 

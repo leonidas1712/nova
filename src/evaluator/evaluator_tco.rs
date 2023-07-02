@@ -2,9 +2,9 @@ use std::rc::Rc;
 use std::result;
 
 use crate::parser::parse_node::*;
-use crate::{evaluate_input, lex, message::*, setup_context};
+use crate::{lex, message::*};
 
-use super::{context::*, data::*, eval_helpers_tco::*, function::*};
+use super::{context_tco::*, data_tco::*, eval_helpers_tco::*, function_tco::*};
 
 // push results straight to res_q
 // because function call is resolved recursively
@@ -32,6 +32,7 @@ pub struct FunctionCall {
     pub func: Rc<dyn Function>,
     pub ast: Rc<ASTNode>,
     pub parent: Option<Rc<ASTNode>>,
+    pub context:EvalContext
 }
 
 // an expression on the call stack
@@ -122,7 +123,8 @@ fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut 
     let func_call=FunctionCall {
         func:func.clone(),
         ast:Rc::clone(ast),
-        parent:parent.clone()
+        parent:parent.clone(),
+        context:ctx.clone()
     };
     fn_stack.push_back(func_call);
 
@@ -213,6 +215,8 @@ fn evaluate_fn(func:&FunctionCall, call_stack: &mut VecDeque<StackExpression>, r
     }
 
     println!("Got args of len:{} for func:{}", args.len(), func.func.to_string());
+
+    // let execute_result=func.func.execute(args, &func.context)?;
 
     Ok(())
 }
@@ -317,15 +321,15 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
             }
         }
 
-        // call only
+        // call only: resolve whats on it
         else if call_has && !fn_has {
             resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
         }
+
         // fn only - fn.execute
             // 1. get correct args from result queue
             // 2. pass to fn execute, get Expression
             // 3. push onto res_q with correct parent=fn_ast.parent
-
         else {
             let func=fn_stack.back().unwrap();
             evaluate_fn(func, &mut call_stack, &mut results_queue)?;
