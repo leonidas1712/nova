@@ -141,8 +141,11 @@ fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut 
         };
         let stack_expr=StackExpression {
             expr:deferred,
-            parent:parent.clone()
+            parent:Some(ast.clone())
         };
+
+        // assigned parent to one level above supposed to be
+
         call_stack.push_back(stack_expr);
     }
 
@@ -251,7 +254,12 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
 
         // both - check ast vs parent
         if call_has && fn_has {
+            let call_st_last=call_stack.back().unwrap();
+            let fn_st_last=fn_stack.back().unwrap();
 
+            if can_resolve(fn_st_last, call_st_last) {
+                resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
+            }
         }
         // call only
         else if call_has && !fn_has {
@@ -259,6 +267,7 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
         }
         // fn only - fn.execute
         else {
+
         }
     }
 
