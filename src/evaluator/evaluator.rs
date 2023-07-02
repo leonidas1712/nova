@@ -46,14 +46,15 @@ pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) ->
         Number(num) => Ok(Num(*num)),
         Symbol(sym) => {
             // Function
-            let fnc = ctx.read().get_function(sym);
+            let read=ctx.read();
+            let fnc = read.get_function(sym);
             if fnc.is_some() {
                 let cloned = fnc.unwrap().clone();
                 return Ok(FunctionVariable(cloned));
             }
 
             // Variable
-            let resolve = ctx.read().get_variable(sym);
+            let resolve = read.get_variable(sym);
             if resolve.is_some() {
                 Ok(resolve.unwrap().clone())
             } else {
@@ -72,7 +73,7 @@ pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) ->
         },
         LetNode(children, global) => evaluate_let(ctx, children, *global),
         FnNode(fn_def) => evaluate_fn_node(ctx, fn_def, outer_call),
-        Expression(children) => evaluate_expression(ctx, children),
+        Expression(children) => evaluate_expression(&ctx, children),
     }
 }
 

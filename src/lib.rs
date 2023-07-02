@@ -75,8 +75,6 @@ pub fn run(mut args: impl Iterator<Item = String>) {
 
     let ctx = EvalContext::new();
 
-    use crate::time::bench;
-
     nova_repl(ctx);
 }
 

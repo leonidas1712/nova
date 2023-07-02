@@ -12,7 +12,7 @@ use crate::parser::parse_node::*;
 
 // &Context: need to be able to re-use the context
 pub trait Function {
-    fn execute(&self, args: Vec<Arg>, context: EvalContext) -> Result<DataValue>;
+    fn execute(&self, args: Vec<Arg>, context: &EvalContext) -> Result<DataValue>;
 
     // default: Evaluated
     fn get_arg_type(&self) -> ArgType {
@@ -41,15 +41,15 @@ struct Test<'a> {
 impl UserFunction {
     pub fn new(context: EvalContext, fn_def: &FnDef) -> UserFunction {
         UserFunction {
-            context: context.clone(),
+            context: context.copy(), // copy to get new copy that doesn't affect
             name: fn_def.name.clone(),
             params: fn_def.params.clone(),
             body: fn_def.body.clone(), // ASTNode.clone
         }
     }
 
-    pub fn curry(&self, args: Vec<Arg>) -> Result<Context> {
-        let mut new_ctx = Context::new();
+    pub fn curry(&self, args: Vec<Arg>) -> Result<EvalContext> {
+        let mut new_ctx = EvalContext::new();
         let eval_args = Arg::expect_all_eval(args)?;
 
         if eval_args.len() != self.params.len() {
@@ -66,10 +66,10 @@ impl UserFunction {
         let zipped = self.params.clone().into_iter().zip(eval_args.into_iter());
 
         zipped.for_each(|tup| {
-            new_ctx.add_variable(tup.0.as_str(), tup.1);
+            new_ctx.write().add_variable(tup.0.as_str(), tup.1);
         });
 
-        let new_ctx = new_ctx.merge_context(self.context.clone());
+        let new_ctx = new_ctx.merge_context(&self.context);
 
         Ok(new_ctx)
     }
@@ -95,7 +95,7 @@ impl UserFunction {
 }
 
 impl Function for UserFunction {
-    fn execute(&self, args: Vec<Arg>, outer_ctx: EvalContext) -> Result<DataValue> {
+    fn execute(&self, args: Vec<Arg>, outer_ctx: &EvalContext) -> Result<DataValue> {
         // first clone + add arguments using params and args
 
         let strings: Vec<String> = args.iter().map(|x| x.to_string()).collect();
@@ -106,7 +106,7 @@ impl Function for UserFunction {
         // then merge outer_ctx
         // args > inner_ctx > outer_ctx
 
-        let eval_ctx = eval_ctx.merge_context(outer_ctx);
+        let eval_ctx = eval_ctx.merge_context(&outer_ctx);
 
         let fn_node = self.body.get(0).unwrap(); // currently on first part
 
