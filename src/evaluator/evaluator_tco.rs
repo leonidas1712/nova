@@ -171,13 +171,23 @@ fn can_resolve(fn_call:&FunctionCall, expr_parent:&Option<Rc<ASTNode>>)->bool {
 // given results queue + func_call -> Vec<Args> 
     // pop from the back of the queue until node with parent!=func.ast
 fn get_args(func:&FunctionCall, results: &mut VecDeque<ExpressionResult>) {
-    let args:Vec<Arg>=vec![];
+    let mut args:VecDeque<Arg>=VecDeque::new();
     
-    // for res in results.iter().rev() {
-    //     if !can_resolve(func, stack_expr)
-    //     let data=res.data.clone();
-    //     let arg=Arg::Evaluated(data);
-    // }
+    for res in results.iter().rev() {
+        if !can_resolve(func, &res.parent) {
+            break;
+        }
+
+        let data=res.data.clone();
+        let arg=Arg::Evaluated(data);
+        args.push_front(arg);
+    }
+
+    println!("Got args for {}:", func.func.to_string());
+
+    for a in args.iter() {
+        println!("{}", a.to_string());
+    }
 }
 
 fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,results: &mut VecDeque<ExpressionResult>)
@@ -282,6 +292,9 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
             // 2. pass to fn execute, get Expression
             // 3. push onto res_q with correct parent=fn_ast.parent
         else {
+            let fn_st_last=fn_stack.back().unwrap();
+            let args=get_args(fn_st_last, &mut results_queue);
+            break;
         }
     }
 
