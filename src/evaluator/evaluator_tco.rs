@@ -128,7 +128,15 @@ fn resolve(
                     return err!(err_string.as_str());
                 }
             }
-        }
+        },
+        IfNode(children) => {
+            let res=evaluate_if(ctx, children)?;
+            let stack_expr=StackExpression {
+                expr:res,
+                parent:parent.clone()
+            };
+            call_stack.push_back(stack_expr);
+        },
         _ => {
             todo!()
         }
