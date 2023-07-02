@@ -98,14 +98,14 @@ pub fn is_valid_identifier(s: &str) -> Result<String> {
 //     dbg!(children);
 //     Ok(Default)
 // }
-// DeferredExpr: body=returned condition, 
-// 
-// 
-pub fn evaluate_if(ctx: &EvalContext, children:&Vec<Rc<ASTNode>>) -> Result<DeferredExpression> {
+// DeferredExpr: body=returned condition,
+//
+//
+pub fn evaluate_if(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<DeferredExpression> {
     // recursive eval: real recursion
-    let cond=children.get(0).unwrap();
-    let e1=children.get(1).unwrap();
-    let e2=children.get(2).unwrap();
+    let cond = children.get(0).unwrap();
+    let e1 = children.get(1).unwrap();
+    let e2 = children.get(2).unwrap();
 
     let cond_result = evaluate_outer(ctx.clone(), Rc::clone(cond), false)?;
 
@@ -117,19 +117,15 @@ pub fn evaluate_if(ctx: &EvalContext, children:&Vec<Rc<ASTNode>>) -> Result<Defe
     };
 
     if condition {
-        Ok(
-            DeferredExpression {
-                ctx:ctx.clone(),
-                body:e1.clone()
-            }
-        )
+        Ok(DeferredExpression {
+            ctx: ctx.clone(),
+            body: e1.clone(),
+        })
     } else {
-        Ok(
-            DeferredExpression {
-                ctx:ctx.clone(),
-                body:e2.clone()
-            }
-        )
+        Ok(DeferredExpression {
+            ctx: ctx.clone(),
+            body: e2.clone(),
+        })
     }
 }
 

@@ -46,14 +46,14 @@ thread_local! {
 
 fn update_depth() {
     DEPTH.with(|x| {
-        let mut rf=x.borrow_mut();
-        let val=*rf;
-        *rf=val+1;
+        let mut rf = x.borrow_mut();
+        let val = *rf;
+        *rf = val + 1;
 
         MAX_DEPTH.with(|r| {
-            let mut max_depth=r.borrow_mut();
-            let max_value=*max_depth;
-            *max_depth=max_value.max(val+1);
+            let mut max_depth = r.borrow_mut();
+            let max_value = *max_depth;
+            *max_depth = max_value.max(val + 1);
 
             println!("Max depth: {}", *max_depth);
         });
@@ -62,15 +62,15 @@ fn update_depth() {
 
 fn subtract_depth() {
     DEPTH.with(|x| {
-        let mut rf=x.borrow_mut();
-        let val=*rf;
-        *rf=val-1;
+        let mut rf = x.borrow_mut();
+        let val = *rf;
+        *rf = val - 1;
         // println!("Subtracted depth:{}", *rf);
     });
 }
 // why does this take EvalContext without ref:
-    // because of issue where when returning from UserFunction execute we need a new owned context
-    // can't return &Eval since it's created inside the fn body
+// because of issue where when returning from UserFunction execute we need a new owned context
+// can't return &Eval since it's created inside the fn body
 // Good thing is EvalContext.clone() is cheap because of Rc::clone
 pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) -> Result<DataValue> {
     // try to match terminals
@@ -78,37 +78,34 @@ pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) ->
 
     // update_depth();
 
-    let result=match &node.value {
+    let result = match &node.value {
         Boolean(b) => Ok(Bool(*b)),
         Number(num) => Ok(Num(*num)),
         Symbol(sym) => {
             // Function
-            let read=ctx.read();
+            let read = ctx.read();
             let fnc = read.get_function(sym);
             if fnc.is_some() {
                 let cloned = fnc.unwrap().clone();
                 Ok(FunctionVariable(cloned))
             } else {
-
                 // Variable
                 let resolve = read.get_variable(sym);
                 if resolve.is_some() {
                     Ok(resolve.unwrap().clone())
                 } else {
                     let err_string = format!("Unrecognised symbol: '{}'", sym);
-                    return err!(err_string.as_str())
+                    return err!(err_string.as_str());
                 }
-           }
+            }
         }
         List(children) => evaluate_list(&ctx, children),
-        IfNode(children) => {
-            evaluate_if(
-                &ctx,
-                children.get(0).unwrap(),
-                children.get(1).unwrap(),
-                children.get(2).unwrap(),
-            )
-        },
+        IfNode(children) => evaluate_if(
+            &ctx,
+            children.get(0).unwrap(),
+            children.get(1).unwrap(),
+            children.get(2).unwrap(),
+        ),
         LetNode(children, global) => evaluate_let(&ctx, children, *global),
         FnNode(fn_def) => evaluate_fn_node(&ctx, fn_def, outer_call),
         ParseExpression(children) => evaluate_expression(&ctx, children),
@@ -159,7 +156,6 @@ fn let_test() {
 
     test_eval("(let x 2)", "2");
 }
-
 
 // #[test]
 // fn depth_test() {

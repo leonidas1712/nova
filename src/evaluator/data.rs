@@ -8,7 +8,6 @@ use crate::parser::parse_node::{ASTNode, FnDef};
 use super::context::{Context, EvalContext};
 use super::function::{Function, UserFunction};
 
-
 // Number, Boolean, List, String, Lambda, FunctionVariable(Box<dyn Function>)
 // when we have an enum that has a reference, then a vector of enums and I clone the vector what happens
 

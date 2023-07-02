@@ -69,13 +69,13 @@ pub fn evaluate_expression(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Re
     let eval_rest = rest.clone().map(|node| eval!(ctx.clone(), Rc::clone(node)));
 
     // is function: check ArgType, gets arg, eval.
-        // if err: insert eval_rest.clone() again
+    // if err: insert eval_rest.clone() again
     match res.expect_function().ok() {
         Some(func) => {
             if func.get_arg_type() == ArgType::Evaluated {
                 let results = get_eval_args_from_nodes(eval_rest)?;
                 // has to return out the merged_ctx in DeferredExpr
-                    // but merged_ctx is local
+                // but merged_ctx is local
                 func.execute(results, &ctx)
             } else {
                 // just ast nodes
@@ -98,10 +98,15 @@ pub fn evaluate_list(_ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<
     dbg!(children);
     Ok(Default)
 }
-// DeferredExpr: body=returned condition, 
-// 
-// 
-pub fn evaluate_if(ctx: &EvalContext, cond: &Rc<ASTNode>, e1: &Rc<ASTNode>, e2: &Rc<ASTNode>) -> Result<DataValue> {
+// DeferredExpr: body=returned condition,
+//
+//
+pub fn evaluate_if(
+    ctx: &EvalContext,
+    cond: &Rc<ASTNode>,
+    e1: &Rc<ASTNode>,
+    e2: &Rc<ASTNode>,
+) -> Result<DataValue> {
     let cond_result = eval!(ctx.clone(), Rc::clone(cond))?;
 
     // add empty list as false later

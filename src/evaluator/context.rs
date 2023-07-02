@@ -1,8 +1,8 @@
 use std::borrow::Borrow;
+use std::cell::{Ref, RefCell, RefMut};
 use std::collections::HashMap;
-use std::rc::Rc;
-use std::cell::{RefCell,Ref,RefMut};
 use std::ops::{Deref, DerefMut};
+use std::rc::Rc;
 
 use crate::constants::*;
 
@@ -11,28 +11,28 @@ use super::data::*;
 use super::function::*;
 
 // wrapper around Rc<RefCell<Context>>
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct EvalContext {
-    ctx:Rc<RefCell<Context>>
+    ctx: Rc<RefCell<Context>>,
 }
 
 impl EvalContext {
-    pub fn new()->EvalContext {
+    pub fn new() -> EvalContext {
         EvalContext {
-            ctx:Rc::new(RefCell::new(setup_context()))
+            ctx: Rc::new(RefCell::new(setup_context())),
         }
     }
 
-    pub fn new_from_context(ctx:&Context)->EvalContext {
-        let new_ctx=ctx.clone();
+    pub fn new_from_context(ctx: &Context) -> EvalContext {
+        let new_ctx = ctx.clone();
         EvalContext {
-            ctx:Rc::new(RefCell::new(new_ctx))
+            ctx: Rc::new(RefCell::new(new_ctx)),
         }
     }
 
     // eval version
     // makes a new context with key value pairs inserted from other_ctx only if they don't exist
-    pub fn merge_context(&self, other_ctx:&EvalContext)->EvalContext {
+    pub fn merge_context(&self, other_ctx: &EvalContext) -> EvalContext {
         let mut new_ctx = self.read().clone();
 
         for (key, value) in &other_ctx.read().symbol_map {
@@ -44,26 +44,26 @@ impl EvalContext {
     }
 
     // writes key value pairs from other_ctx into self, consuming other_ctx
-        // useful for returning out from evaluate: we don't need the returned ctx after copying in
+    // useful for returning out from evaluate: we don't need the returned ctx after copying in
     pub fn write_context(&mut self, other_ctx: EvalContext) {
         for (key, value) in other_ctx.read().to_owned().symbol_map.into_iter() {
             self.write().add_variable(key.as_str(), value);
         }
     }
 
-    pub fn read(&self)->Ref<Context> {
+    pub fn read(&self) -> Ref<Context> {
         self.ctx.as_ref().borrow()
     }
 
-    pub fn write(&mut self)->RefMut<Context> {
+    pub fn write(&mut self) -> RefMut<Context> {
         self.ctx.as_ref().borrow_mut()
     }
 
     // clone gives the same Rc ptr, we need a method for making a new copy
-    pub fn copy(&self)->EvalContext {
-        let existing=self.read().clone();
+    pub fn copy(&self) -> EvalContext {
+        let existing = self.read().clone();
         EvalContext {
-            ctx:Rc::new(RefCell::new(existing))
+            ctx: Rc::new(RefCell::new(existing)),
         }
     }
 }
@@ -148,33 +148,31 @@ pub mod tests {
     #[test]
     fn eval_context_test() {
         // check rc strong count increases when .clone() and doesnt increase on .copy
-        let mut c1=EvalContext::new();
+        let mut c1 = EvalContext::new();
         c1.write().add_variable("x", Num(3));
 
-        let mut c2=c1.clone();
+        let mut c2 = c1.clone();
         c2.write().add_variable("y", Num(5));
 
-        let has_y=c1.read();
-        let has_y=has_y.get_variable("y");
+        let has_y = c1.read();
+        let has_y = has_y.get_variable("y");
         assert!(has_y.is_some()); // clone is Rc::clone
 
-        let c3=c2.clone();
+        let c3 = c2.clone();
 
-        let count=Rc::strong_count(&c1.ctx);
-        assert_eq!(count,3);   
-
+        let count = Rc::strong_count(&c1.ctx);
+        assert_eq!(count, 3);
 
         // new
-        let mut c1_to_copy=EvalContext::new();
+        let mut c1_to_copy = EvalContext::new();
         c1_to_copy.write().add_variable("x", Num(3));
 
-        let mut c2_copied=c1_to_copy.copy();
+        let mut c2_copied = c1_to_copy.copy();
         c2_copied.write().add_variable("y", Num(5));
 
         assert!(c1_to_copy.read().get_variable("y").is_none()); // none because .copy
-        let count=Rc::strong_count(&c1_to_copy.ctx);
-        assert_eq!(count,1);
-
+        let count = Rc::strong_count(&c1_to_copy.ctx);
+        assert_eq!(count, 1);
     }
 
     #[test]
@@ -285,14 +283,16 @@ pub mod tests {
 
         let c3 = c.merge_context(&c2);
         assert_eq!(
-            c3.read().get_data_value(&"x".to_string())
+            c3.read()
+                .get_data_value(&"x".to_string())
                 .unwrap()
                 .expect_num()
                 .unwrap(),
             2
         );
         assert_eq!(
-            c3.read().get_data_value(&"z".to_string())
+            c3.read()
+                .get_data_value(&"z".to_string())
                 .unwrap()
                 .expect_num()
                 .unwrap(),
