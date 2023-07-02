@@ -16,14 +16,18 @@ use super::{context::*, data::*, function::*, eval_helpers_tco::*};
     // evaluate before returning
     // alt: take the last expr + ctx out and put on stack as deferred
 
-// #[derive(Display)]
-// pub enum EvalExpression {
-//     Deferred(DeferredExpression),
-//     Result(EvaluatedExpression)
-// }
+// represents Expression: either deferred or evaluated
+    // need to separate because builtin functions have no ASTNode to return
+#[derive(Display,Clone)]
+pub enum Expression {
+    DeferredExpr(DeferredExpression),
+    EvaluatedExpr(DataValue)
+}
 
-// pub use EvalExpression::*;
+pub use Expression::*;
 
+// function call on the call stack
+#[derive(Clone)]
 pub struct FunctionCall {
     pub func:Rc<dyn Function>,
     pub ast:Rc<ASTNode>,
@@ -33,22 +37,37 @@ pub struct FunctionCall {
 // an expression on the call stack
     // separate struct because parent pointer is always set after returning from another function
     // so inside a sub-function we can just return part of it and centralise setting of the parent ptr
+    // ensuring that a deferredexpr without a parent is invalid and wont go on the stack
 pub struct StackExpression {
     pub expr:DeferredExpression,
     pub parent:Option<Rc<ASTNode>>
 }
 
+// impl StackExpression {
+//     fn get_evaluated(&self)->Option<DataValue>{
+//         match &self.expr {
+//             DeferredExpr(_) => None,
+//             EvaluatedExpr(val) => Some(val.clone())
+//         }
+//     }
+
+//     fn get_deferred(&self)->Option<DeferredExpression> {
+//         match &self.expr {
+//             DeferredExpr(de) => Some(de.clone()),
+//             EvaluatedExpr(_) => None
+//         }
+//     }
+// }
+
 // body: used for eval, parent: used for checking
+#[derive(Clone)]
 pub struct DeferredExpression {
     pub ctx:EvalContext,
     pub body:Rc<ASTNode>,
 }
 
-// this will get transferred to the result queue
-pub struct EvaluatedExpression {
-    data:DataValue,
-}
-
+// result on the result queue
+#[derive(Clone)]
 pub struct ExpressionResult {
     pub data:DataValue,
     pub parent:Option<Rc<ASTNode>>
@@ -62,11 +81,6 @@ pub(crate) fn evaluate_outer(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bo
         ctx:ctx.clone(),
         body:Rc::clone(&node)
     };
-
-    // let stack_expr=StackExpression {
-    //     expr:Deferred(deferred),
-    //     parent:node.parent.clone()
-    // };
 
      let stack_expr=StackExpression {
         expr:deferred,
@@ -85,56 +99,9 @@ use std::collections::VecDeque;
 
 fn resolve(call_stack:&mut VecDeque<StackExpression>, fn_stack:&mut VecDeque<FunctionCall>,results:&mut VecDeque<ExpressionResult>)->Result<()> {
     let expression=call_stack.pop_back().unwrap();
-    let parent=&expression.parent;
 
-    let expr=&expression.expr;
-
-    let ctx=&expr.ctx;
-    let body=&expr.body;
     
-    let mut result=ExpressionResult {
-        data:Num(-1),
-        parent:parent.clone()
-    };
-
-    match &body.value {
-        Number(n) => {
-            result.data=Num(*n);
-            results.push_back(result);
-        },
-        Boolean(b) => {
-            result.data=Bool(*b);
-            results.push_back(result);
-        },
-        Symbol(sym) => {
-            // functon
-            let read=ctx.read();
-            let data=read.get_data_value(sym);
-
-            match data {
-                Some(value) => {
-                    result.data=value.clone();
-                    results.push_back(result);
-                },
-                None => {
-                   let err=format!("Unrecognised symbol: {}", sym);
-                   return err!(err);
-                }
-            }
-        },
-        IfNode(children) => {
-            let res=evaluate_if(ctx, children)?;
-            let stack_expr=StackExpression {
-                expr:res,
-                parent:parent.clone()
-            };
-            call_stack.push_back(stack_expr);
-        }
-        _ => {
-            todo!();
-        }
-    }
-
+    
     Ok(())
 }
 
@@ -144,8 +111,8 @@ fn evaluate_tco(expression:StackExpression, outer_call: bool) -> Result<DataValu
     let mut call_stack: VecDeque<StackExpression> = VecDeque::new();
     let mut fn_stack: VecDeque<FunctionCall> = VecDeque::new();
     let mut results_queue: VecDeque<ExpressionResult> = VecDeque::new();
-    let expr_string=&expression.expr.body.to_string();
 
+    let expr_string=&expression.expr.body.to_string();
     call_stack.push_back(expression);
 
     // what to do with expression on call_st when valid
@@ -166,7 +133,7 @@ fn evaluate_tco(expression:StackExpression, outer_call: bool) -> Result<DataValu
 
         // call only
         else if call_has && !fn_has {
-            resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
+            // resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
         }
         
         // fn only - fn.execute
@@ -181,7 +148,7 @@ fn evaluate_tco(expression:StackExpression, outer_call: bool) -> Result<DataValu
         },
         None => {
             let msg=format!("Could not evaluate expression: {}", expr_string);
-            return err!(msg);
+            return err!("Couldn't evaluate.");
         }
     }
 }
