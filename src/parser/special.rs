@@ -1,16 +1,19 @@
-use crate::constants::*;
+use std::rc::Rc;
 
-use super::parser::*;
+use crate::constants::*;
 use crate::evaluator::eval_helpers::is_valid_identifier;
 use crate::lexer;
 use crate::message::*;
 use crate::parser::parse_node::*;
 
+use super::parser::*;
+
+
 pub(super) fn parse_special(
     spec_type: Special,
-    children: Vec<ASTNode>,
+    children: Vec<Rc<ASTNode>>,
     global: bool,
-) -> Result<ASTNode> {
+) -> Result<Rc<ASTNode>> {
     match spec_type {
         Special::If => return parse_if_expression(children),
         Special::Let => return parse_let_expression(children, global),
@@ -20,7 +23,7 @@ pub(super) fn parse_special(
 
 // create FnNode
 // def, name, args, body
-pub(super) fn parse_fn_def(children: Vec<ASTNode>, global: bool) -> Result<ASTNode> {
+pub(super) fn parse_fn_def(children: Vec<Rc<ASTNode>>, global: bool) -> Result<Rc<ASTNode>> {
     if children.len() < 4 {
         return err!(
             "Function definitions should have at least 3 parts: a name, parameters and a body."
@@ -41,7 +44,7 @@ pub(super) fn parse_fn_def(children: Vec<ASTNode>, global: bool) -> Result<ASTNo
 
     // should be inside expression or just a symbol (flattened)
     let nxt_node = children.next().unwrap();
-    let mut param_nodes: Vec<ASTNode> = vec![];
+    let mut param_nodes: Vec<Rc<ASTNode>> = vec![];
 
     let get_symbol = nxt_node.get_symbol();
     let get_expr = nxt_node.get_expression();
@@ -71,7 +74,7 @@ pub(super) fn parse_fn_def(children: Vec<ASTNode>, global: bool) -> Result<ASTNo
     let params = all_ok?;
 
     // end of err handling
-    let rest: Vec<ASTNode> = children.collect();
+    let rest: Vec<Rc<ASTNode>> = children.collect();
 
     let fn_node = FnNode(FnDef {
         name,
@@ -79,11 +82,11 @@ pub(super) fn parse_fn_def(children: Vec<ASTNode>, global: bool) -> Result<ASTNo
         body: rest,
     });
 
-    Ok(ASTNode::new(fn_node))
+    Ok(Rc::new(ASTNode::new(fn_node)))
     // aim: return FnDef (name:String, args:Vec<String>, body: Vec<ASTNode>)
 }
 
-pub(super) fn parse_if_expression(children: Vec<ASTNode>) -> Result<ASTNode> {
+pub(super) fn parse_if_expression(children: Vec<Rc<ASTNode>>) -> Result<Rc<ASTNode>> {
     if children.len() != 4 {
         let msg = format!(
             "'{}' expected 3 expressions but got {}.",
@@ -103,11 +106,11 @@ pub(super) fn parse_if_expression(children: Vec<ASTNode>) -> Result<ASTNode> {
     let res = vec![cond, e1, e2];
 
     let node_val = IfNode(res);
-    Ok(ASTNode::new(node_val))
+    Ok(Rc::new(ASTNode::new(node_val)))
 }
 
 // change to return tuple (ident, expr) since we are checking anyway
-pub(super) fn parse_let_expression(children: Vec<ASTNode>, global: bool) -> Result<ASTNode> {
+pub(super) fn parse_let_expression(children: Vec<Rc<ASTNode>>, global: bool) -> Result<Rc<ASTNode>> {
     // when parsing symbol: do parse atomic, check valid ident
     // else: parse normally
     if children.len() == 1 {
@@ -121,7 +124,9 @@ pub(super) fn parse_let_expression(children: Vec<ASTNode>, global: bool) -> Resu
 
     let children = children.collect();
 
-    Ok(ASTNode::new(LetNode(children, global)))
+    Ok(Rc::new(
+        ASTNode::new(LetNode(children, global)))
+    )
 }
 
 use super::parser::tests::*;

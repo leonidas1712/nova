@@ -51,7 +51,7 @@ pub fn is_valid_identifier(s: &str) -> Result<String> {
 // evaluate first child. if len==1, return
 // elif first child is FnVar | FnDef => apply to arguments
 // else: evaluate nodes in order, return result from last
-pub fn evaluate_expression(ctx: &Context, children: &Vec<ASTNode>) -> Result<DataValue> {
+pub fn evaluate_expression(ctx: &Context, children: &Vec<Rc<ASTNode>>) -> Result<DataValue> {
     if children.is_empty() {
         return err!("Received empty expression.");
     }
@@ -94,7 +94,7 @@ pub fn evaluate_expression(ctx: &Context, children: &Vec<ASTNode>) -> Result<Dat
     }
 }
 
-pub fn evaluate_list(_ctx: &Context, children: &Vec<ASTNode>) -> Result<DataValue> {
+pub fn evaluate_list(_ctx: &Context, children: &Vec<Rc<ASTNode>>) -> Result<DataValue> {
     dbg!(children);
     Ok(Default)
 }
@@ -120,7 +120,7 @@ pub fn evaluate_if(ctx: &Context, cond: &ASTNode, e1: &ASTNode, e2: &ASTNode) ->
 
 pub fn evaluate_let(
     ctx: &Context,
-    expressions: &Vec<ASTNode>,
+    expressions: &Vec<Rc<ASTNode>>,
     outer_call: bool,
 ) -> Result<DataValue> {
     let mut new_ctx = ctx.clone();

@@ -13,7 +13,7 @@ use std::cell::RefCell;
 pub struct FnDef {
     pub name: String,
     pub params: Vec<String>,
-    pub body: Vec<ASTNode>, // can have multiple expressions in body
+    pub body: Vec<Rc<ASTNode>>, // can have multiple expressions in body
 }
 
 impl Display for FnDef {
@@ -45,11 +45,11 @@ impl Display for FnDef {
 pub enum ParseValue {
     Symbol(String),
     Number(NumType),
-    Expression(Vec<ASTNode>),
-    List(Vec<ASTNode>),
+    Expression(Vec<Rc<ASTNode>>),
+    List(Vec<Rc<ASTNode>>),
     Boolean(bool),
-    IfNode(Vec<ASTNode>),
-    LetNode(Vec<ASTNode>, bool),
+    IfNode(Vec<Rc<ASTNode>>),
+    LetNode(Vec<Rc<ASTNode>>, bool),
     FnNode(FnDef),
 }
 
@@ -61,7 +61,7 @@ impl ParseValue {
         }
     }
 
-    pub fn get_expression(&self) -> Option<Vec<ASTNode>> {
+    pub fn get_expression(&self) -> Option<Vec<Rc<ASTNode>>> {
         match self {
             Expression(nodes) => Some(nodes.clone().to_vec()),
             _ => None,
@@ -127,13 +127,26 @@ impl ASTNode {
             LetNode(ref mut children, _) |
             IfNode(ref mut children)
             => {
+                let children=children.clone();
+                let mut children:Vec<ASTNode>=children.into_iter().map(|r| r.as_ref().clone()).collect();
+
                 children.iter_mut().for_each(|child| {
                     child.parent=Some(Rc::clone(&original))
                 }
                 );
 
+                let children:Vec<Rc<ASTNode>>=children.into_iter().map(|r| Rc::new(r)).collect();
+
+                let new_value= match value {
+                    Expression(_) => Expression(children),
+                    IfNode(_) => IfNode(children),
+                    LetNode(_,global) => LetNode(children,global),
+                    List(_)=>List(children),
+                    _ => value //unreachable
+                };
+
                 ASTNode {
-                    value:value,
+                    value:new_value,
                     parent:None,
                     original:original_ref
                 }
@@ -172,7 +185,7 @@ impl ASTNode {
         self.value.to_string()
     }
 
-    pub fn get_children(&self) -> Option<&Vec<ASTNode>> {
+    pub fn get_children(&self) -> Option<&Vec<Rc<ASTNode>>> {
         if let Expression(children) | List(children) = &self.value {
             Some(&children)
         } else {
@@ -180,7 +193,7 @@ impl ASTNode {
         }
     }
 
-    pub fn get_ith_child(&self, index: usize) -> Option<&ASTNode> {
+    pub fn get_ith_child(&self, index: usize) -> Option<&Rc<ASTNode>> {
         self.get_children().and_then(|v| v.get(index))
     }
 

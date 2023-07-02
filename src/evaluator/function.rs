@@ -30,7 +30,7 @@ pub struct UserFunction {
     context: Context,
     name: String,
     params: Vec<String>,
-    body: Vec<ASTNode>,
+    body: Vec<Rc<ASTNode>>,
 }
 
 struct Test<'a> {
