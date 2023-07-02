@@ -130,9 +130,11 @@ fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut 
     let mut rest_children=children.into_iter();
     rest_children.next(); // go past first
 
+
     // todo: handle unevaluated separately
-    
-    for child in rest_children {
+
+    // push in reverse
+    for child in rest_children.rev() {
         let deferred=DeferredExpression {
             ctx:ctx.clone(),
             body:child.clone()
@@ -144,7 +146,23 @@ fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut 
         call_stack.push_back(stack_expr);
     }
 
+
     Ok(())
+}
+
+// check call_st[-1].parent and fn_st[-1].ast
+    // ast: pub ast: Rc<ASTNode>,
+    // parent: parent: Option<Rc<ASTNode>>,
+fn can_resolve(fn_call:&FunctionCall, stack_expr:&StackExpression)->bool {
+    let fn_ast=&fn_call.ast;
+    let expr_parent=&stack_expr.parent;
+
+    match expr_parent {
+        Some(parent) => {
+            parent.eq(fn_ast)
+        },
+        None => false
+    }
 }
 
 fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,results: &mut VecDeque<ExpressionResult>)
@@ -231,8 +249,9 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
         let call_has = !call_stack.is_empty();
         let fn_has = !fn_stack.is_empty();
 
-        // both
+        // both - check ast vs parent
         if call_has && fn_has {
+
         }
         // call only
         else if call_has && !fn_has {
