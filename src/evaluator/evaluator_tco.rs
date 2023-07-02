@@ -3,6 +3,7 @@ use std::result;
 
 use crate::parser::parse_node::*;
 use crate::{lex, message::*};
+use crate::constants::*;
 
 use super::{context_tco::*, data_tco::*, eval_helpers_tco::*, function_tco::*};
 
@@ -61,11 +62,11 @@ pub struct ExpressionResult {
 
 pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: bool,) -> Result<DataValue> {
     // try to match terminals
-    // println!(
-    //     "Node type: {}, Expr: {}",
-    //     node.get_type(),
-    //     node.to_string_with_parent()
-    // );
+    println!(
+        "Node type: {}, Expr: {}",
+        node.get_type(),
+        node.to_string_with_parent()
+    );
 
     let deferred = DeferredExpression {
         ctx: ctx.clone(),
@@ -243,8 +244,67 @@ fn evaluate_fn(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut VecDeque<
     Ok(())
 }
 
+fn resolve_let(ctx:&EvalContext, expressions:&Vec<Rc<ASTNode>>, global:bool)->Result<DataValue> {
+    let mut new_ctx=ctx.copy(); // copy, not clone
+    let n=expressions.len();
+
+    let mut var:Option<&str>=None;
+    let mut outer_res:Option<DataValue>=None;
+
+    for (idx,nxt_node) in expressions.into_iter().enumerate() {
+        if idx==n-1 {
+            let res=evaluate_outer(new_ctx.clone(), Rc::clone(nxt_node), false)?;
+            if let Some(var_name)=var {
+                new_ctx.write().add_variable(var_name, res.clone());
+            }
+
+            outer_res.replace(res);
+            continue;
+        }
+
+        // assign result to var name
+        if var.is_some() {
+            let res=evaluate_outer(new_ctx.clone(), Rc::clone(nxt_node), false)?;
+            outer_res.replace(res.clone());
+            new_ctx.write().add_variable(var.unwrap(), res);
+            var.take();
+            continue;
+        }
+
+        match &nxt_node.value {
+            Symbol(string) => {
+                let check=is_valid_identifier(string.as_str())?;
+                var.replace(string.as_str());
+            },
+            _ => {
+                let msg = format!(
+                    "'{}' expected a symbol but got '{}'",
+                    LET_NAME,
+                    nxt_node.to_string()
+                );
+                return err!(&msg);
+            }
+        }
+    }
+
+    if outer_res.is_none() {
+        let msg = format!("'{}' received nothing to evaluate.", LET_NAME);
+        return err!(&msg);
+    }
+
+    let res=outer_res.unwrap();
+
+    if !global {
+        Ok(res)
+    } else {
+        let data=LetReturn::new(new_ctx, res);
+        Ok(SetVar(data))
+    }
+}
+
 fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,results: &mut VecDeque<ExpressionResult>)
  -> Result<()> {
+    // pop from stack
     let expression = call_stack.pop_back().unwrap();
     let expr = &expression.expr;
 
@@ -298,6 +358,12 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
                 ast:body
             };
             resolve_expression(call_stack, fn_stack, results, args)?;
+        },
+        LetNode(children, global) => {
+            println!("LetNode: global {}", global);
+            let returned_result=resolve_let(&ctx,children,*global)?;
+            result.data=returned_result;
+            results.push_back(result);
         }
         _ => {
             todo!()
