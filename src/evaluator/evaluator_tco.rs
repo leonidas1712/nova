@@ -104,9 +104,9 @@ fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut 
         return err!("Received empty expression.");
     }
 
-    //ctx: EvalContext,node: Rc<ASTNode>, outer_call: bool,
     let first_child = children.first().unwrap();
     let eval_first=evaluate_outer(ctx.clone(), first_child.clone(), false)?;
+
     println!("Eval first:{}", eval_first.to_string());
     println!("Ast:{}", ast.to_string());
 
@@ -117,21 +117,33 @@ fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut 
     }
 
     // we expect first part of expression to resolve to a fn call
-        // let and if handled separately already
-    
-    // pub func: Rc<dyn Function>,
-    // pub ast: Rc<ASTNode>,
-    // pub parent: Option<Rc<ASTNode>>,
-
+    // let and if handled separately already
     let func=eval_first.expect_function()?;
     let func_call=FunctionCall {
         func:func.clone(),
         ast:Rc::clone(ast),
         parent:parent.clone()
     };
+    fn_stack.push_back(func_call);
 
-    // fn_stack.push_back(func_call);
+    // push rest of child expressions onto call_st
+    let mut rest_children=children.into_iter();
+    rest_children.next(); // go past first
+
+    // todo: handle unevaluated separately
     
+    for child in rest_children {
+        let deferred=DeferredExpression {
+            ctx:ctx.clone(),
+            body:child.clone()
+        };
+        let stack_expr=StackExpression {
+            expr:deferred,
+            parent:parent.clone()
+        };
+        call_stack.push_back(stack_expr);
+    }
+
     Ok(())
 }
 
