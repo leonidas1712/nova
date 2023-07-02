@@ -67,9 +67,7 @@ pub(crate) fn evaluate_outer(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bo
         parent:node.parent.clone()
     };
 
-    let res=evaluate_tco(stack_expr, outer_call);
-
-    Ok(Default)
+    evaluate_tco(stack_expr, outer_call)
 }
 
 // why does this take EvalContext without ref:
@@ -79,6 +77,27 @@ pub(crate) fn evaluate_outer(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bo
 use std::collections::VecDeque;
 
 
+fn resolve(call_stack:&mut VecDeque<StackExpression>, fn_stack:&mut VecDeque<FunctionCall>,results:&mut VecDeque<ExpressionResult>) {
+    let expression=call_stack.pop_back().unwrap();
+    let parent=&expression.parent;
+    let expr=&expression.expr;
+
+    let ctx=&expr.ctx;
+    let body=&expr.body;
+
+    match body.value {
+        Number(n) => {
+            let result=ExpressionResult {
+                data:Num(n),
+                parent:parent.clone()
+            };
+            results.push_back(result);
+        },
+        _ => {
+            todo!();
+        }
+    }
+}
 
 fn evaluate_tco(expression:StackExpression, outer_call: bool) -> Result<DataValue> {
     // try to match terminals
@@ -86,32 +105,13 @@ fn evaluate_tco(expression:StackExpression, outer_call: bool) -> Result<DataValu
     let mut call_stack: VecDeque<StackExpression> = VecDeque::new();
     let mut fn_stack: VecDeque<FunctionCall> = VecDeque::new();
     let mut results_queue: VecDeque<ExpressionResult> = VecDeque::new();
+    let expr_string=&expression.expr.body.to_string();
 
     call_stack.push_back(expression);
 
     // what to do with expression on call_st when valid
         // valid: fn_st empty and call_st not empty OR fn_st[-1].ast==call_st[-1].parent
-    let resolve=|| {
-        let expression=call_stack.back().unwrap();
-        let parent=&expression.parent;
-        let expr=&expression.expr;
-
-        let ctx=&expr.ctx;
-        let body=&expr.body;
-
-        match body.value {
-            Number(n) => {
-                let result=ExpressionResult {
-                    data:Num(n),
-                    parent:parent.clone()
-                };
-                results_queue.push_back(result);
-            },
-            _ => {
-                todo!();
-            }
-        }
-    };
+    
 
     // call_st only: unroll the expr
     // fn_stack only: check res_q
@@ -122,12 +122,12 @@ fn evaluate_tco(expression:StackExpression, outer_call: bool) -> Result<DataValu
 
         // both
         if call_has && fn_has {
-            
+
         }
 
         // call only
         else if call_has && !fn_has {
-
+            resolve(&mut call_stack, &mut fn_stack, &mut results_queue);
         }
         
         // fn only - fn.execute
@@ -136,6 +136,14 @@ fn evaluate_tco(expression:StackExpression, outer_call: bool) -> Result<DataValu
         }
     }
 
-    Ok(Default)
+    match results_queue.into_iter().last() {
+        Some(res) => {
+            Ok(res.data)
+        },
+        None => {
+            let msg=format!("Could not evaluate expression: {}", expr_string);
+            return err!(msg);
+        }
+    }
 }
 
