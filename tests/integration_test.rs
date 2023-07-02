@@ -1,5 +1,5 @@
 #![recursion_limit = "5000"]
-use nova::{evaluate_input, evaluator::context::Context, setup_context};
+use nova::{evaluate_input, evaluator::context::{Context,setup_context}};
 
 fn compare(inp:&str, expected:&str, ctx:&mut Context) {
     let res=evaluate_input(inp.trim(), ctx);

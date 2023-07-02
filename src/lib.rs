@@ -23,32 +23,9 @@ use std::rc::Rc;
 
 use crate::{
     constants::*,
-    evaluator::{builtins::*, context::Context, evaluator::evaluate},
+    evaluator::{builtins::*, context::{Context,setup_context}, evaluator::evaluate},
 };
 use rustyline::{error::ReadlineError, DefaultEditor};
-
-// register builtins here
-pub fn setup_context() -> Context {
-    let mut ctx = Context::new();
-    macro_rules! reg {
-        ($name:literal, $struct:ident) => {
-            ctx.add_function($name, Rc::new($struct {}));
-        };
-
-        ($name:expr, $struct:ident) => {
-            ctx.add_function($name, Rc::new($struct {}));
-        };
-    }
-
-    reg!(ADD, Add);
-    reg!(SUB, Sub);
-    reg!(MULT, Mult);
-    reg!(EQUALS, Equals);
-    reg!(INC, Succ);
-    reg!(DEC, Pred);
-
-    ctx
-}
 
 // main function to take a string -> get a string representing output
 // take a mut ctx -> in only 2 cases we need to add something:

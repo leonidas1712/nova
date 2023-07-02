@@ -1,14 +1,60 @@
+use std::collections::HashMap;
+use std::rc::Rc;
+use std::cell::{RefCell,Ref,RefMut};
+
+use crate::constants::*;
+
+use super::builtins::*;
 use super::data::*;
 use super::function::*;
 
-use std::collections::HashMap;
-use std::rc::Rc;
+#[derive (Clone)]
+struct EvalContext {
+    ctx:Rc<RefCell<Context>>
+}
+
+impl EvalContext {
+    pub fn new()->EvalContext {
+        EvalContext {
+            ctx:Rc::new(RefCell::new(setup_context()))
+        }
+    }
+
+    pub fn read(&self)->Ref<Context> {
+        self.ctx.as_ref().borrow()
+    }
+
+    pub fn write(&self)->RefMut<Context> {
+        self.ctx.as_ref().borrow_mut()
+    }
+}
 
 #[derive(Clone)]
 pub struct Context {
     symbol_map: HashMap<String, DataValue>,
 }
 
+pub fn setup_context() -> Context {
+    let mut ctx = Context::new();
+    macro_rules! reg {
+        ($name:literal, $struct:ident) => {
+            ctx.add_function($name, Rc::new($struct {}));
+        };
+
+        ($name:expr, $struct:ident) => {
+            ctx.add_function($name, Rc::new($struct {}));
+        };
+    }
+
+    reg!(ADD, Add);
+    reg!(SUB, Sub);
+    reg!(MULT, Mult);
+    reg!(EQUALS, Equals);
+    reg!(INC, Succ);
+    reg!(DEC, Pred);
+
+    ctx
+}
 // has function/variable: just check if ident in map. if it is, check the type
 // DataValue::FunctionVariable => function, else variable
 
