@@ -156,9 +156,9 @@ fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut 
 // check call_st[-1].parent and fn_st[-1].ast
     // ast: pub ast: Rc<ASTNode>,
     // parent: parent: Option<Rc<ASTNode>>,
-fn can_resolve(fn_call:&FunctionCall, stack_expr:&StackExpression)->bool {
+fn can_resolve(fn_call:&FunctionCall, expr_parent:&Option<Rc<ASTNode>>)->bool {
     let fn_ast=&fn_call.ast;
-    let expr_parent=&stack_expr.parent;
+    // let expr_parent=&stack_expr.parent;
 
     match expr_parent {
         Some(parent) => {
@@ -166,6 +166,18 @@ fn can_resolve(fn_call:&FunctionCall, stack_expr:&StackExpression)->bool {
         },
         None => false
     }
+}
+
+// given results queue + func_call -> Vec<Args> 
+    // pop from the back of the queue until node with parent!=func.ast
+fn get_args(func:&FunctionCall, results: &mut VecDeque<ExpressionResult>) {
+    let args:Vec<Arg>=vec![];
+    
+    // for res in results.iter().rev() {
+    //     if !can_resolve(func, stack_expr)
+    //     let data=res.data.clone();
+    //     let arg=Arg::Evaluated(data);
+    // }
 }
 
 fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,results: &mut VecDeque<ExpressionResult>)
@@ -257,7 +269,7 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
             let call_st_last=call_stack.back().unwrap();
             let fn_st_last=fn_stack.back().unwrap();
 
-            if can_resolve(fn_st_last, call_st_last) {
+            if can_resolve(fn_st_last, &call_st_last.parent) {
                 resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
             }
         }
@@ -266,8 +278,10 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
             resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
         }
         // fn only - fn.execute
+            // 1. get correct args from result queue
+            // 2. pass to fn execute, get Expression
+            // 3. push onto res_q with correct parent=fn_ast.parent
         else {
-
         }
     }
 
