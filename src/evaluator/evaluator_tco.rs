@@ -99,23 +99,22 @@ fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut 
     let ctx=args.ctx;
     let parent=args.parent;
     let ast=args.ast;
+
+    // println!("EXPR AST:{} ID:{}", ast.to_string(), ast.original.to_string());
+
+    let ast1_clone=Rc::clone(ast);
+    let ast2_clone=Rc::clone(ast);
+
+    // println!("Are the clones equal:{}", ast1_clone.eq(&ast2_clone));
     
     if children.is_empty() {
         return err!("Received empty expression.");
     }
 
     let first_child = children.first().unwrap();
-    let eval_first=evaluate_outer(ctx.clone(), first_child.clone(), false)?;
+    let eval_first=evaluate_outer(ctx.clone(), Rc::clone(first_child), false)?;
 
-    println!("Eval first:{}", eval_first.to_string());
-    println!("Ast:{}", ast.to_string());
-
-    if let Some(prt) = parent {
-        println!("Parent:{}", prt.to_string());
-    } else {
-        println!("No parent");
-    }
-
+ 
     // we expect first part of expression to resolve to a fn call
     // let and if handled separately already
     let func=eval_first.expect_function()?;
@@ -137,11 +136,11 @@ fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut 
     for child in rest_children.rev() {
         let deferred=DeferredExpression {
             ctx:ctx.clone(),
-            body:child.clone()
+            body:Rc::clone(child)
         };
         let stack_expr=StackExpression {
             expr:deferred,
-            parent:Some(ast.clone())
+            parent:Some(Rc::clone(ast))
         };
 
         // assigned parent to one level above supposed to be
@@ -158,11 +157,13 @@ fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut 
     // parent: parent: Option<Rc<ASTNode>>,
 fn can_resolve(fn_call:&FunctionCall, expr_parent:&Option<Rc<ASTNode>>)->bool {
     let fn_ast=&fn_call.ast;
-    // let expr_parent=&stack_expr.parent;
 
     match expr_parent {
         Some(parent) => {
-            parent.eq(fn_ast)
+            let p=parent.as_ref();
+            let fn_a=fn_ast.as_ref();
+            let b=p.eq(fn_a);
+            b
         },
         None => false
     }
@@ -170,10 +171,12 @@ fn can_resolve(fn_call:&FunctionCall, expr_parent:&Option<Rc<ASTNode>>)->bool {
 
 // given results queue + func_call -> Vec<Args> 
     // pop from the back of the queue until node with parent!=func.ast
-fn get_args(func:&FunctionCall, results: &mut VecDeque<ExpressionResult>) {
+// assume evaluated: uneval handled specially like for if, let
+fn get_args<'a>(func:&FunctionCall, results: &'a mut VecDeque<ExpressionResult>)->Vec<Arg<'a>> {
     let mut args:VecDeque<Arg>=VecDeque::new();
     
     for res in results.iter().rev() {
+        // println!("Checking can resolve for res inside GET_ARGS:{}", res.data.to_string());
         if !can_resolve(func, &res.parent) {
             break;
         }
@@ -183,11 +186,7 @@ fn get_args(func:&FunctionCall, results: &mut VecDeque<ExpressionResult>) {
         args.push_front(arg);
     }
 
-    println!("Got args for {}:", func.func.to_string());
-
-    for a in args.iter() {
-        println!("{}", a.to_string());
-    }
+    args.into_iter().collect()
 }
 
 fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,results: &mut VecDeque<ExpressionResult>)
@@ -197,12 +196,14 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
 
     let body = &expr.body;
     let ctx = &expr.ctx;
-    let parent = &body.parent;
+    let parent=&expression.parent;
 
     let mut result = ExpressionResult {
         data: Num(-1),
         parent: parent.clone(),
     };
+
+    // expression.parent instead of body.parent
 
     match &body.value {
         Number(n) => {
@@ -255,6 +256,7 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
 }
 
 fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataValue> {
+    println!("EVALUATE START");
     // try to match terminals
     // println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
     let mut call_stack: VecDeque<StackExpression> = VecDeque::new();
@@ -278,11 +280,16 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
         if call_has && fn_has {
             let call_st_last=call_stack.back().unwrap();
             let fn_st_last=fn_stack.back().unwrap();
-
+            
             if can_resolve(fn_st_last, &call_st_last.parent) {
                 resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
             }
+
+            println!("here");
         }
+
+
+
         // call only
         else if call_has && !fn_has {
             resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
@@ -291,9 +298,12 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
             // 1. get correct args from result queue
             // 2. pass to fn execute, get Expression
             // 3. push onto res_q with correct parent=fn_ast.parent
+
         else {
             let fn_st_last=fn_stack.back().unwrap();
             let args=get_args(fn_st_last, &mut results_queue);
+            println!("Args len outside:{}", args.len());
+
             break;
         }
     }

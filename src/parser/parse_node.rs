@@ -83,11 +83,17 @@ pub struct ASTNode {
     // the cycle ends when we reach root with parent=None
     // then the initial parent can get dropped and the children get dropped successively
     pub parent: Option<Rc<ASTNode>>,
-    original: Uuid,
+    pub original: Uuid,
 }
 
 impl Clone for ASTNode {
     fn clone(&self) -> Self {
+        // ASTNode {
+        //     value: self.value.clone(),
+        //     parent: self.parent.clone(),
+        //     original: self.original,
+        // }
+
         ASTNode {
             value: self.value.clone(),
             parent: self.parent.clone(),
@@ -154,6 +160,14 @@ impl ASTNode {
                 parent: None,
                 original: original_ref,
             },
+        }
+    }
+
+    pub fn copy(&self)->ASTNode {
+        ASTNode {
+            value:self.value.clone(),
+            parent:self.parent.clone(),
+            original:self.original
         }
     }
 
