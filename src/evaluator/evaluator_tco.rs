@@ -302,7 +302,20 @@ fn resolve_let(ctx:&EvalContext, expressions:&Vec<Rc<ASTNode>>, global:bool)->Re
     }
 }
 
-fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,results: &mut VecDeque<ExpressionResult>)
+pub fn resolve_fn_node(ctx: &EvalContext, fn_def: &FnDef, outer_call: bool) -> Result<DataValue> {
+    let func = UserFunction::new(ctx, &fn_def);
+    let rc: Rc<UserFunction> = Rc::new(func);
+
+    if !outer_call {
+        return Ok(FunctionVariable(rc));
+    }
+
+    // to return out a function to set in global variable
+    Ok(SetFn(rc))
+}
+
+fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,
+    results: &mut VecDeque<ExpressionResult>,outer_call: bool)
  -> Result<()> {
     // pop from stack
     let expression = call_stack.pop_back().unwrap();
@@ -360,9 +373,13 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
             resolve_expression(call_stack, fn_stack, results, args)?;
         },
         LetNode(children, global) => {
-            println!("LetNode: global {}", global);
             let returned_result=resolve_let(&ctx,children,*global)?;
             result.data=returned_result;
+            results.push_back(result);
+        },
+        FnNode(fn_def) => {
+            let fn_resolve=resolve_fn_node(&ctx, &fn_def, outer_call)?;
+            result.data=fn_resolve;
             results.push_back(result);
         }
         _ => {
@@ -398,7 +415,7 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
             let fn_st_last=fn_stack.back().unwrap();
             
             if can_resolve(fn_st_last, &call_st_last.parent) {
-                resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
+                resolve(&mut call_stack, &mut fn_stack, &mut results_queue,outer_call)?;
             
             // when call_stack[-1] doesnt match fn_st[-1]: evaluate
             } else {
@@ -408,7 +425,7 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
 
         // call only: resolve whats on it
         else if call_has && !fn_has {
-            resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
+            resolve(&mut call_stack, &mut fn_stack, &mut results_queue,outer_call)?;
         }
 
         // fn only - fn.execute

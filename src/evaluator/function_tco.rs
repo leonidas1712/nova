@@ -33,10 +33,6 @@ pub struct UserFunction {
     params: Vec<String>,
     body: Vec<Rc<ASTNode>>,
 }
-
-struct Test<'a> {
-    context: Rc<&'a Context>,
-}
 // clone fn_def because it could have come from a closure: the original function still needs it
 // same reason for context: to impl closure we need to capture ctx at time of creation
 impl UserFunction {
