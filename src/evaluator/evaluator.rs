@@ -8,36 +8,6 @@ use crate::{evaluate_input, lex, message::*, setup_context};
 use super::eval_helpers::*;
 use super::{context::*, data::*, function::*};
 
-// pub struct FunctionCall {
-//     func:Rc<dyn Function>,
-//     ast:Rc<ASTNode>,
-//     parent:Option<Rc<ASTNode>>
-// }
-
-// // an expression on the call stack
-//     // separate struct because parent pointer is always set after returning from another function
-//     // so inside a sub-function we can just return part of it and centralise setting of the parent ptr
-// pub struct StackExpression {
-//     expr:Expression,
-//     parent:Option<Rc<ASTNode>>
-// }
-
-// pub enum Expression {
-//     Deferred(DeferredExpression),
-//     Result(EvaluatedExpression)
-// }
-
-// // body: used for eval, parent: used for checking
-// pub struct DeferredExpression {
-//     ctx:Rc<Context>,
-//     body:Rc<ASTNode>,
-// }
-
-// // this will get transferred to the result queue
-// pub struct EvaluatedExpression {
-//     data:DataValue,
-// }
-
 use std::cell::RefCell;
 thread_local! {
     pub (crate) static DEPTH: RefCell<u64> = RefCell::new(0);

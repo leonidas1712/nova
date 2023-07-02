@@ -1,6 +1,5 @@
 use std::rc::Rc;
 
-
 use crate::constants::CLOSE_EXPR;
 use crate::constants::OPEN_EXPR;
 use crate::constants::SPACE;
@@ -10,12 +9,11 @@ use crate::parser::parse_node::*;
 
 use super::context::*;
 use super::data::*;
-use super::evaluator;
 use super::evaluator_tco::*;
 
 // &Context: need to be able to re-use the context
 pub trait Function {
-    fn execute(&self, args: Vec<Arg>, context: &EvalContext) -> Result<DataValue>;
+    fn execute(&self, args: Vec<Arg>, context: &EvalContext) -> Result<Expression>;
 
     // default: Evaluated
     fn get_arg_type(&self) -> ArgType {
@@ -98,7 +96,7 @@ impl UserFunction {
 }
 
 impl Function for UserFunction {
-    fn execute(&self, args: Vec<Arg>, outer_ctx: &EvalContext) -> Result<DataValue> {
+    fn execute(&self, args: Vec<Arg>, outer_ctx: &EvalContext) -> Result<Expression> {
         // first clone + add arguments using params and args
 
         let strings: Vec<String> = args.iter().map(|x| x.to_string()).collect();
@@ -110,12 +108,20 @@ impl Function for UserFunction {
         // args > inner_ctx > outer_ctx
 
         let eval_ctx = eval_ctx.merge_context(&outer_ctx);
-
         let fn_node = self.body.get(0).unwrap(); // currently on first part
 
-        // println!("Fn_node:{}", fn_node);
-        let res = evaluator::eval!(eval_ctx.clone(), Rc::clone(fn_node))?;
+        let cloned=fn_node.as_ref().clone();
 
+        let equals=cloned.eq(&fn_node);
+        println!("Equal?:{}", equals);
+
+        let res=DeferredExpression {
+            ctx:eval_ctx,
+            body:Rc::new(cloned)
+        };
+
+        let res=DeferredExpr(res);
+        
         return Ok(res);
     }
 
