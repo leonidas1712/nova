@@ -61,11 +61,11 @@ pub struct ExpressionResult {
 
 pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: bool,) -> Result<DataValue> {
     // try to match terminals
-    println!(
-        "Node type: {}, Expr: {}",
-        node.get_type(),
-        node.to_string_with_parent()
-    );
+    // println!(
+    //     "Node type: {}, Expr: {}",
+    //     node.get_type(),
+    //     node.to_string_with_parent()
+    // );
 
     let deferred = DeferredExpression {
         ctx: ctx.clone(),
@@ -206,7 +206,8 @@ fn get_args<'a>(func:&FunctionCall, results: &'a mut VecDeque<ExpressionResult>)
     // 3. if expression is evald: push to res_q
     // 4. else: push to call_st
     // 5. both cases: parent is set to func.parent
-fn evaluate_fn(func:&FunctionCall, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()>{
+fn evaluate_fn(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()>{
+    let func=&fn_stack.pop_back().unwrap();
     let args=get_args(func, results);
     
     if args.len()==0 {
@@ -214,9 +215,26 @@ fn evaluate_fn(func:&FunctionCall, call_stack: &mut VecDeque<StackExpression>, r
         return err!("");
     }
 
-    println!("Got args of len:{} for func:{}", args.len(), func.func.to_string());
+    // println!("Got args of len:{} for func:{}", args.len(), func.func.to_string());
 
-    // let execute_result=func.func.execute(args, &func.context)?;
+    let execute_result=func.func.execute(args, &func.context)?;
+    // println!("Execute result:{}", execute_result.to_string());
+
+    match execute_result {
+        // put on call stack
+        DeferredExpr(def) => {
+            
+        },
+
+        // put on resq
+        EvaluatedExpr(ev) => {
+            let expr_res=ExpressionResult {
+                data:ev,
+                parent:func.parent.clone() // cloning the OPTION - should be same id
+            };
+            results.push_back(expr_res);
+        }
+    }
 
     Ok(())
 }
@@ -286,9 +304,7 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
 }
 
 fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataValue> {
-    println!("EVALUATE START");
     // try to match terminals
-    // println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
     let mut call_stack: VecDeque<StackExpression> = VecDeque::new();
     let mut fn_stack: VecDeque<FunctionCall> = VecDeque::new();
     let mut results_queue: VecDeque<ExpressionResult> = VecDeque::new();
@@ -316,8 +332,7 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
             
             // when call_stack[-1] doesnt match fn_st[-1]: evaluate
             } else {
-                evaluate_fn(fn_st_last, &mut call_stack, &mut results_queue)?;
-                break;
+                evaluate_fn(&mut fn_stack, &mut call_stack, &mut results_queue)?;
             }
         }
 
@@ -331,17 +346,22 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
             // 2. pass to fn execute, get Expression
             // 3. push onto res_q with correct parent=fn_ast.parent
         else {
-            let func=fn_stack.back().unwrap();
-            evaluate_fn(func, &mut call_stack, &mut results_queue)?;
-            break;
+            evaluate_fn(&mut fn_stack, &mut call_stack, &mut results_queue)?;
         }
     }
 
     match results_queue.into_iter().last() {
-        Some(res) => Ok(res.data),
+        Some(res) =>{ 
+            // if let Some(prt)=res.parent {
+            //     println!("{}", prt.to_string());
+            // } else {
+            //     println!("Res prt was None");
+            // }
+            Ok(res.data) 
+        },
         None => {
             let msg = format!("Could not evaluate expression: {}", expr_string);
-            return err!("Couldn't evaluate.");
+            return err!(msg);
         }
     }
 }

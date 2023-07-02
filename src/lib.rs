@@ -113,11 +113,12 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     args.next();
     args.for_each(|s| println!("{}", s));
 
-    let ctx = EvalContext::new();
+    // let ctx = EvalContext::new();
+    // nova_repl(ctx);
 
-    nova_repl(ctx);
+    let ctx=evaluator::context_tco::EvalContext::new();
+    nova_repl_tco(ctx);
 }
-
 pub fn nova_repl_tco(mut context: evaluator::context_tco::EvalContext) {
     let mut rl = DefaultEditor::new().unwrap();
 
