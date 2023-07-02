@@ -20,6 +20,7 @@ pub struct StackExpression {
     parent:Option<Rc<ASTNode>>
 }
 
+#[derive(Display)]
 pub enum Expression {
     Deferred(DeferredExpression),
     Result(EvaluatedExpression)
@@ -27,7 +28,7 @@ pub enum Expression {
 
 // body: used for eval, parent: used for checking
 pub struct DeferredExpression {
-    ctx:Rc<Context>,
+    ctx:EvalContext,
     body:Rc<ASTNode>,
 }
 
@@ -36,48 +37,43 @@ pub struct EvaluatedExpression {
     data:DataValue,
 }
 
+pub struct ExpressionResult {
+    data:DataValue,
+    parent:Option<Rc<ASTNode>>
+}
+
+pub(crate) fn evaluate_outer(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) -> Result<DataValue> {
+    // try to match terminals
+    println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
+
+    let deferred=DeferredExpression {
+        ctx:ctx.clone(),
+        body:Rc::clone(&node)
+    };
+    
+    let stack_expr=StackExpression {
+        expr:Expression::Deferred(deferred),
+        parent:node.parent.clone()
+    };
+
+    let res=evaluate_tco(stack_expr, outer_call);
+
+    Ok(Default)
+}
+
 // why does this take EvalContext without ref:
     // because of issue where when returning from UserFunction execute we need a new owned context
     // can't return &Eval since it's created inside the fn body
 // Good thing is EvalContext.clone() is cheap because of Rc::clone
-pub(crate) fn evaluate_tco(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) -> Result<DataValue> {
+use std::collections::VecDeque;
+
+pub(crate) fn evaluate_tco(expression:StackExpression, outer_call: bool) -> Result<DataValue> {
     // try to match terminals
-    println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
-  
+    // println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
+    let call_stack: VecDeque<StackExpression> = VecDeque::new();
+    let fn_stack: VecDeque<FunctionCall> = VecDeque::new();
+    let results_queue: VecDeque<ExpressionResult> = VecDeque::new();
 
-    match &node.value {
-        Boolean(b) => Ok(Bool(*b)),
-        Number(num) => Ok(Num(*num)),
-        Symbol(sym) => {
-            // Function
-            let read=ctx.read();
-            let fnc = read.get_function(sym);
-            if fnc.is_some() {
-                let cloned = fnc.unwrap().clone();
-                return Ok(FunctionVariable(cloned));
-            }
-
-            // Variable
-            let resolve = read.get_variable(sym);
-            if resolve.is_some() {
-                Ok(resolve.unwrap().clone())
-            } else {
-                let err_string = format!("Unrecognised symbol: '{}'", sym);
-                err!(err_string.as_str())
-            }
-        }
-        List(children) => evaluate_list(&ctx, children),
-        IfNode(children) => {
-            return evaluate_if(
-                &ctx,
-                children.get(0).unwrap(),
-                children.get(1).unwrap(),
-                children.get(2).unwrap(),
-            );
-        },
-        LetNode(children, global) => evaluate_let(&ctx, children, *global),
-        FnNode(fn_def) => evaluate_fn_node(&ctx, fn_def, outer_call),
-        Expression(children) => evaluate_expression(&ctx, children),
-    }
+    Ok(Default)
 }
 
