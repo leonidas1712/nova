@@ -3,8 +3,7 @@ use std::rc::Rc;
 use crate::parser::parse_node::*;
 use crate::{evaluate_input, lex, message::*, setup_context};
 
-use super::eval_helpers::*;
-use super::{context::*, data::*, function::*};
+use super::{context::*, data::*, function::*, eval_helpers_tco::*};
 
 
 // push results straight to res_q
@@ -24,23 +23,23 @@ use super::{context::*, data::*, function::*};
 // }
 
 pub struct FunctionCall {
-    func:Rc<dyn Function>,
-    ast:Rc<ASTNode>,
-    parent:Option<Rc<ASTNode>>
+    pub func:Rc<dyn Function>,
+    pub ast:Rc<ASTNode>,
+    pub parent:Option<Rc<ASTNode>>
 }
 
 // an expression on the call stack
     // separate struct because parent pointer is always set after returning from another function
     // so inside a sub-function we can just return part of it and centralise setting of the parent ptr
 pub struct StackExpression {
-    expr:DeferredExpression,
-    parent:Option<Rc<ASTNode>>
+    pub expr:DeferredExpression,
+    pub parent:Option<Rc<ASTNode>>
 }
 
 // body: used for eval, parent: used for checking
 pub struct DeferredExpression {
-    ctx:EvalContext,
-    body:Rc<ASTNode>,
+    pub ctx:EvalContext,
+    pub body:Rc<ASTNode>,
 }
 
 // this will get transferred to the result queue
@@ -49,8 +48,8 @@ pub struct DeferredExpression {
 // }
 
 pub struct ExpressionResult {
-    data:DataValue,
-    parent:Option<Rc<ASTNode>>
+    pub data:DataValue,
+    pub parent:Option<Rc<ASTNode>>
 }
 
 pub(crate) fn evaluate_outer(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) -> Result<DataValue> {
@@ -115,6 +114,14 @@ fn resolve(call_stack:&mut VecDeque<StackExpression>, fn_stack:&mut VecDeque<Fun
                 }
             }
         },
+        IfNode(children) => {
+            let res=evaluate_if(ctx, children)?;
+            let stack_expr=StackExpression {
+                expr:res,
+                parent:parent.clone()
+            };
+            call_stack.push_back(stack_expr);
+        }
         _ => {
             todo!();
         }

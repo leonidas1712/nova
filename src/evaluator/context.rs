@@ -88,6 +88,8 @@ pub fn setup_context() -> Context {
     reg!(INC, Succ);
     reg!(DEC, Pred);
 
+    ctx.add_variable("x", Num(2));
+
     ctx
 }
 // has function/variable: just check if ident in map. if it is, check the type
