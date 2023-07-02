@@ -27,7 +27,7 @@ pub trait Function {
 use crate::parser::parse_node::FnDef;
 
 // name, params, body
-// #[derive(Clone)]
+#[derive(Clone)]
 pub struct UserFunction {
     context: EvalContext,
     name: String,
@@ -42,8 +42,13 @@ struct Test<'a> {
 // same reason for context: to impl closure we need to capture ctx at time of creation
 impl UserFunction {
     pub fn new(context: &EvalContext, fn_def: &FnDef) -> UserFunction {
+        // stored_ctx.write().add_function(name, function)
+        let mut stored_ctx=context.copy();
+
+        stored_ctx.write().delete_variable(&fn_def.name);
+
         UserFunction {
-            context: context.copy(), // copy to get new copy that doesn't affect
+            context: stored_ctx, // copy to get new copy that doesn't affect
             name: fn_def.name.clone(),
             params: fn_def.params.clone(),
             body: fn_def.body.clone(), // ASTNode.clone

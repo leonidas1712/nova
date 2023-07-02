@@ -109,6 +109,10 @@ impl Context {
         self.symbol_map.insert(name.to_string(), d);
     }
 
+    pub fn delete_variable(&mut self, name:&str) {
+        self.symbol_map.remove(name);
+    }
+
     // for getting something either a variable or a function
     pub fn get_data_value(&self, name: &String) -> Option<&DataValue> {
         self.symbol_map.get(name)

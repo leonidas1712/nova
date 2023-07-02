@@ -104,6 +104,11 @@ impl Context {
         self.symbol_map.insert(ident.to_string(), value);
     }
 
+    pub fn delete_variable(&mut self,name:&str) {
+        self.symbol_map.remove(name);
+    }
+
+
     pub fn add_function(&mut self, name: &str, function: Rc<dyn Function>) {
         let d = DataValue::FunctionVariable(function);
         self.symbol_map.insert(name.to_string(), d);

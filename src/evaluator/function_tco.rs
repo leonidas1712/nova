@@ -26,7 +26,7 @@ pub trait Function {
 use crate::parser::parse_node::FnDef;
 
 // name, params, body
-// #[derive(Clone)]
+#[derive(Clone)]
 pub struct UserFunction {
     context: EvalContext,
     name: String,
@@ -37,8 +37,12 @@ pub struct UserFunction {
 // same reason for context: to impl closure we need to capture ctx at time of creation
 impl UserFunction {
     pub fn new(context: &EvalContext, fn_def: &FnDef) -> UserFunction {
+        let mut stored_ctx=context.copy();
+
+        stored_ctx.write().delete_variable(&fn_def.name);
+
         UserFunction {
-            context: context.copy(), // copy to get new copy that doesn't affect
+            context: stored_ctx, // copy to get new copy that doesn't affect
             name: fn_def.name.clone(),
             params: fn_def.params.clone(),
             body: fn_def.body.clone(), // ASTNode.clone
@@ -112,8 +116,13 @@ impl Function for UserFunction {
         let equals = cloned.eq(&fn_node);
         println!("USER FUNCTION NODE EQUALS CLONED?:{}", equals);
 
+        let e_read=eval_ctx.read();
+        let get_func=e_read.get_function(&self.name).unwrap();
+        println!("Get func:{}", get_func.to_string());
+ 
+
         let res = DeferredExpression {
-            ctx: eval_ctx,
+            ctx: eval_ctx.clone(),
             body: Rc::new(cloned),
         };
 

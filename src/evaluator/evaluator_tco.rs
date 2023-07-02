@@ -60,13 +60,15 @@ pub struct ExpressionResult {
     pub parent: Option<Rc<ASTNode>>,
 }
 
+// (def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))))
+// (def recr (n) (if (eq n 0) 0 (recr (pred n))))
 pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: bool,) -> Result<DataValue> {
     // try to match terminals
-    println!(
-        "Node type: {}, Expr: {}",
-        node.get_type(),
-        node.to_string_with_parent()
-    );
+    // println!(
+    //     "Node type: {}, Expr: {}",
+    //     node.get_type(),
+    //     node.to_string_with_parent()
+    // );
 
     let deferred = DeferredExpression {
         ctx: ctx.clone(),
@@ -382,6 +384,7 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
             result.data=fn_resolve;
             results.push_back(result);
         }
+        // List
         _ => {
             todo!()
         }
