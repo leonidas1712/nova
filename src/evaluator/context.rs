@@ -146,6 +146,38 @@ pub mod tests {
     use crate::{constants::NumType, evaluator::builtins::*};
 
     #[test]
+    fn eval_context_test() {
+        // check rc strong count increases when .clone() and doesnt increase on .copy
+        let mut c1=EvalContext::new();
+        c1.write().add_variable("x", Num(3));
+
+        let mut c2=c1.clone();
+        c2.write().add_variable("y", Num(5));
+
+        let has_y=c1.read();
+        let has_y=has_y.get_variable("y");
+        assert!(has_y.is_some()); // clone is Rc::clone
+
+        let c3=c2.clone();
+
+        let count=Rc::strong_count(&c1.ctx);
+        assert_eq!(count,3);   
+
+
+        // new
+        let mut c1_to_copy=EvalContext::new();
+        c1_to_copy.write().add_variable("x", Num(3));
+
+        let mut c2_copied=c1_to_copy.copy();
+        c2_copied.write().add_variable("y", Num(5));
+
+        assert!(c1_to_copy.read().get_variable("y").is_none()); // none because .copy
+        let count=Rc::strong_count(&c1_to_copy.ctx);
+        assert_eq!(count,1);
+
+    }
+
+    #[test]
     fn context_test() {
         let fnc = Add {};
         let fnc_name = fnc.to_string();
