@@ -223,7 +223,11 @@ fn evaluate_fn(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut VecDeque<
     match execute_result {
         // put on call stack
         DeferredExpr(def) => {
-            
+            let stack_expr=StackExpression {
+                expr:def,
+                parent:func.parent.clone() // cloning the OPTION
+            };
+            call_stack.push_back(stack_expr);
         },
 
         // put on resq

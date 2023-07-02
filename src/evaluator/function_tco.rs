@@ -110,10 +110,11 @@ impl Function for UserFunction {
         let eval_ctx = eval_ctx.merge_context(&outer_ctx);
         let fn_node = self.body.get(0).unwrap(); // currently on first part
 
+        // IMPORTANT:node is CLONED so the clone compares unequal because id changed
         let cloned = fn_node.as_ref().clone();
 
         let equals = cloned.eq(&fn_node);
-        println!("Equal?:{}", equals);
+        println!("USER FUNCTION NODE EQUALS CLONED?:{}", equals);
 
         let res = DeferredExpression {
             ctx: eval_ctx,
