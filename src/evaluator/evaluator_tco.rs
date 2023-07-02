@@ -44,9 +44,9 @@ pub struct DeferredExpression {
 }
 
 // this will get transferred to the result queue
-pub struct EvaluatedExpression {
-    data:DataValue,
-}
+// pub struct EvaluatedExpression {
+//     data:DataValue,
+// }
 
 pub struct ExpressionResult {
     data:DataValue,
@@ -77,7 +77,7 @@ pub(crate) fn evaluate_outer(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bo
 use std::collections::VecDeque;
 
 
-fn resolve(call_stack:&mut VecDeque<StackExpression>, fn_stack:&mut VecDeque<FunctionCall>,results:&mut VecDeque<ExpressionResult>) {
+fn resolve(call_stack:&mut VecDeque<StackExpression>, fn_stack:&mut VecDeque<FunctionCall>,results:&mut VecDeque<ExpressionResult>)->Result<()> {
     let expression=call_stack.pop_back().unwrap();
     let parent=&expression.parent;
     let expr=&expression.expr;
@@ -100,22 +100,27 @@ fn resolve(call_stack:&mut VecDeque<StackExpression>, fn_stack:&mut VecDeque<Fun
             results.push_back(result);
         },
         Symbol(sym) => {
-            // function
-            // let read=ctx.read();
-            // let fnc=read.get_function(sym);
-            // if fnc.is_some() {
-            //     result.data=FunctionVariable(
-            //         fnc.unwrap().clone()
-            //     );
-            // } else {
-            //     let resolve=read.get_variable(sym);
-            // }
-            
+            // functon
+            let read=ctx.read();
+            let data=read.get_data_value(sym);
+
+            match data {
+                Some(value) => {
+                    result.data=value.clone();
+                    results.push_back(result);
+                },
+                None => {
+                   let err=format!("Unrecognised symbol: {}", sym);
+                   return err!(err);
+                }
+            }
         },
         _ => {
             todo!();
         }
     }
+
+    Ok(())
 }
 
 fn evaluate_tco(expression:StackExpression, outer_call: bool) -> Result<DataValue> {
@@ -146,7 +151,7 @@ fn evaluate_tco(expression:StackExpression, outer_call: bool) -> Result<DataValu
 
         // call only
         else if call_has && !fn_has {
-            resolve(&mut call_stack, &mut fn_stack, &mut results_queue);
+            resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
         }
         
         // fn only - fn.execute
