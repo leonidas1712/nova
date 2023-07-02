@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::result;
 
 use crate::parser::parse_node::*;
 use crate::{evaluate_input, lex, message::*, setup_context};
@@ -175,8 +176,8 @@ fn can_resolve(fn_call:&FunctionCall, expr_parent:&Option<Rc<ASTNode>>)->bool {
 fn get_args<'a>(func:&FunctionCall, results: &'a mut VecDeque<ExpressionResult>)->Vec<Arg<'a>> {
     let mut args:VecDeque<Arg>=VecDeque::new();
     
+    // take from back of results queue until we encounter res with diff parent
     for res in results.iter().rev() {
-        // println!("Checking can resolve for res inside GET_ARGS:{}", res.data.to_string());
         if !can_resolve(func, &res.parent) {
             break;
         }
@@ -186,7 +187,34 @@ fn get_args<'a>(func:&FunctionCall, results: &'a mut VecDeque<ExpressionResult>)
         args.push_front(arg);
     }
 
+    // println!("before:{}", results.len());
+    // pop after pushing: can't modify during iter
+    for i in 0..args.len() {
+        results.pop_back();
+    }
+    // println!("after:{}", results.len());
+
     args.into_iter().collect()
+}
+
+
+// write function (evaluate_function) to:
+    // 1. get arguments from results_q and pop 
+    // 2. call func.execute() and get expression
+    // 3. if expression is evald: push to res_q
+    // 4. else: push to call_st
+    // 5. both cases: parent is set to func.parent
+fn evaluate_fn(func:&FunctionCall, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()>{
+    let args=get_args(func, results);
+    
+    if args.len()==0 {
+        let msg=format!("'{}' received 0 arguments.", func.func.to_string());
+        return err!("");
+    }
+
+    println!("Got args of len:{} for func:{}", args.len(), func.func.to_string());
+
+    Ok(())
 }
 
 fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,results: &mut VecDeque<ExpressionResult>)
@@ -196,14 +224,12 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
 
     let body = &expr.body;
     let ctx = &expr.ctx;
-    let parent=&expression.parent;
+    let parent=&expression.parent; // dont use body.parent
 
     let mut result = ExpressionResult {
         data: Num(-1),
         parent: parent.clone(),
     };
-
-    // expression.parent instead of body.parent
 
     match &body.value {
         Number(n) => {
@@ -283,12 +309,13 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
             
             if can_resolve(fn_st_last, &call_st_last.parent) {
                 resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
+            
+            // when call_stack[-1] doesnt match fn_st[-1]: evaluate
+            } else {
+                evaluate_fn(fn_st_last, &mut call_stack, &mut results_queue)?;
+                break;
             }
-
-            println!("here");
         }
-
-
 
         // call only
         else if call_has && !fn_has {
@@ -300,10 +327,8 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
             // 3. push onto res_q with correct parent=fn_ast.parent
 
         else {
-            let fn_st_last=fn_stack.back().unwrap();
-            let args=get_args(fn_st_last, &mut results_queue);
-            println!("Args len outside:{}", args.len());
-
+            let func=fn_stack.back().unwrap();
+            evaluate_fn(func, &mut call_stack, &mut results_queue)?;
             break;
         }
     }
