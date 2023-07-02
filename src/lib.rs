@@ -53,7 +53,7 @@ pub fn evaluate_input(inp: &str, context: &mut EvalContext) -> String {
                 let value = data.value;
                 string = value.to_string();
 
-                context.write_context(&ret_ctx);
+                context.write_context(*ret_ctx);
 
             } else if let SetFn(rc) = val {
                 let name = rc.get_name();

@@ -31,9 +31,8 @@ impl EvalContext {
     }
 
     // eval version
+    // makes a new context with key value pairs inserted from other_ctx only if they don't exist
     pub fn merge_context(&self, other_ctx:&EvalContext)->EvalContext {
-        // let new_ctx=&self.read().merge_context(other_ctx);
-        // EvalContext::new_from_context(new_ctx)
         let mut new_ctx = self.read().clone();
 
         for (key, value) in &other_ctx.read().symbol_map {
@@ -44,8 +43,9 @@ impl EvalContext {
         EvalContext::new_from_context(&new_ctx)
     }
 
-    // eval version
-    pub fn write_context(&mut self, other_ctx: &EvalContext) {
+    // writes key value pairs from other_ctx into self, consuming other_ctx
+        // useful for returning out from evaluate: we don't need the returned ctx after copying in
+    pub fn write_context(&mut self, other_ctx: EvalContext) {
         for (key, value) in other_ctx.read().to_owned().symbol_map.into_iter() {
             self.write().add_variable(key.as_str(), value);
         }
@@ -204,7 +204,7 @@ pub mod tests {
         let mut c2 = EvalContext::new();
         c2.write().add_variable("y", Num(5));
 
-        c1.write_context(&c2);
+        c1.write_context(c2);
 
         let c1x = c1.read().get_variable("x").unwrap().expect_num().unwrap();
         assert_eq!(c1x, 2);

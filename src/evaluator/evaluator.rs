@@ -36,6 +36,10 @@ pub struct EvaluatedExpression {
     data:DataValue,
 }
 
+// why does this take EvalContext without ref:
+    // because of issue where when returning from UserFunction execute we need a new owned context
+    // can't return &Eval since it's created inside the fn body
+// Good thing is EvalContext.clone() is cheap because of Rc::clone
 pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) -> Result<DataValue> {
     // try to match terminals
     println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
@@ -62,17 +66,17 @@ pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) ->
                 err!(err_string.as_str())
             }
         }
-        List(children) => evaluate_list(ctx, children),
+        List(children) => evaluate_list(&ctx, children),
         IfNode(children) => {
             return evaluate_if(
-                ctx,
+                &ctx,
                 children.get(0).unwrap(),
                 children.get(1).unwrap(),
                 children.get(2).unwrap(),
             );
         },
-        LetNode(children, global) => evaluate_let(ctx, children, *global),
-        FnNode(fn_def) => evaluate_fn_node(ctx, fn_def, outer_call),
+        LetNode(children, global) => evaluate_let(&ctx, children, *global),
+        FnNode(fn_def) => evaluate_fn_node(&ctx, fn_def, outer_call),
         Expression(children) => evaluate_expression(&ctx, children),
     }
 }

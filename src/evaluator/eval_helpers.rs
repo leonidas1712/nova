@@ -94,14 +94,14 @@ pub fn evaluate_expression(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Re
     }
 }
 
-pub fn evaluate_list(_ctx: EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<DataValue> {
+pub fn evaluate_list(_ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<DataValue> {
     dbg!(children);
     Ok(Default)
 }
 // DeferredExpr: body=returned condition, 
 // 
 // 
-pub fn evaluate_if(ctx: EvalContext, cond: &Rc<ASTNode>, e1: &Rc<ASTNode>, e2: &Rc<ASTNode>) -> Result<DataValue> {
+pub fn evaluate_if(ctx: &EvalContext, cond: &Rc<ASTNode>, e1: &Rc<ASTNode>, e2: &Rc<ASTNode>) -> Result<DataValue> {
     let cond_result = eval!(ctx.clone(), Rc::clone(cond))?;
 
     // add empty list as false later
@@ -112,14 +112,14 @@ pub fn evaluate_if(ctx: EvalContext, cond: &Rc<ASTNode>, e1: &Rc<ASTNode>, e2: &
     };
 
     if condition {
-        eval!(ctx, Rc::clone(e1))
+        eval!(ctx.clone(), Rc::clone(e1))
     } else {
-        eval!(ctx, Rc::clone(e2))
+        eval!(ctx.clone(), Rc::clone(e2))
     }
 }
 
 pub fn evaluate_let(
-    ctx: EvalContext,
+    ctx: &EvalContext,
     expressions: &Vec<Rc<ASTNode>>,
     outer_call: bool,
 ) -> Result<DataValue> {
@@ -195,7 +195,7 @@ pub fn evaluate_let(
 
 use super::function::*;
 use crate::parser::parse_node::FnDef;
-pub fn evaluate_fn_node(ctx: EvalContext, fn_def: &FnDef, outer_call: bool) -> Result<DataValue> {
+pub fn evaluate_fn_node(ctx: &EvalContext, fn_def: &FnDef, outer_call: bool) -> Result<DataValue> {
     let func = UserFunction::new(ctx, &fn_def);
     let rc: Rc<UserFunction> = Rc::new(func);
 
