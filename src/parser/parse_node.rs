@@ -247,3 +247,31 @@ impl Display for ASTNode {
         write!(f, "{}", self.to_string())
     }
 }
+
+#[test]
+fn parse_node_test_clone() {
+    let c1=ASTNode::new(Number(2));
+    let c1_cloned=c1.clone();
+    // direct clone not equal
+    assert_ne!(c1, c1_cloned);
+
+    let c1=Rc::new(c1);
+    let c1=Some(c1);
+
+    let c2=c1.clone();
+    
+    let c1_unwrap=c1.unwrap();
+    let c2_unwrap=c2.unwrap();
+    // but clone of optional of same node is equal
+    assert_eq!(c1_unwrap, c2_unwrap);
+
+
+    let c1_cloned=Rc::new(c1_cloned);
+    let c1_cloned=Some(c1_cloned);
+
+    let c1_clone_unwrap=c1_cloned.unwrap();
+
+    // direct clone wrapped in opt not equal
+    assert_ne!(c1_unwrap, c1_clone_unwrap);
+
+}
