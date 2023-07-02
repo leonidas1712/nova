@@ -14,15 +14,8 @@ use std::borrow::{Borrow, BorrowMut};
 use std::cell::{RefCell, Ref, RefMut};
 use std::{env::args, rc::Rc};
 
-struct FuncReturn {
-    ctx:Context
-}
-
-
-// takes a Rc<Rf> ctx and reads from it then returns out another Rc<Rf<ctx>>
-
 fn main() {
-
+    nova::run(args());
 }
 
 // (range 5 10) >> for_each $ puts => prints 5,6,7,..10

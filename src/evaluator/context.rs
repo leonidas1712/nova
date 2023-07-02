@@ -1,6 +1,8 @@
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::{RefCell,Ref,RefMut};
+use std::ops::{Deref, DerefMut};
 
 use crate::constants::*;
 
@@ -8,6 +10,7 @@ use super::builtins::*;
 use super::data::*;
 use super::function::*;
 
+// wrapper around Rc<RefCell<Context>>
 #[derive (Clone)]
 struct EvalContext {
     ctx:Rc<RefCell<Context>>
@@ -20,11 +23,11 @@ impl EvalContext {
         }
     }
 
-    pub fn read(&self)->Ref<Context> {
+    fn read(&self)->Ref<Context> {
         self.ctx.as_ref().borrow()
     }
 
-    pub fn write(&self)->RefMut<Context> {
+    fn write(&self)->RefMut<Context> {
         self.ctx.as_ref().borrow_mut()
     }
 }
@@ -37,10 +40,6 @@ pub struct Context {
 pub fn setup_context() -> Context {
     let mut ctx = Context::new();
     macro_rules! reg {
-        ($name:literal, $struct:ident) => {
-            ctx.add_function($name, Rc::new($struct {}));
-        };
-
         ($name:expr, $struct:ident) => {
             ctx.add_function($name, Rc::new($struct {}));
         };
