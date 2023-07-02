@@ -110,7 +110,7 @@ impl Function for UserFunction {
 
         let fn_node = self.body.get(0).unwrap(); // currently on first part
 
-        println!("Fn_node:{}", fn_node);
+        // println!("Fn_node:{}", fn_node);
         let res = evaluator::eval!(eval_ctx.clone(), Rc::clone(fn_node))?;
 
         return Ok(res);

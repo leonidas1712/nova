@@ -29,6 +29,7 @@ use crate::{
     },
 };
 use evaluator::context::EvalContext;
+use evaluator::evaluator::{DEPTH, MAX_DEPTH};
 use rustyline::{error::ReadlineError, DefaultEditor};
 
 // main function to take a string -> get a string representing output
@@ -37,7 +38,7 @@ use rustyline::{error::ReadlineError, DefaultEditor};
 pub fn evaluate_input(inp: &str, context: &mut EvalContext) -> String {
     let res = lexer::Lexer::new(inp.to_string())
         .and_then(|lex| parser::parser::parse(lex))
-        .and_then(|node| evaluate_outer(context.clone(), node, true));
+        .and_then(|node| evaluate(context.clone(), node, true));
 
     // context.add_function(name, function)
 
@@ -120,4 +121,21 @@ pub fn nova_repl(mut context: EvalContext) {
             _ => (),
         }
     }
+}
+
+#[test]
+fn depth_test() {
+    let recr="(def recr (n) (if (eq n 0) 0 (recr (pred n))))";
+    let mut ctx=EvalContext::new();
+    let r=evaluate_input(recr, &mut ctx);
+
+    let test=evaluate_input("(recr 250)", &mut ctx);
+    println!("Test:{}", test);
+    
+    MAX_DEPTH.with(|d|{
+        let val=d.borrow_mut();
+        let val=*val;
+        println!("Max depth:{}", val);
+    });
+    // MAX_DEPTH
 }

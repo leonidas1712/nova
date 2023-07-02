@@ -1,3 +1,5 @@
+use std::char::MAX;
+use std::cmp::max_by;
 use std::rc::Rc;
 
 use crate::parser::parse_node::*;
@@ -36,16 +38,47 @@ pub struct EvaluatedExpression {
     data:DataValue,
 }
 
+use std::cell::RefCell;
+thread_local! {
+    pub (crate) static DEPTH: RefCell<u64> = RefCell::new(0);
+    pub (crate) static MAX_DEPTH:RefCell<u64>=RefCell::new(0);
+}
+
+fn update_depth() {
+    DEPTH.with(|x| {
+        let mut rf=x.borrow_mut();
+        let val=*rf;
+        *rf=val+1;
+
+        MAX_DEPTH.with(|r| {
+            let mut max_depth=r.borrow_mut();
+            let max_value=*max_depth;
+            *max_depth=max_value.max(val+1);
+
+            println!("Max depth: {}", *max_depth);
+        });
+    });
+}
+
+fn subtract_depth() {
+    DEPTH.with(|x| {
+        let mut rf=x.borrow_mut();
+        let val=*rf;
+        *rf=val-1;
+        // println!("Subtracted depth:{}", *rf);
+    });
+}
 // why does this take EvalContext without ref:
     // because of issue where when returning from UserFunction execute we need a new owned context
     // can't return &Eval since it's created inside the fn body
 // Good thing is EvalContext.clone() is cheap because of Rc::clone
 pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) -> Result<DataValue> {
     // try to match terminals
-    println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
-  
+    // println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
 
-    match &node.value {
+    // update_depth();
+
+    let result=match &node.value {
         Boolean(b) => Ok(Bool(*b)),
         Number(num) => Ok(Num(*num)),
         Symbol(sym) => {
@@ -54,31 +87,35 @@ pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) ->
             let fnc = read.get_function(sym);
             if fnc.is_some() {
                 let cloned = fnc.unwrap().clone();
-                return Ok(FunctionVariable(cloned));
-            }
-
-            // Variable
-            let resolve = read.get_variable(sym);
-            if resolve.is_some() {
-                Ok(resolve.unwrap().clone())
+                Ok(FunctionVariable(cloned))
             } else {
-                let err_string = format!("Unrecognised symbol: '{}'", sym);
-                err!(err_string.as_str())
-            }
+
+                // Variable
+                let resolve = read.get_variable(sym);
+                if resolve.is_some() {
+                    Ok(resolve.unwrap().clone())
+                } else {
+                    let err_string = format!("Unrecognised symbol: '{}'", sym);
+                    return err!(err_string.as_str())
+                }
+           }
         }
         List(children) => evaluate_list(&ctx, children),
         IfNode(children) => {
-            return evaluate_if(
+            evaluate_if(
                 &ctx,
                 children.get(0).unwrap(),
                 children.get(1).unwrap(),
                 children.get(2).unwrap(),
-            );
+            )
         },
         LetNode(children, global) => evaluate_let(&ctx, children, *global),
         FnNode(fn_def) => evaluate_fn_node(&ctx, fn_def, outer_call),
         Expression(children) => evaluate_expression(&ctx, children),
-    }
+    };
+
+    // subtract_depth();
+    result
 }
 
 // to call with default false outer_call
@@ -122,3 +159,14 @@ fn let_test() {
 
     test_eval("(let x 2)", "2");
 }
+
+
+// #[test]
+// fn depth_test() {
+//     let recr="(def recr (n) (if (eq n 0) 0 (recr (pred n))))";
+//     let ctx=EvalContext::new();
+
+//     let l=lex!(recr);
+//     let p=parse(l);
+
+// }
