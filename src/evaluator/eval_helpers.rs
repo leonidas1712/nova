@@ -51,13 +51,13 @@ pub fn is_valid_identifier(s: &str) -> Result<String> {
 // evaluate first child. if len==1, return
 // elif first child is FnVar | FnDef => apply to arguments
 // else: evaluate nodes in order, return result from last
-pub fn evaluate_expression(ctx: &Context, children: &Vec<Rc<ASTNode>>) -> Result<DataValue> {
+pub fn evaluate_expression(ctx: EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<DataValue> {
     if children.is_empty() {
         return err!("Received empty expression.");
     }
 
     let first_child = children.first().unwrap();
-    let res = eval!(ctx, first_child)?;
+    let res = eval!(ctx, Rc::clone(first_child))?;
 
     if children.len() == 1 {
         return Ok(res);
@@ -66,7 +66,7 @@ pub fn evaluate_expression(ctx: &Context, children: &Vec<Rc<ASTNode>>) -> Result
     let mut rest = children.iter();
     rest.next();
 
-    let eval_rest = rest.clone().map(|node| eval!(ctx, node));
+    let eval_rest = rest.clone().map(|node| eval!(ctx, Rc::clone(node)));
 
     // is function: check ArgType, gets arg, eval.
         // if err: insert eval_rest.clone() again
@@ -94,15 +94,15 @@ pub fn evaluate_expression(ctx: &Context, children: &Vec<Rc<ASTNode>>) -> Result
     }
 }
 
-pub fn evaluate_list(_ctx: &Context, children: &Vec<Rc<ASTNode>>) -> Result<DataValue> {
+pub fn evaluate_list(_ctx: EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<DataValue> {
     dbg!(children);
     Ok(Default)
 }
 // DeferredExpr: body=returned condition, 
 // 
 // 
-pub fn evaluate_if(ctx: &Context, cond: &ASTNode, e1: &ASTNode, e2: &ASTNode) -> Result<DataValue> {
-    let cond_result = eval!(ctx, cond)?;
+pub fn evaluate_if(ctx: EvalContext, cond: &Rc<ASTNode>, e1: &Rc<ASTNode>, e2: &Rc<ASTNode>) -> Result<DataValue> {
+    let cond_result = eval!(ctx, Rc::clone(cond))?;
 
     // add empty list as false later
     let condition = match cond_result {
@@ -112,14 +112,14 @@ pub fn evaluate_if(ctx: &Context, cond: &ASTNode, e1: &ASTNode, e2: &ASTNode) ->
     };
 
     if condition {
-        eval!(ctx, e1)
+        eval!(ctx, Rc::clone(e1))
     } else {
-        eval!(ctx, e2)
+        eval!(ctx, Rc::clone(e2))
     }
 }
 
 pub fn evaluate_let(
-    ctx: &Context,
+    ctx: EvalContext,
     expressions: &Vec<Rc<ASTNode>>,
     outer_call: bool,
 ) -> Result<DataValue> {
@@ -134,10 +134,10 @@ pub fn evaluate_let(
 
     for (idx, nxt_node) in expressions.into_iter().enumerate() {
         if idx == n - 1 {
-            let res = eval!(&new_ctx, nxt_node)?;
+            let res = eval!(new_ctx.clone(), Rc::clone(nxt_node))?;
 
             if let Some(var_name) = var {
-                new_ctx.add_variable(var_name, res.clone());
+                new_ctx.write().add_variable(var_name, res.clone());
             }
 
             outer_res.replace(res);
@@ -145,10 +145,10 @@ pub fn evaluate_let(
         }
 
         if var.is_some() {
-            let res = eval!(&new_ctx, &nxt_node)?;
+            let res = eval!(new_ctx.clone(), Rc::clone(nxt_node))?;
             outer_res.replace(res.clone());
 
-            new_ctx.add_variable(var.unwrap(), res);
+            new_ctx.write().add_variable(var.unwrap(), res);
             var.take();
             continue;
         }
@@ -195,8 +195,8 @@ pub fn evaluate_let(
 
 use super::function::*;
 use crate::parser::parse_node::FnDef;
-pub fn evaluate_fn_node(ctx: &Context, fn_def: &FnDef, outer_call: bool) -> Result<DataValue> {
-    let func = UserFunction::new(&ctx, &fn_def);
+pub fn evaluate_fn_node(ctx: EvalContext, fn_def: &FnDef, outer_call: bool) -> Result<DataValue> {
+    let func = UserFunction::new(ctx, &fn_def);
     let rc: Rc<UserFunction> = Rc::new(func);
 
     if !outer_call {

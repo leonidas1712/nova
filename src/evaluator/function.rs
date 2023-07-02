@@ -12,7 +12,7 @@ use crate::parser::parse_node::*;
 
 // &Context: need to be able to re-use the context
 pub trait Function {
-    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue>;
+    fn execute(&self, args: Vec<Arg>, context: EvalContext) -> Result<DataValue>;
 
     // default: Evaluated
     fn get_arg_type(&self) -> ArgType {
@@ -27,7 +27,7 @@ use crate::parser::parse_node::FnDef;
 // name, params, body
 // #[derive(Clone)]
 pub struct UserFunction {
-    context: Context,
+    context: EvalContext,
     name: String,
     params: Vec<String>,
     body: Vec<Rc<ASTNode>>,
@@ -39,18 +39,7 @@ struct Test<'a> {
 // clone fn_def because it could have come from a closure: the original function still needs it
 // same reason for context: to impl closure we need to capture ctx at time of creation
 impl UserFunction {
-    fn ret_node(&self, args:Vec<Arg>, outer_ctx:&Context)->Test {
-        let y = self.body.get(0);
-        let x=y.unwrap();
-        let z = x;
-        println!("{}", x.to_string());
-
-        let new_ctx=self.curry(args).unwrap();
-        
-        Test { context: Rc::new(&self.context) }
-    }
-
-    pub fn new(context: &Context, fn_def: &FnDef) -> UserFunction {
+    pub fn new(context: EvalContext, fn_def: &FnDef) -> UserFunction {
         UserFunction {
             context: context.clone(),
             name: fn_def.name.clone(),
@@ -80,7 +69,7 @@ impl UserFunction {
             new_ctx.add_variable(tup.0.as_str(), tup.1);
         });
 
-        let new_ctx = new_ctx.merge_context(&self.context);
+        let new_ctx = new_ctx.merge_context(self.context.clone());
 
         Ok(new_ctx)
     }
@@ -106,7 +95,7 @@ impl UserFunction {
 }
 
 impl Function for UserFunction {
-    fn execute(&self, args: Vec<Arg>, outer_ctx: &Context) -> Result<DataValue> {
+    fn execute(&self, args: Vec<Arg>, outer_ctx: EvalContext) -> Result<DataValue> {
         // first clone + add arguments using params and args
 
         let strings: Vec<String> = args.iter().map(|x| x.to_string()).collect();
@@ -122,7 +111,7 @@ impl Function for UserFunction {
         let fn_node = self.body.get(0).unwrap(); // currently on first part
 
         println!("Fn_node:{}", fn_node);
-        let res = evaluator::eval!(&eval_ctx, fn_node)?;
+        let res = evaluator::eval!(eval_ctx.clone(), Rc::clone(fn_node))?;
 
         return Ok(res);
     }

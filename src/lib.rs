@@ -25,15 +25,16 @@ use crate::{
     constants::*,
     evaluator::{builtins::*, context::{Context,setup_context}, evaluator::evaluate},
 };
+use evaluator::context::EvalContext;
 use rustyline::{error::ReadlineError, DefaultEditor};
 
 // main function to take a string -> get a string representing output
 // take a mut ctx -> in only 2 cases we need to add something:
 // FnDef and (set x...) => have special types in DataValue for this
-pub fn evaluate_input(inp: &str, context: &mut Context) -> String {
+pub fn evaluate_input(inp: &str, context: &mut EvalContext) -> String {
     let res = lexer::Lexer::new(inp.to_string())
         .and_then(|lex| parser::parser::parse(lex))
-        .and_then(|node| evaluate(&context, &node, true));
+        .and_then(|node| evaluate(context.clone(), node, true));
 
     // context.add_function(name, function)
 
@@ -44,17 +45,20 @@ pub fn evaluate_input(inp: &str, context: &mut Context) -> String {
         Ok(val) => {
             // dbg!(&val);
             let mut string = val.to_string();
+            let mut mut_context=context.write();
 
             //set outer context here
             if let SetVar(data) = val {
                 let ret_ctx = data.context;
                 let value = data.value;
                 string = value.to_string();
-                context.write_context(*ret_ctx);
+
+                mut_context.write_context(*ret_ctx);
+
             } else if let SetFn(rc) = val {
                 let name = rc.get_name();
                 let rc2: Rc<dyn Function> = rc;
-                context.add_function(&name, rc2);
+                mut_context.add_function(&name, rc2);
             }
             // end set outer ctx
             string
@@ -69,14 +73,14 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     args.next();
     args.for_each(|s| println!("{}", s));
 
-    let ctx = setup_context();
+    let ctx = EvalContext::new();
 
     use crate::time::bench;
 
     nova_repl(ctx);
 }
 
-pub fn nova_repl(mut context: Context) {
+pub fn nova_repl(mut context: EvalContext) {
     let mut rl = DefaultEditor::new().unwrap();
 
     println!();

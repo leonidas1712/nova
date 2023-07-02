@@ -36,7 +36,7 @@ pub struct EvaluatedExpression {
     data:DataValue,
 }
 
-pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call: bool) -> Result<DataValue> {
+pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) -> Result<DataValue> {
     // try to match terminals
     println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
   
@@ -46,14 +46,14 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call: bool) -> Resul
         Number(num) => Ok(Num(*num)),
         Symbol(sym) => {
             // Function
-            let fnc = ctx.get_function(sym);
+            let fnc = ctx.read().get_function(sym);
             if fnc.is_some() {
                 let cloned = fnc.unwrap().clone();
                 return Ok(FunctionVariable(cloned));
             }
 
             // Variable
-            let resolve = ctx.get_variable(sym);
+            let resolve = ctx.read().get_variable(sym);
             if resolve.is_some() {
                 Ok(resolve.unwrap().clone())
             } else {
@@ -70,8 +70,8 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call: bool) -> Resul
                 children.get(2).unwrap(),
             );
         },
-        LetNode(children, global) => return evaluate_let(ctx, children, *global),
-        FnNode(fn_def) => return evaluate_fn_node(&ctx, fn_def, outer_call),
+        LetNode(children, global) => evaluate_let(ctx, children, *global),
+        FnNode(fn_def) => evaluate_fn_node(ctx, fn_def, outer_call),
         Expression(children) => evaluate_expression(ctx, children),
     }
 }
@@ -92,8 +92,8 @@ use crate::parser::parser::parse;
 pub fn test_eval(expr: &str, expected: &str) {
     let l = lex!(expr);
     let p = parse(l).unwrap();
-    let ctx = setup_context();
-    let e = evaluate(&ctx, &p, true).unwrap().to_string();
+    let ctx = EvalContext::new();
+    let e = evaluate(ctx, p, true).unwrap().to_string();
 
     assert_eq!(e, expected);
 }

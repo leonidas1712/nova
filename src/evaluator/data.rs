@@ -5,7 +5,7 @@ use crate::constants::NumType;
 use crate::message::*;
 use crate::parser::parse_node::{ASTNode, FnDef};
 
-use super::context::Context;
+use super::context::{Context, EvalContext};
 use super::function::{Function, UserFunction};
 
 
@@ -14,12 +14,12 @@ use super::function::{Function, UserFunction};
 
 #[derive(Clone)]
 pub struct LetReturn {
-    pub context: Box<Context>,
+    pub context: Box<EvalContext>,
     pub value: Rc<DataValue>, // need to return out of function
 }
 
 impl LetReturn {
-    pub fn new(context: Context, value: DataValue) -> LetReturn {
+    pub fn new(context: EvalContext, value: DataValue) -> LetReturn {
         LetReturn {
             context: Box::new(context),
             value: Rc::new(value),

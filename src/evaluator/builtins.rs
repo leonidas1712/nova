@@ -41,7 +41,7 @@ fn get_nums(args: Vec<Arg>) -> Result<Vec<NumType>> {
 
 pub struct Add;
 impl Function for Add {
-    fn execute(&self, args: Vec<Arg>, _context: &Context) -> Result<DataValue> {
+    fn execute(&self, args: Vec<Arg>, _context: EvalContext) -> Result<DataValue> {
         let r = get_nums(args);
         let total: Result<NumType> = r.map(|v| v.into_iter().sum());
         total.map(|n| Num(n))
@@ -55,7 +55,7 @@ impl Function for Add {
 
 pub struct Sub;
 impl Function for Sub {
-    fn execute(&self, args: Vec<Arg>, _context: &Context) -> Result<DataValue> {
+    fn execute(&self, args: Vec<Arg>, _context: EvalContext) -> Result<DataValue> {
         get_nums(args)
             .map(|v| v.into_iter().reduce(|acc, e| acc - e))?
             .ok_or(Ex::new("Could not subtract provided expression"))
@@ -69,7 +69,7 @@ impl Function for Sub {
 
 pub struct Mult;
 impl Function for Mult {
-    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
+    fn execute(&self, args: Vec<Arg>, context: EvalContext) -> Result<DataValue> {
         get_nums(args)
             .map(|v| v.into_iter().reduce(|acc, e| acc * e))?
             .ok_or(Ex::new("Could not multiply provided expression"))
@@ -83,7 +83,7 @@ impl Function for Mult {
 
 pub struct Equals;
 impl Function for Equals {
-    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
+    fn execute(&self, args: Vec<Arg>, context: EvalContext) -> Result<DataValue> {
         let eval_args = ev!(args);
         check!(EQUALS, 2, eval_args);
 
@@ -100,7 +100,7 @@ impl Function for Equals {
 
 pub struct Succ;
 impl Function for Succ {
-    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
+    fn execute(&self, args: Vec<Arg>, context: EvalContext) -> Result<DataValue> {
         let eval_args = get_nums(args)?;
         check!(INC, 1, eval_args);
 
@@ -117,7 +117,7 @@ impl Function for Succ {
 
 pub struct Pred;
 impl Function for Pred {
-    fn execute(&self, args: Vec<Arg>, context: &Context) -> Result<DataValue> {
+    fn execute(&self, args: Vec<Arg>, context: EvalContext) -> Result<DataValue> {
         let eval_args = get_nums(args)?;
         check!(DEC, 1, eval_args);
 

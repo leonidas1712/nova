@@ -12,7 +12,7 @@ use super::function::*;
 
 // wrapper around Rc<RefCell<Context>>
 #[derive (Clone)]
-struct EvalContext {
+pub struct EvalContext {
     ctx:Rc<RefCell<Context>>
 }
 
@@ -23,11 +23,23 @@ impl EvalContext {
         }
     }
 
-    fn read(&self)->Ref<Context> {
+    pub fn new_from_context(ctx:&Context)->EvalContext {
+        let new_ctx=ctx.clone();
+        EvalContext {
+            ctx:Rc::new(RefCell::new(new_ctx))
+        }
+    }
+
+    pub fn merge_context(&self, other_ctx:EvalContext)->EvalContext {
+        let new_ctx=&self.read().merge_context(other_ctx);
+        EvalContext::new_from_context(new_ctx)
+    }
+
+    pub fn read(&self)->Ref<Context> {
         self.ctx.as_ref().borrow()
     }
 
-    fn write(&self)->RefMut<Context> {
+    pub fn write(&mut self)->RefMut<Context> {
         self.ctx.as_ref().borrow_mut()
     }
 }
@@ -66,10 +78,10 @@ impl Context {
 
     // take other context and merge with self => new context
     // self context should take preced i.e if self has variable other shouldnt overwrite
-    pub fn merge_context(&self, other_ctx: &Context) -> Context {
+    pub fn merge_context(&self, other_ctx: EvalContext) -> Context {
         let mut new_ctx = self.clone();
 
-        for (key, value) in &other_ctx.symbol_map {
+        for (key, value) in &other_ctx.read().symbol_map {
             if new_ctx.get_data_value(&key).is_none() {
                 new_ctx.symbol_map.insert(key.clone(), value.clone());
             }
@@ -224,25 +236,27 @@ pub mod tests {
 
     #[test]
     pub fn context_test_merge() {
-        let mut c = Context::new();
-        c.add_variable("x", Num(2));
-        c.add_variable("y", Num(3));
+        let mut c = EvalContext::new();
+
+        c.write().add_variable("x", Num(2));
+        c.write().add_variable("y", Num(3));
 
         let mut c2 = c.clone();
-        c2.add_variable("x", Num(5));
-        c2.add_variable("y", Num(10));
-        c2.add_variable("z", Num(10));
 
-        let c3 = c.merge_context(&c2);
+        c2.write().add_variable("x", Num(5));
+        c2.write().add_variable("y", Num(10));
+        c2.write().add_variable("z", Num(10));
+
+        let c3 = c.merge_context(c2);
         assert_eq!(
-            c3.get_data_value(&"x".to_string())
+            c3.read().get_data_value(&"x".to_string())
                 .unwrap()
                 .expect_num()
                 .unwrap(),
             2
         );
         assert_eq!(
-            c3.get_data_value(&"z".to_string())
+            c3.read().get_data_value(&"z".to_string())
                 .unwrap()
                 .expect_num()
                 .unwrap(),
