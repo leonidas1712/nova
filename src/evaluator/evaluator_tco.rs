@@ -84,14 +84,33 @@ fn resolve(call_stack:&mut VecDeque<StackExpression>, fn_stack:&mut VecDeque<Fun
 
     let ctx=&expr.ctx;
     let body=&expr.body;
+    
+    let mut result=ExpressionResult {
+        data:Num(-1),
+        parent:parent.clone()
+    };
 
-    match body.value {
+    match &body.value {
         Number(n) => {
-            let result=ExpressionResult {
-                data:Num(n),
-                parent:parent.clone()
-            };
+            result.data=Num(*n);
             results.push_back(result);
+        },
+        Boolean(b) => {
+            result.data=Bool(*b);
+            results.push_back(result);
+        },
+        Symbol(sym) => {
+            // function
+            // let read=ctx.read();
+            // let fnc=read.get_function(sym);
+            // if fnc.is_some() {
+            //     result.data=FunctionVariable(
+            //         fnc.unwrap().clone()
+            //     );
+            // } else {
+            //     let resolve=read.get_variable(sym);
+            // }
+            
         },
         _ => {
             todo!();
