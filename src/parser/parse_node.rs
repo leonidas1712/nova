@@ -45,7 +45,7 @@ impl Display for FnDef {
 pub enum ParseValue {
     Symbol(String),
     Number(NumType),
-    Expression(Vec<Rc<ASTNode>>),
+    ParseExpression(Vec<Rc<ASTNode>>),
     List(Vec<Rc<ASTNode>>),
     Boolean(bool),
     IfNode(Vec<Rc<ASTNode>>),
@@ -63,7 +63,7 @@ impl ParseValue {
 
     pub fn get_expression(&self) -> Option<Vec<Rc<ASTNode>>> {
         match self {
-            Expression(nodes) => Some(nodes.clone().to_vec()),
+            ParseExpression(nodes) => Some(nodes.clone().to_vec()),
             _ => None,
         }
     }
@@ -122,7 +122,7 @@ impl ASTNode {
         let original=Rc::new(original);
 
         match &mut value {
-            Expression(ref mut children) | 
+            ParseExpression(ref mut children) | 
             List(ref mut children)       |
             LetNode(ref mut children, _) |
             IfNode(ref mut children)
@@ -138,7 +138,7 @@ impl ASTNode {
                 let children:Vec<Rc<ASTNode>>=children.into_iter().map(|r| Rc::new(r)).collect();
 
                 let new_value= match value {
-                    Expression(_) => Expression(children),
+                    ParseExpression(_) => ParseExpression(children),
                     IfNode(_) => IfNode(children),
                     LetNode(_,global) => LetNode(children,global),
                     List(_)=>List(children),
@@ -170,7 +170,7 @@ impl ASTNode {
     }
 
     pub fn get_children(&self) -> Option<&Vec<Rc<ASTNode>>> {
-        if let Expression(children) | List(children) = &self.value {
+        if let ParseExpression(children) | List(children) = &self.value {
             Some(&children)
         } else {
             None
@@ -207,7 +207,7 @@ impl ASTNode {
         match &self.value {
             Symbol(string) => string.clone(),
             Number(num) => num.to_string(),
-            Expression(children) => {
+            ParseExpression(children) => {
                 let v: Vec<String> = children.iter().map(|n| n.to_string()).collect();
                 format!("{}{}{}", OPEN_EXPR, v.join(SPACE), CLOSE_EXPR)
             }

@@ -127,7 +127,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
 
     let node_val = if open_token == OPEN_EXPR {
         
-        Expression(children)
+        ParseExpression(children)
     } else {
         List(children)
     };
@@ -208,7 +208,7 @@ pub fn parse(mut lex: lexer::Lexer) -> Result<Rc<ASTNode>> {
         // if special: return that, otherwise make expr with nodes
         // global true: so that 'let' without brackets can be used for var assignment
         try_spec!(nodes, true);
-        Rc::new(ASTNode::new(Expression(nodes)))
+        Rc::new(ASTNode::new(ParseExpression(nodes)))
     };
 
     Ok(root)
@@ -298,14 +298,14 @@ pub mod tests {
         let first_layer = get_node_value_strings(&res);
         assert_eq!(
             first_layer.unwrap(),
-            vec!["Symbol", "Expression", "Expression", "List"]
+            vec!["Symbol", "ParseExpression", "ParseExpression", "List"]
         );
 
         let snd = res.get_ith_child(1);
         let snd_children = snd.and_then(|node| get_node_value_strings(node));
         assert_eq!(
             snd_children.unwrap(),
-            vec!["Symbol", "Symbol", "Expression"]
+            vec!["Symbol", "Symbol", "ParseExpression"]
         );
 
         let snd = snd.unwrap();
@@ -379,7 +379,7 @@ pub mod tests {
         println!("{}", p.to_string_with_parent());
 
         match &p.value {
-            Expression(children) | IfNode(children) | LetNode(children, _) => {
+            ParseExpression(children) | IfNode(children) | LetNode(children, _) => {
                 let c1=children.get(0).unwrap();
                 
                 let c1_parent=c1.parent.clone().unwrap();

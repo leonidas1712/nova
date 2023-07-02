@@ -111,7 +111,7 @@ pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) ->
         },
         LetNode(children, global) => evaluate_let(&ctx, children, *global),
         FnNode(fn_def) => evaluate_fn_node(&ctx, fn_def, outer_call),
-        Expression(children) => evaluate_expression(&ctx, children),
+        ParseExpression(children) => evaluate_expression(&ctx, children),
     };
 
     // subtract_depth();
