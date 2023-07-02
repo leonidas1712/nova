@@ -23,7 +23,10 @@ use std::rc::Rc;
 
 use crate::{
     constants::*,
-    evaluator::{builtins::*, context::{Context,setup_context}, evaluator::evaluate},
+    evaluator::{builtins::*, context::{Context,setup_context}, 
+    evaluator::evaluate,evaluator_tco::evaluate_tco
+
+    },
 };
 use evaluator::context::EvalContext;
 use rustyline::{error::ReadlineError, DefaultEditor};
