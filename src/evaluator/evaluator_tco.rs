@@ -17,10 +17,12 @@ use super::{context::*, data::*, function::*, eval_helpers_tco::*};
     // alt: take the last expr + ctx out and put on stack as deferred
 
 // #[derive(Display)]
-// pub enum Expression {
+// pub enum EvalExpression {
 //     Deferred(DeferredExpression),
 //     Result(EvaluatedExpression)
 // }
+
+// pub use EvalExpression::*;
 
 pub struct FunctionCall {
     pub func:Rc<dyn Function>,
@@ -43,9 +45,9 @@ pub struct DeferredExpression {
 }
 
 // this will get transferred to the result queue
-// pub struct EvaluatedExpression {
-//     data:DataValue,
-// }
+pub struct EvaluatedExpression {
+    data:DataValue,
+}
 
 pub struct ExpressionResult {
     pub data:DataValue,
@@ -61,7 +63,12 @@ pub(crate) fn evaluate_outer(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bo
         body:Rc::clone(&node)
     };
 
-    let stack_expr=StackExpression {
+    // let stack_expr=StackExpression {
+    //     expr:Deferred(deferred),
+    //     parent:node.parent.clone()
+    // };
+
+     let stack_expr=StackExpression {
         expr:deferred,
         parent:node.parent.clone()
     };
@@ -79,6 +86,7 @@ use std::collections::VecDeque;
 fn resolve(call_stack:&mut VecDeque<StackExpression>, fn_stack:&mut VecDeque<FunctionCall>,results:&mut VecDeque<ExpressionResult>)->Result<()> {
     let expression=call_stack.pop_back().unwrap();
     let parent=&expression.parent;
+
     let expr=&expression.expr;
 
     let ctx=&expr.ctx;

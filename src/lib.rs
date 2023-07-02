@@ -38,7 +38,7 @@ use rustyline::{error::ReadlineError, DefaultEditor};
 pub fn evaluate_input(inp: &str, context: &mut EvalContext) -> String {
     let res = lexer::Lexer::new(inp.to_string())
         .and_then(|lex| parser::parser::parse(lex))
-        .and_then(|node| evaluate_outer(context.clone(), node, true));
+        .and_then(|node| evaluate(context.clone(), node, true));
 
     // context.add_function(name, function)
 
