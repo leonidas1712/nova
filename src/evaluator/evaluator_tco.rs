@@ -43,22 +43,6 @@ pub struct StackExpression {
     pub parent:Option<Rc<ASTNode>>
 }
 
-// impl StackExpression {
-//     fn get_evaluated(&self)->Option<DataValue>{
-//         match &self.expr {
-//             DeferredExpr(_) => None,
-//             EvaluatedExpr(val) => Some(val.clone())
-//         }
-//     }
-
-//     fn get_deferred(&self)->Option<DeferredExpression> {
-//         match &self.expr {
-//             DeferredExpr(de) => Some(de.clone()),
-//             EvaluatedExpr(_) => None
-//         }
-//     }
-// }
-
 // body: used for eval, parent: used for checking
 #[derive(Clone)]
 pub struct DeferredExpression {
@@ -67,6 +51,7 @@ pub struct DeferredExpression {
 }
 
 // result on the result queue
+    // ensuring evaluated expr without parent is invalid, doesnt go on resq
 #[derive(Clone)]
 pub struct ExpressionResult {
     pub data:DataValue,
@@ -99,8 +84,26 @@ use std::collections::VecDeque;
 
 fn resolve(call_stack:&mut VecDeque<StackExpression>, fn_stack:&mut VecDeque<FunctionCall>,results:&mut VecDeque<ExpressionResult>)->Result<()> {
     let expression=call_stack.pop_back().unwrap();
+    let expr=&expression.expr;
 
-    
+    let body=&expr.body;
+    let ctx=&expr.ctx;
+    let parent=&body.parent;
+
+    let mut result=ExpressionResult {
+        data:Num(-1),
+        parent:parent.clone()
+    };
+
+    match body.value {
+        Number(n) => {
+            result.data=Num(n);
+            results.push_back(result);
+        },
+        _ => {
+            todo!()
+        }
+    }
     
     Ok(())
 }
@@ -133,7 +136,7 @@ fn evaluate_tco(expression:StackExpression, outer_call: bool) -> Result<DataValu
 
         // call only
         else if call_has && !fn_has {
-            // resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
+            resolve(&mut call_stack, &mut fn_stack, &mut results_queue)?;
         }
         
         // fn only - fn.execute
