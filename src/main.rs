@@ -4,50 +4,76 @@
 #![allow(unused_macros)]
 #![recursion_limit = "5000"]
 
+use nova::evaluator::data::Arg::Evaluated;
 use nova::evaluator::data::DataValue::Num;
 // (recr_t 6000 0)
 use nova::{self, setup_context};
 use nova::parser::parser::parse;
 use nova::evaluator::context::*;
 use std::borrow::{Borrow, BorrowMut};
-use std::cell::RefCell;
+use std::cell::{RefCell, Ref, RefMut};
 use std::{env::args, rc::Rc};
 
 struct FuncReturn {
+    ctx:Context
+}
+
+#[derive (Clone)]
+struct EvalContext {
     ctx:Rc<RefCell<Context>>
 }
 
+impl EvalContext {
+    pub fn new()->EvalContext {
+        EvalContext {
+            ctx:Rc::new(RefCell::new(setup_context()))
+        }
+    }
+
+    pub fn read(&self)->Ref<Context> {
+        self.ctx.as_ref().borrow()
+    }
+
+    pub fn write(&self)->RefMut<Context> {
+        self.ctx.as_ref().borrow_mut()
+    }
+}
+
 // takes a Rc<Rf> ctx and reads from it then returns out another Rc<Rf<ctx>>
-// fn func1(ctx:Rc<RefCell<Context>>)->FuncReturn{
-//     let mut ctx2=ctx.as_ref().borrow().clone();
-//     ctx2.add_variable("y", Num(2));
-//     FuncReturn { ctx: Rc::new(RefCell::new(ctx2)) }
-// }
+fn func1(ctx:EvalContext, assign:(&str,i64))->FuncReturn{
+    let mut ctx2=ctx.read().clone();
+    ctx2.add_variable(assign.0, Num(assign.1));
+    FuncReturn { ctx: ctx2 }
+}
 
 fn main() {
-    // let ctx=Context::new();
-    // let ctx=RefCell::new(ctx);
-    // let ctx=Rc::new(ctx);
+   let ev=EvalContext::new();
+   let vars:[(&str,i64);3]=[("x",1),("y",2),("z",3)];
+   let vars2=vars.clone();
 
-    // func1(Rc::clone(&ctx));
+   for tup in vars.into_iter() {
+        let re=func1(ev.clone(), tup.clone());
+        println!("ok");
 
-    // ctx.as_ref().borrow_mut().add_variable("g", Num(3));
+        let new_ctx=re.ctx;
+        ev.write().write_context(new_ctx);
 
-    // let mut c_ref=ctx.as_ref().borrow_mut();
-    // let g=c_ref.get_variable("g");
-    // println!("{}",g.unwrap().to_string());
+        let y=ev.read();
 
-    // c_ref.add_variable("g2", Num(4));
-    // let g2=c_ref.get_variable("g2");
+        let var_name=tup.0.clone();
+        let var=y.get_variable(tup.0);
+        let var=var.unwrap();
+        println!("{}:{}", var_name, var.to_string());
+   }
 
-    // func1(Rc::clone(&ctx));
-    // println!("{}",g2.unwrap().to_string());
+   for tup in vars2.into_iter() {
+       let var=tup.0.clone();
+       let ctx=ev.read();
+       let get=ctx.get_variable(var).unwrap();
+       println!("{}:{}", var, get.to_string())
+   }
 
-    // let y=c_ref.get_variable("y");
-    // println!("{}", y.is_some());
-
-    let args = args().into_iter();
-    nova::run(args);
+//    ev.write().add_variable("x", Num(23)); this is illegal because mutable ref above + immutable ref here
 }
 
 // (range 5 10) >> for_each $ puts => prints 5,6,7,..10
