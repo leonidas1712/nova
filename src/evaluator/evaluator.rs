@@ -69,7 +69,7 @@ pub(crate) fn evaluate(ctx: &Context, node: &ASTNode, outer_call: bool) -> Resul
                 children.get(1).unwrap(),
                 children.get(2).unwrap(),
             );
-        }
+        },
         LetNode(children, global) => return evaluate_let(ctx, children, *global),
         FnNode(fn_def) => return evaluate_fn_node(&ctx, fn_def, outer_call),
         Expression(children) => evaluate_expression(ctx, children),

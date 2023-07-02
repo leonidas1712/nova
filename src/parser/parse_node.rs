@@ -159,22 +159,6 @@ impl ASTNode {
                 }
             }
         }
-
-        // let original=ASTNode::empty();
-        // let original=Rc::new(original);
-
-        // ASTNode {
-        //     value,
-        //     parent: Rc::downgrade(&original)
-        // }
-
-
-
-        // works:
-            // ASTNode {
-            //     value,
-            //     parent: Weak::new(),
-            // }
     }
 
     pub fn empty() -> ASTNode {
