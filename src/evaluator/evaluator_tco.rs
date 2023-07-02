@@ -57,11 +57,7 @@ pub struct ExpressionResult {
     pub parent: Option<Rc<ASTNode>>,
 }
 
-pub(crate) fn evaluate_outer(
-    ctx: EvalContext,
-    node: Rc<ASTNode>,
-    outer_call: bool,
-) -> Result<DataValue> {
+pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: bool,) -> Result<DataValue> {
     // try to match terminals
     println!(
         "Node type: {}, Expr: {}",
@@ -88,11 +84,59 @@ pub(crate) fn evaluate_outer(
 // Good thing is EvalContext.clone() is cheap because of Rc::clone
 use std::collections::VecDeque;
 
-fn resolve(
-    call_stack: &mut VecDeque<StackExpression>,
-    fn_stack: &mut VecDeque<FunctionCall>,
-    results: &mut VecDeque<ExpressionResult>,
-) -> Result<()> {
+struct ResolveExprArgs<'a> {
+    ast:&'a Rc<ASTNode>, // ast for the function call
+    children:&'a Vec<Rc<ASTNode>>, // all the children of the expression
+    ctx:&'a EvalContext,
+    parent:&'a Option<Rc<ASTNode>> // parent of the expression
+}
+
+// unroll expression onto call stack and resolve first member to a function then push to fn_stack
+fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut VecDeque<FunctionCall>,
+    results: &mut VecDeque<ExpressionResult>,args:ResolveExprArgs
+)->Result<()> {
+    let children=args.children;
+    let ctx=args.ctx;
+    let parent=args.parent;
+    let ast=args.ast;
+    
+    if children.is_empty() {
+        return err!("Received empty expression.");
+    }
+
+    //ctx: EvalContext,node: Rc<ASTNode>, outer_call: bool,
+    let first_child = children.first().unwrap();
+    let eval_first=evaluate_outer(ctx.clone(), first_child.clone(), false)?;
+    println!("Eval first:{}", eval_first.to_string());
+    println!("Ast:{}", ast.to_string());
+
+    if let Some(prt) = parent {
+        println!("Parent:{}", prt.to_string());
+    } else {
+        println!("No parent");
+    }
+
+    // we expect first part of expression to resolve to a fn call
+        // let and if handled separately already
+    
+    // pub func: Rc<dyn Function>,
+    // pub ast: Rc<ASTNode>,
+    // pub parent: Option<Rc<ASTNode>>,
+
+    let func=eval_first.expect_function()?;
+    let func_call=FunctionCall {
+        func:func.clone(),
+        ast:Rc::clone(ast),
+        parent:parent.clone()
+    };
+
+    // fn_stack.push_back(func_call);
+    
+    Ok(())
+}
+
+fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,results: &mut VecDeque<ExpressionResult>)
+ -> Result<()> {
     let expression = call_stack.pop_back().unwrap();
     let expr = &expression.expr;
 
@@ -128,15 +172,25 @@ fn resolve(
                     return err!(err_string.as_str());
                 }
             }
-        },
+        }
         IfNode(children) => {
-            let res=evaluate_if(ctx, children)?;
-            let stack_expr=StackExpression {
-                expr:res,
-                parent:parent.clone()
+            let res = evaluate_if(ctx, children)?;
+            let stack_expr = StackExpression {
+                expr: res,
+                parent: parent.clone(),
             };
             call_stack.push_back(stack_expr);
         },
+        // only a side effect, no return (besides err)
+        ParseExpression(children) => {
+            let args=ResolveExprArgs {
+                children,
+                ctx,
+                parent,
+                ast:body
+            };
+            resolve_expression(call_stack, fn_stack, results, args)?;
+        }
         _ => {
             todo!()
         }

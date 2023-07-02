@@ -126,7 +126,6 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
     try_spec!(children, false);
 
     let node_val = if open_token == OPEN_EXPR {
-        
         ParseExpression(children)
     } else {
         List(children)
@@ -369,43 +368,41 @@ pub mod tests {
             .contains("Can't parse empty expression: '()'"));
     }
 
-    fn test_equality_expr(s:&str) {
-        let l=lex!(s);
-        let p=parse(l).unwrap();
+    fn test_equality_expr(s: &str) {
+        let l = lex!(s);
+        let p = parse(l).unwrap();
 
-        let l2=lex!(s);
-        let p2=parse(l2).unwrap();
+        let l2 = lex!(s);
+        let p2 = parse(l2).unwrap();
 
         println!("{}", p.to_string_with_parent());
 
         match &p.value {
             ParseExpression(children) | IfNode(children) | LetNode(children, _) => {
-                let c1=children.get(0).unwrap();
-                
-                let c1_parent=c1.parent.clone().unwrap();
-                let c1_parent=c1_parent.as_ref();
+                let c1 = children.get(0).unwrap();
+
+                let c1_parent = c1.parent.clone().unwrap();
+                let c1_parent = c1_parent.as_ref();
                 // let c1_parent=c1_parent.as_ref();
 
-                let c1_parent_cloned=c1_parent.clone();
-                
+                let c1_parent_cloned = c1_parent.clone();
+
                 // child's parent compares equal to original
-                let p_ref=p.as_ref();
+                let p_ref = p.as_ref();
                 assert_eq!(c1_parent, p_ref);
 
                 // cloned expr should be unequal
-                    // (fn 1 (fn 2 3)) where (fn 2 3) = (add a b)
-                        // 1 is in resq when doing (fn 2 3)
-                        // 1's parent is e here but could be a more nested expr where
-                            // 1's parent is (add a b) while in queue
-                            // then fn2 takes too many arguments out
-                assert_ne!(c1_parent,&c1_parent_cloned);
+                // (fn 1 (fn 2 3)) where (fn 2 3) = (add a b)
+                // 1 is in resq when doing (fn 2 3)
+                // 1's parent is e here but could be a more nested expr where
+                // 1's parent is (add a b) while in queue
+                // then fn2 takes too many arguments out
+                assert_ne!(c1_parent, &c1_parent_cloned);
 
                 // but same expr is not equal (essentially compare by ref)
                 assert_ne!(&p, &p2);
-            },
-            _ => {
-
             }
+            _ => {}
         }
     }
 

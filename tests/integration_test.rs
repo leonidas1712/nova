@@ -1,42 +1,51 @@
 #![recursion_limit = "5000"]
-use nova::{evaluate_input, evaluator::context::{Context,setup_context, EvalContext}};
-fn compare(inp:&str, expected:&str, ctx:&mut EvalContext) {
-    let res=evaluate_input(inp.trim(), ctx);
+use nova::{
+    evaluate_input,
+    evaluator::context::{setup_context, Context, EvalContext},
+};
+fn compare(inp: &str, expected: &str, ctx: &mut EvalContext) {
+    let res = evaluate_input(inp.trim(), ctx);
     assert_eq!(res, expected.trim());
 }
 
-fn compare_many(inputs:Vec<&str>, expected:Vec<&str>,  ctx:&mut EvalContext) {
+fn compare_many(inputs: Vec<&str>, expected: Vec<&str>, ctx: &mut EvalContext) {
     inputs
-    .into_iter()
-    .zip(expected.into_iter())
-    .for_each(|tup| compare(tup.0, tup.1, ctx));
+        .into_iter()
+        .zip(expected.into_iter())
+        .for_each(|tup| compare(tup.0, tup.1, ctx));
 }
 
 #[test]
 // arithmetic
 fn calc_test() {
-    let mut ctx=EvalContext::new();
-    let exprs=vec![
+    let mut ctx = EvalContext::new();
+    let exprs = vec![
         "(add 10 (sub (add 5 2) (sub 8 3)) (add (sub 4 1) 6))",
         "(add 4 5 (add 1 2) (sub 3 5 (mul 4 1 3 -5)))",
         "add 5 6 3 4",
         "add true false",
-        "(add sub 5)"
+        "(add sub 5)",
     ];
 
-    let expected=vec!["21","70", "18", "Error: Expected a number but got 'true'","Error: Expected a number but got '<function 'sub'>'"];
+    let expected = vec![
+        "21",
+        "70",
+        "18",
+        "Error: Expected a number but got 'true'",
+        "Error: Expected a number but got '<function 'sub'>'",
+    ];
 
     compare_many(exprs, expected, &mut ctx);
 }
 
 #[test]
 fn if_test() {
-    let mut ctx=EvalContext::new();
-    let exprs=vec![
+    let mut ctx = EvalContext::new();
+    let exprs = vec![
         "(if (if true (add 0 0) (sub 5 4)) (add 10 20 30) (sub 5 (if 1 2 4) 7))",
-        "if (add 0 0) (add 5 6) (mul 5 6)" // no brackets for outermost if
-        ];
-    let expected=vec!["-4", "30"];
+        "if (add 0 0) (add 5 6) (mul 5 6)", // no brackets for outermost if
+    ];
+    let expected = vec!["-4", "30"];
     compare_many(exprs, expected, &mut ctx);
 }
 
@@ -44,7 +53,7 @@ fn if_test() {
 
 #[test]
 fn let_test() {
-    let inps=vec![
+    let inps = vec![
         "let x 2 y 3 (add x y)",
         "(let x (add 5 (if 1 2 (sub 5 6))) x)",
         "(let x (let y (let z 5) y) x)",
@@ -56,11 +65,10 @@ fn let_test() {
             k (sub x y),
             (mul z k)
         )",
-    
     ];
 
-    let exp=vec!["5","7","5","23","120"];
-    let mut ctx=EvalContext::new();
+    let exp = vec!["5", "7", "5", "23", "120"];
+    let mut ctx = EvalContext::new();
     compare_many(inps, exp, &mut ctx)
 }
 
@@ -68,25 +76,28 @@ fn let_test() {
 // // (let x 2) => x not assigned
 #[test]
 fn test_let_global() {
-    let mut ctx=EvalContext::new();
-    let expr="(let x 2)";
+    let mut ctx = EvalContext::new();
+    let expr = "(let x 2)";
     evaluate_input(expr, &mut ctx);
     assert!(ctx.read().get_variable("x").is_none());
 
-    let expr="let x 2";
+    let expr = "let x 2";
     evaluate_input(expr, &mut ctx);
     assert!(ctx.read().get_variable("x").is_some());
 
-    let expr="let x 3";
+    let expr = "let x 3";
     evaluate_input(expr, &mut ctx);
-    assert_eq!(ctx.read().get_variable("x").unwrap().expect_num().unwrap(), 3);
+    assert_eq!(
+        ctx.read().get_variable("x").unwrap().expect_num().unwrap(),
+        3
+    );
 }
 
 #[test]
 pub fn fn_test() {
-    let mut ctx=EvalContext::new();
+    let mut ctx = EvalContext::new();
 
-    let inputs=vec![
+    let inputs = vec![
         "(def id (x) x)",
         "(id 1)",
         "(let x 2 y (def g (a) (add a x)) (y x))",
@@ -96,14 +107,21 @@ pub fn fn_test() {
         ))",
         "(recr 10)",
         "(recr 50)",
-        "(recr 10)"
+        "(recr 10)",
     ];
 
-    let expected=vec!["id(x) => x", "1","4", "recr(n) => (if (eq n 0) 0 (add n (recr (pred n))))", "55", "1275", "55"];
+    let expected = vec![
+        "id(x) => x",
+        "1",
+        "4",
+        "recr(n) => (if (eq n 0) 0 (add n (recr (pred n))))",
+        "55",
+        "1275",
+        "55",
+    ];
 
     compare_many(inputs, expected, &mut ctx);
 }
-
 
 // // (let x 2,let y (let x 3),(add x y))
 

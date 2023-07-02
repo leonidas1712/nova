@@ -8,7 +8,6 @@ use crate::parser::parse_node::*;
 
 use super::parser::*;
 
-
 pub(super) fn parse_special(
     spec_type: Special,
     children: Vec<Rc<ASTNode>>,
@@ -110,7 +109,10 @@ pub(super) fn parse_if_expression(children: Vec<Rc<ASTNode>>) -> Result<Rc<ASTNo
 }
 
 // change to return tuple (ident, expr) since we are checking anyway
-pub(super) fn parse_let_expression(children: Vec<Rc<ASTNode>>, global: bool) -> Result<Rc<ASTNode>> {
+pub(super) fn parse_let_expression(
+    children: Vec<Rc<ASTNode>>,
+    global: bool,
+) -> Result<Rc<ASTNode>> {
     // when parsing symbol: do parse atomic, check valid ident
     // else: parse normally
     if children.len() == 1 {
@@ -124,9 +126,7 @@ pub(super) fn parse_let_expression(children: Vec<Rc<ASTNode>>, global: bool) -> 
 
     let children = children.collect();
 
-    Ok(Rc::new(
-        ASTNode::new(LetNode(children, global)))
-    )
+    Ok(Rc::new(ASTNode::new(LetNode(children, global))))
 }
 
 use super::parser::tests::*;

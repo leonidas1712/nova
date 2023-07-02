@@ -23,9 +23,11 @@ use std::rc::Rc;
 
 use crate::{
     constants::*,
-    evaluator::{builtins::*, context::{Context,setup_context}, 
-    evaluator::evaluate,evaluator_tco::evaluate_outer
-
+    evaluator::{
+        builtins::*,
+        context::{setup_context, Context},
+        evaluator::evaluate,
+        evaluator_tco::evaluate_outer,
     },
 };
 use evaluator::context::EvalContext;
@@ -38,7 +40,7 @@ use rustyline::{error::ReadlineError, DefaultEditor};
 pub fn evaluate_input(inp: &str, context: &mut EvalContext) -> String {
     let res = lexer::Lexer::new(inp.to_string())
         .and_then(|lex| parser::parser::parse(lex))
-        .and_then(|node| evaluate(context.clone(), node, true));
+        .and_then(|node| evaluate_outer(context.clone(), node, true));
 
     // context.add_function(name, function)
 
@@ -58,7 +60,6 @@ pub fn evaluate_input(inp: &str, context: &mut EvalContext) -> String {
                 string = value.to_string();
 
                 context.write_context(*ret_ctx);
-
             } else if let SetFn(rc) = val {
                 let name = rc.get_name();
                 let rc2: Rc<dyn Function> = rc;
@@ -125,16 +126,16 @@ pub fn nova_repl(mut context: EvalContext) {
 
 #[test]
 fn depth_test() {
-    let recr="(def recr (n) (if (eq n 0) 0 (recr (pred n))))";
-    let mut ctx=EvalContext::new();
-    let r=evaluate_input(recr, &mut ctx);
+    let recr = "(def recr (n) (if (eq n 0) 0 (recr (pred n))))";
+    let mut ctx = EvalContext::new();
+    let r = evaluate_input(recr, &mut ctx);
 
-    let test=evaluate_input("(recr 250)", &mut ctx);
+    let test = evaluate_input("(recr 250)", &mut ctx);
     println!("Test:{}", test);
-    
-    MAX_DEPTH.with(|d|{
-        let val=d.borrow_mut();
-        let val=*val;
+
+    MAX_DEPTH.with(|d| {
+        let val = d.borrow_mut();
+        let val = *val;
         println!("Max depth:{}", val);
     });
     // MAX_DEPTH

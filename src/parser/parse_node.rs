@@ -1,8 +1,8 @@
 use crate::constants::*;
+use std::cell::RefCell;
 use std::fmt::Display;
 use std::ops::Deref;
 use std::rc::{Rc, Weak};
-use std::cell::RefCell;
 
 // todo: IfStmt, LetStmt, FnDef, Lambda, FunctionCall
 // FunctionCall: when we have a symbol or expression which is:
@@ -41,7 +41,7 @@ impl Display for FnDef {
     }
 }
 
-#[derive(Debug, Display,Clone)]
+#[derive(Debug, Display, Clone)]
 pub enum ParseValue {
     Symbol(String),
     Number(NumType),
@@ -71,7 +71,6 @@ impl ParseValue {
 
 pub use ParseValue::*;
 
-
 // 1. compare some uniquely gen id
 // 2. or compare Rc's
 // ASTNode
@@ -80,19 +79,19 @@ use uuid::Uuid;
 pub struct ASTNode {
     pub value: ParseValue,
     // when there is a parent, we need the parent ref to be valid -> needs Rc
-        // otherwise we can't do evaluation properly
+    // otherwise we can't do evaluation properly
     // the cycle ends when we reach root with parent=None
-        // then the initial parent can get dropped and the children get dropped successively
+    // then the initial parent can get dropped and the children get dropped successively
     pub parent: Option<Rc<ASTNode>>,
-    original:Uuid
+    original: Uuid,
 }
 
 impl Clone for ASTNode {
     fn clone(&self) -> Self {
         ASTNode {
-            value:self.value.clone(),
-            parent:self.parent.clone(),
-            original:Uuid::new_v4()
+            value: self.value.clone(),
+            parent: self.parent.clone(),
+            original: Uuid::new_v4(),
         }
     }
 }
@@ -104,60 +103,57 @@ impl PartialEq for ASTNode {
     }
 }
 
-impl Eq for ASTNode{}
+impl Eq for ASTNode {}
 
 impl ASTNode {
     pub fn new(mut value: ParseValue) -> ASTNode {
         // when clone node: the clone node should return true on equals cmp
         // issue now is just that if we do node.parent.value, that value wont be the
-            // same as node -> but we only care about checking parent equality for now
+        // same as node -> but we only care about checking parent equality for now
 
-        let original_ref=Uuid::new_v4();
+        let original_ref = Uuid::new_v4();
 
-        let original=ASTNode {
-            value:value.clone(),
-            parent:None,
-            original:original_ref
+        let original = ASTNode {
+            value: value.clone(),
+            parent: None,
+            original: original_ref,
         };
-        let original=Rc::new(original);
+        let original = Rc::new(original);
 
         match &mut value {
-            ParseExpression(ref mut children) | 
-            List(ref mut children)       |
-            LetNode(ref mut children, _) |
-            IfNode(ref mut children)
-            => {
-                let children=children.clone();
-                let mut children:Vec<ASTNode>=children.into_iter().map(|r| r.as_ref().clone()).collect();
+            ParseExpression(ref mut children)
+            | List(ref mut children)
+            | LetNode(ref mut children, _)
+            | IfNode(ref mut children) => {
+                let children = children.clone();
+                let mut children: Vec<ASTNode> =
+                    children.into_iter().map(|r| r.as_ref().clone()).collect();
 
-                children.iter_mut().for_each(|child| {
-                    child.parent=Some(Rc::clone(&original))
-                }
-                );
+                children
+                    .iter_mut()
+                    .for_each(|child| child.parent = Some(Rc::clone(&original)));
 
-                let children:Vec<Rc<ASTNode>>=children.into_iter().map(|r| Rc::new(r)).collect();
+                let children: Vec<Rc<ASTNode>> = children.into_iter().map(|r| Rc::new(r)).collect();
 
-                let new_value= match value {
+                let new_value = match value {
                     ParseExpression(_) => ParseExpression(children),
                     IfNode(_) => IfNode(children),
-                    LetNode(_,global) => LetNode(children,global),
-                    List(_)=>List(children),
-                    _ => value //unreachable
+                    LetNode(_, global) => LetNode(children, global),
+                    List(_) => List(children),
+                    _ => value, //unreachable
                 };
 
                 ASTNode {
-                    value:new_value,
-                    parent:None,
-                    original:original_ref
-                }
-            },
-            _ => {
-                 ASTNode {
-                    value,
+                    value: new_value,
                     parent: None,
-                    original:original_ref
+                    original: original_ref,
                 }
             }
+            _ => ASTNode {
+                value,
+                parent: None,
+                original: original_ref,
+            },
         }
     }
 
@@ -188,19 +184,20 @@ impl ASTNode {
     //     }
     // }
 
-    pub fn to_string_with_parent(&self)->String {
+    pub fn to_string_with_parent(&self) -> String {
         let parent_string = match &self.parent {
-            Some(prt) => {
-                prt.to_string()
-            },
-            None=>{
-                String::from("None")
-            }
+            Some(prt) => prt.to_string(),
+            None => String::from("None"),
         };
 
-        let self_string=self.to_string();
-        
-        format!("\n[\n\ttype:{}\n\tself:{},\n\tparent:{}\n]\n",self.get_type(), self_string,parent_string)
+        let self_string = self.to_string();
+
+        format!(
+            "\n[\n\ttype:{}\n\tself:{},\n\tparent:{}\n]\n",
+            self.get_type(),
+            self_string,
+            parent_string
+        )
     }
 
     pub fn to_string(&self) -> String {
@@ -250,28 +247,26 @@ impl Display for ASTNode {
 
 #[test]
 fn parse_node_test_clone() {
-    let c1=ASTNode::new(Number(2));
-    let c1_cloned=c1.clone();
+    let c1 = ASTNode::new(Number(2));
+    let c1_cloned = c1.clone();
     // direct clone not equal
     assert_ne!(c1, c1_cloned);
 
-    let c1=Rc::new(c1);
-    let c1=Some(c1);
+    let c1 = Rc::new(c1);
+    let c1 = Some(c1);
 
-    let c2=c1.clone();
-    
-    let c1_unwrap=c1.unwrap();
-    let c2_unwrap=c2.unwrap();
+    let c2 = c1.clone();
+
+    let c1_unwrap = c1.unwrap();
+    let c2_unwrap = c2.unwrap();
     // but clone of optional of same node is equal
     assert_eq!(c1_unwrap, c2_unwrap);
 
+    let c1_cloned = Rc::new(c1_cloned);
+    let c1_cloned = Some(c1_cloned);
 
-    let c1_cloned=Rc::new(c1_cloned);
-    let c1_cloned=Some(c1_cloned);
-
-    let c1_clone_unwrap=c1_cloned.unwrap();
+    let c1_clone_unwrap = c1_cloned.unwrap();
 
     // direct clone wrapped in opt not equal
     assert_ne!(c1_unwrap, c1_clone_unwrap);
-
 }

@@ -110,18 +110,18 @@ impl Function for UserFunction {
         let eval_ctx = eval_ctx.merge_context(&outer_ctx);
         let fn_node = self.body.get(0).unwrap(); // currently on first part
 
-        let cloned=fn_node.as_ref().clone();
+        let cloned = fn_node.as_ref().clone();
 
-        let equals=cloned.eq(&fn_node);
+        let equals = cloned.eq(&fn_node);
         println!("Equal?:{}", equals);
 
-        let res=DeferredExpression {
-            ctx:eval_ctx,
-            body:Rc::new(cloned)
+        let res = DeferredExpression {
+            ctx: eval_ctx,
+            body: Rc::new(cloned),
         };
 
-        let res=DeferredExpr(res);
-        
+        let res = DeferredExpr(res);
+
         return Ok(res);
     }
 

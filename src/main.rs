@@ -7,11 +7,11 @@
 use nova::evaluator::data::Arg::Evaluated;
 use nova::evaluator::data::DataValue::Num;
 // (recr_t 6000 0)
-use nova::{self};
-use nova::parser::parser::parse;
 use nova::evaluator::context::*;
+use nova::parser::parser::parse;
+use nova::{self};
 use std::borrow::{Borrow, BorrowMut};
-use std::cell::{RefCell, Ref, RefMut};
+use std::cell::{Ref, RefCell, RefMut};
 use std::{env::args, rc::Rc};
 
 fn main() {
@@ -24,4 +24,4 @@ fn main() {
 // (add 2 (id 1) (id 1) 3)
 // (id (id 1))
 // (fn (a) (succ a))
-    // (add 2 (fn 1) 3)
+// (add 2 (fn 1) 3)

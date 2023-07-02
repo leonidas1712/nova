@@ -3,8 +3,8 @@ use crate::message::*;
 
 use super::context::*;
 use super::data::*;
-use super::function_tco::*;
 use super::evaluator_tco::*;
+use super::function_tco::*;
 
 macro_rules! name {
     ($name:expr) => {
@@ -92,9 +92,7 @@ impl Function for Equals {
         let left = eval_args.get(0).unwrap();
         let right = eval_args.get(1).unwrap();
 
-        Ok(
-            EvaluatedExpr(Bool(left.equals(right)))
-        )
+        Ok(EvaluatedExpr(Bool(left.equals(right))))
     }
 
     fn to_string(&self) -> String {
@@ -113,7 +111,6 @@ impl Function for Succ {
             .map(|x| Num(x + 1))
             .map(|val| EvaluatedExpr(val))
             .ok_or(Ex::new("Couldn't add num."))
-
     }
 
     fn to_string(&self) -> String {
