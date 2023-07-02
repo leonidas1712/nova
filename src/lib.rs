@@ -45,7 +45,7 @@ pub fn evaluate_input(inp: &str, context: &mut EvalContext) -> String {
         Ok(val) => {
             // dbg!(&val);
             let mut string = val.to_string();
-            let mut mut_context=context.write();
+            // let mut mut_context=context.write();
 
             //set outer context here
             if let SetVar(data) = val {
@@ -53,12 +53,12 @@ pub fn evaluate_input(inp: &str, context: &mut EvalContext) -> String {
                 let value = data.value;
                 string = value.to_string();
 
-                mut_context.write_context(*ret_ctx);
+                context.write_context(&ret_ctx);
 
             } else if let SetFn(rc) = val {
                 let name = rc.get_name();
                 let rc2: Rc<dyn Function> = rc;
-                mut_context.add_function(&name, rc2);
+                context.write().add_function(&name, rc2);
             }
             // end set outer ctx
             string

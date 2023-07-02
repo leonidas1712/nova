@@ -32,14 +32,24 @@ impl EvalContext {
 
     // eval version
     pub fn merge_context(&self, other_ctx:&EvalContext)->EvalContext {
-        let new_ctx=&self.read().merge_context(other_ctx);
-        EvalContext::new_from_context(new_ctx)
+        // let new_ctx=&self.read().merge_context(other_ctx);
+        // EvalContext::new_from_context(new_ctx)
+        let mut new_ctx = self.read().clone();
+
+        for (key, value) in &other_ctx.read().symbol_map {
+            if new_ctx.get_data_value(&key).is_none() {
+                new_ctx.symbol_map.insert(key.clone(), value.clone());
+            }
+        }
+        EvalContext::new_from_context(&new_ctx)
     }
 
     // eval version
-    // pub fn write_context(&mut self, other_ctx: Context) {
-    //     self.write().write_context(other_ctx)
-    // }
+    pub fn write_context(&mut self, other_ctx: &EvalContext) {
+        for (key, value) in other_ctx.read().to_owned().symbol_map.into_iter() {
+            self.write().add_variable(key.as_str(), value);
+        }
+    }
 
     pub fn read(&self)->Ref<Context> {
         self.ctx.as_ref().borrow()
@@ -88,26 +98,6 @@ impl Context {
     pub fn new() -> Context {
         let symbol_map: HashMap<String, DataValue> = HashMap::new();
         Context { symbol_map }
-    }
-
-    // take other context and merge with self => new context
-    // self context should take preced i.e if self has variable other shouldnt overwrite
-    pub fn merge_context(&self, other_ctx: &EvalContext) -> Context {
-        let mut new_ctx = self.clone();
-
-        for (key, value) in &other_ctx.read().symbol_map {
-            if new_ctx.get_data_value(&key).is_none() {
-                new_ctx.symbol_map.insert(key.clone(), value.clone());
-            }
-        }
-        new_ctx
-    }
-
-    // overwrite self with other context
-    pub fn write_context(&mut self, other_ctx: EvalContext) {
-        for (key, value) in other_ctx.read().to_owned().symbol_map.into_iter() {
-            self.add_variable(key.as_str(), value);
-        }
     }
 
     pub fn add_variable(&mut self, ident: &str, value: DataValue) {
