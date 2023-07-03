@@ -108,7 +108,7 @@ pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: boo
     //     node.to_string_with_parent()
     // );
     
-    update_depth_tco();
+    // update_depth_tco();
     let deferred = DeferredExpression {
         ctx: ctx.clone(),
         body: Rc::clone(&node),
@@ -120,7 +120,7 @@ pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: boo
     };
 
     let res=evaluate_tco(stack_expr, outer_call);
-    subtract_depth_tco();
+    // subtract_depth_tco();
     res
 }
 

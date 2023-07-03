@@ -53,7 +53,7 @@ pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) ->
     // try to match terminals
     // println!("Node type: {}, Expr: {}", node.get_type(), node.to_string_with_parent());
 
-    update_depth();
+    // update_depth();
 
     let result = match &node.value {
         Boolean(b) => Ok(Bool(*b)),
@@ -88,7 +88,7 @@ pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) ->
         ParseExpression(children) => evaluate_expression(&ctx, children),
     };
 
-    subtract_depth();
+    // subtract_depth();
     result
 }
 
