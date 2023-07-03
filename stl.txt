@@ -1,1 +1,3 @@
-(def id (x) x) (def recr (n) 0) let x 2 (add x 5) (def fn (y) (add x y))
+(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))))
+
+(def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))))

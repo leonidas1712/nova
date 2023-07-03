@@ -1,4 +1,5 @@
-use crate::constants::{DONT_ADD, SPACE, SPLIT_TOKENS};
+use crate::constants::*;
+use crate::file::separate_expressions;
 use crate::message::*;
 
 #[macro_export]
@@ -15,9 +16,51 @@ pub struct Lexer {
     tokens: Vec<String>,
     pub idx: usize,
     original: String,
+    stack:Vec<String>
 }
 
 impl Lexer {
+    fn separate_expressions(file_string:&str)->Result<String> {
+        let mut all_chars:Vec<String>=vec![];
+        let mut stack:Vec<String>=vec![];
+        let mut line=1;
+        
+        for (idx,char) in file_string.chars().enumerate() {
+            let char_string=char.to_string();
+            if char_string.eq(STMT_END) && all_chars.last().unwrap().eq(STMT_END) {
+                continue;
+            }
+    
+            all_chars.push(char_string.clone());
+    
+            if char_string.eq("\n") {
+                line+=1;
+                continue;
+            }
+    
+            if char_string.eq(OPEN_EXPR) {
+                stack.push(char_string);
+                continue;
+            } 
+            
+            if char_string.eq(CLOSE_EXPR) {
+                if stack.is_empty() {   
+                    let msg=format!("Unbalanced expression at line:{}, index:{}", line, idx);
+                    return err!(msg);
+                }
+                stack.pop();
+    
+                if stack.is_empty() {
+                    all_chars.push(STMT_END.to_string());
+                }
+            }
+        }
+    
+        let joined=all_chars.join("");
+    
+        Ok(joined)
+    }
+    
     pub fn new(input: String) -> Result<Lexer> {
         let original = input.clone();
         let mut filtered = input;
@@ -46,6 +89,7 @@ impl Lexer {
             tokens,
             idx: 0,
             original,
+            stack:vec![]
         };
 
         Ok(lex)

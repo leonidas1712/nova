@@ -63,15 +63,10 @@ pub fn import_file(filename:&str, ctx:&mut EvalContext)->Result<()>{
     println!("Importing file:{}\n", filename);
 
     let sep=separate_expressions(&file)?;
-    let results=evaluate_all(&sep, ctx);
-            
-    match results {
-        Ok(strings) => {
-            for string in strings {
-                println!("{}", string);
-            }
-        },
-        Err(err) => println!("{}", err.format_error())
+    let results=evaluate_all(&sep, ctx)?;
+
+    for string in results {
+        println!("{}", string);
     }
 
     Ok(())

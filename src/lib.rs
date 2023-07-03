@@ -104,7 +104,7 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     let imp=import_file("stl.txt", &mut ctx);
 
     if let Err(err) = imp {
-        println!("Import error:{}", err.format_error());
+        println!("Import error - {}", err.format_error());
     }
 
     nova_repl_tco(ctx); 
