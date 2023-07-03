@@ -2,7 +2,13 @@ use std::rc::Rc;
 use std::result;
 use std::collections::VecDeque;
 
-
+use crate::message::*;
+use crate::parser::parse_node::*;
+use crate::{
+    constants::{DONT_ADD, LET_NAME, RESERVED_KEYWORDS, SPLIT_TOKENS},
+    evaluator::function_tco::UserFunction,
+    parser::parser::tests::test_parse,
+};
 use crate::parser::parse_node::*;
 use crate::{lex, message::*};
 use crate::constants::*;
@@ -11,13 +17,46 @@ use super::{context_tco::*, data_tco::*, function_tco::*};
 use super::evaluator_tco::*;
 use super::{context_tco::*, data_tco::*};
 
-use crate::message::*;
-use crate::parser::parse_node::*;
-use crate::{
-    constants::{DONT_ADD, LET_NAME, RESERVED_KEYWORDS, SPLIT_TOKENS},
-    evaluator::function_tco::UserFunction,
-    parser::parser::tests::test_parse,
-};
+use std::cell::RefCell;
+thread_local! {
+    pub (crate) static MAX_CALL_LEN: RefCell<usize> = RefCell::new(0);
+    pub (crate) static MAX_FN_LEN:RefCell<usize> = RefCell::new(0);
+}
+
+// memory metrics
+pub fn update_max_len(n:usize) {
+    MAX_CALL_LEN.with(|x| {
+        let mut rf=x.borrow_mut();
+        let val=*rf;
+        *rf=n.max(val);
+    });
+}
+
+pub fn print_max_len() {
+    MAX_CALL_LEN.with(|x| {
+        let rf=x.borrow();
+        let val=*rf;
+        println!("Max call stack len:{}", val);
+    });
+}
+
+pub fn update_max_len_fn(n:usize) {
+    MAX_FN_LEN.with(|x| {
+        let mut rf=x.borrow_mut();
+        let val=*rf;
+        *rf=n.max(val);
+    });
+}
+
+pub fn print_max_len_fn() {
+    MAX_FN_LEN.with(|x| {
+        let rf=x.borrow();
+        let val=*rf;
+        println!("Max fn stack len:{}", val);
+    });
+}
+
+
 
 // evaluated args
 pub fn get_eval_args_from_nodes<'a>(
@@ -81,21 +120,21 @@ pub fn is_valid_identifier(s: &str) -> Result<String> {
     Ok(s)
 }
 
+// checks if func call ast and parent are the same
 pub fn can_resolve(fn_call:&FunctionCall, expr_parent:&Option<Rc<ASTNode>>)->bool {
     let fn_ast=&fn_call.ast;
 
     match expr_parent {
         Some(parent) => {
-            let p=parent.as_ref();
-            let fn_a=fn_ast.as_ref();
-            let b=p.eq(fn_a);
-            b
+            // check nodes directly
+            parent.as_ref().eq(fn_ast.as_ref())
         },
         None => false
     }
 }
 
 
+// for (def fn ...)
 pub fn resolve_fn_node(ctx: &EvalContext, fn_def: &FnDef, outer_call: bool) -> Result<DataValue> {
     let func = UserFunction::new(ctx, &fn_def);
     let rc: Rc<UserFunction> = Rc::new(func);
@@ -182,12 +221,10 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
     let parent=args.parent;
     let ast=args.ast;
 
-    // println!("EXPR AST:{} ID:{}", ast.to_string(), ast.original.to_string());
 
     let ast1_clone=Rc::clone(ast);
     let ast2_clone=Rc::clone(ast);
 
-    // println!("Are the clones equal:{}", ast1_clone.eq(&ast2_clone));
     
     if children.is_empty() {
         return err!("Received empty expression.");
@@ -206,6 +243,7 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
         context:ctx.clone()
     };
     fn_stack.push_back(func_call);
+    update_max_len_fn(fn_stack.len());
 
     // push rest of child expressions onto call_st
     let mut rest_children=children.into_iter();
@@ -228,88 +266,13 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
         // assigned parent to one level above supposed to be
 
         call_stack.push_back(stack_expr);
+        // update_max_len(call_stack.len());
     }
 
 
     Ok(())
 }
 
-// fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,
-//     results: &mut VecDeque<ExpressionResult>,outer_call: bool)
-//  -> Result<()> {
-//     // pop from stack
-//     let expression = call_stack.pop_back().unwrap();
-//     let expr = &expression.expr;
-
-//     let body = &expr.body;
-//     let ctx = &expr.ctx;
-//     let parent=&expression.parent; // dont use body.parent
-
-//     let mut result = ExpressionResult {
-//         data: Num(-1),
-//         parent: parent.clone(),
-//     };
-
-//     match &body.value {
-//         Number(n) => {
-//             result.data = Num(*n);
-//             results.push_back(result);
-//         }
-//         Boolean(b) => {
-//             result.data = Bool(*b);
-//             results.push_back(result);
-//         }
-//         Symbol(sym) => {
-//             let read = ctx.read();
-//             let value = read.get_data_value(&sym);
-
-//             match value {
-//                 Some(val) => {
-//                     result.data = val.clone();
-//                     results.push_back(result);
-//                 }
-//                 None => {
-//                     let err_string = format!("Unrecognised symbol: '{}'", sym);
-//                     return err!(err_string.as_str());
-//                 }
-//             }
-//         }
-//         IfNode(children) => {
-//             let res = evaluate_if(ctx, children)?;
-//             let stack_expr = StackExpression {
-//                 expr: res,
-//                 parent: parent.clone(),
-//             };
-//             call_stack.push_back(stack_expr);
-//         },
-//         // only a side effect, no return (besides err)
-//         ParseExpression(children) => {
-//             let args=ResolveExprArgs {
-//                 children,
-//                 ctx,
-//                 parent,
-//                 ast:body
-//             };
-//             resolve_expression(call_stack, fn_stack, results, args)?;
-//         },
-//         LetNode(children, global) => {
-//             let returned_result=resolve_let(&ctx,children,*global)?;
-//             result.data=returned_result;
-//             results.push_back(result);
-//         },
-//         FnNode(fn_def) => {
-//             let fn_resolve=resolve_fn_node(&ctx, &fn_def, outer_call)?;
-//             result.data=fn_resolve;
-//             results.push_back(result);
-//         }
-//         // List
-//         _ => {
-//             todo!()
-//         }
-//     }
-
-//     Ok(())
-// }
 
 pub fn evaluate_if(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<DeferredExpression> {
     // recursive eval: real recursion
@@ -349,10 +312,8 @@ pub fn evaluate_fn(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut VecDe
         return err!("");
     }
 
-    // println!("Got args of len:{} for func:{}", args.len(), func.func.to_string());
 
     let execute_result=func.func.execute(args, &func.context)?;
-    // println!("Execute result:{}", execute_result.to_string());
 
     match execute_result {
         // put on call stack
