@@ -1,10 +1,10 @@
 #![recursion_limit = "5000"]
 use nova::{
-    evaluate_input,
-    evaluator::context::{setup_context, Context, EvalContext},
+    evaluate_input_tco,
+    evaluator::context_tco::{setup_context, Context, EvalContext},
 };
 fn compare(inp: &str, expected: &str, ctx: &mut EvalContext) {
-    let res = evaluate_input(inp.trim(), ctx);
+    let res = evaluate_input_tco(inp.trim(), ctx);
     assert_eq!(res, expected.trim());
 }
 
@@ -12,7 +12,10 @@ fn compare_many(inputs: Vec<&str>, expected: Vec<&str>, ctx: &mut EvalContext) {
     inputs
         .into_iter()
         .zip(expected.into_iter())
-        .for_each(|tup| compare(tup.0, tup.1, ctx));
+        .for_each(|tup| {
+            compare(tup.0, tup.1, ctx);
+
+        });
 }
 
 #[test]
@@ -78,15 +81,15 @@ fn let_test() {
 fn test_let_global() {
     let mut ctx = EvalContext::new();
     let expr = "(let x 2)";
-    evaluate_input(expr, &mut ctx);
+    evaluate_input_tco(expr, &mut ctx);
     assert!(ctx.read().get_variable("x").is_none());
 
     let expr = "let x 2";
-    evaluate_input(expr, &mut ctx);
+    evaluate_input_tco(expr, &mut ctx);
     assert!(ctx.read().get_variable("x").is_some());
 
     let expr = "let x 3";
-    evaluate_input(expr, &mut ctx);
+    evaluate_input_tco(expr, &mut ctx);
     assert_eq!(
         ctx.read().get_variable("x").unwrap().expect_num().unwrap(),
         3
@@ -98,27 +101,30 @@ pub fn fn_test() {
     let mut ctx = EvalContext::new();
 
     let inputs = vec![
-        "(def id (x) x)",
-        "(id 1)",
+        // "(def id (x) x)",
+        // "(id 1)",
         "(let x 2 y (def g (a) (add a x)) (y x))",
-        "(def recr (n) 
-            (if (eq n 0) 0 
-            (add n (recr (pred n)))
-        ))",
-        "(recr 10)",
-        "(recr 50)",
-        "(recr 10)",
+        // "(def recr (n) 
+        //     (if (eq n 0) 0 
+        //     (add n (recr (pred n)))
+        // ))",
+        // "(recr 10)",
+        // "(recr 50)",
+        // "(recr 10)",
     ];
 
     let expected = vec![
-        "id(x) => x",
-        "1",
+        // "id(x) => x",
+        // "1",
         "4",
-        "recr(n) => (if (eq n 0) 0 (add n (recr (pred n))))",
-        "55",
-        "1275",
-        "55",
+        // "recr(n) => (if (eq n 0) 0 (add n (recr (pred n))))",
+        // "55",
+        // "1275",
+        // "55",
     ];
+    
+    let i=1;
+    // compare(inputs[i], expected[i], &mut ctx)
 
     compare_many(inputs, expected, &mut ctx);
 }

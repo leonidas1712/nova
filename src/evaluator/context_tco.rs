@@ -66,6 +66,17 @@ impl EvalContext {
             ctx: Rc::new(RefCell::new(existing)),
         }
     }
+
+    pub fn to_string(&self)->String {
+        let mut v:Vec<String>=vec![];
+
+        for (key,value) in self.read().symbol_map.iter() {
+            let s=format!("key:{}, value:{}",key.to_string(), value.to_string());
+            v.push(s);
+        }
+
+        v.join("\n")
+    }
 }
 
 #[derive(Clone)]

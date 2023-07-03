@@ -160,7 +160,6 @@ fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut 
     let first_child = children.first().unwrap();
     let eval_first=evaluate_outer(ctx.clone(), Rc::clone(first_child), false)?;
 
- 
     // we expect first part of expression to resolve to a fn call
     // let and if handled separately already
     let func=eval_first.expect_function()?;

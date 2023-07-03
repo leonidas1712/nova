@@ -119,7 +119,12 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     // nova_repl(ctx);
 
     let ctx=evaluator::context_tco::EvalContext::new();
-    nova_repl_tco(ctx);
+    nova_repl_tco(ctx); 
+
+    // use crate::time::{bench,time_comp};
+    // // bench(50); // 0.0905372397 for (recr 10000)
+
+    // time_comp(65537*2);
 }
 pub fn nova_repl_tco(mut context: evaluator::context_tco::EvalContext) {
     let mut rl = DefaultEditor::new().unwrap();

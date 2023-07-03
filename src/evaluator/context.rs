@@ -23,6 +23,17 @@ impl EvalContext {
         }
     }
 
+    pub fn to_string(&self)->String {
+        let mut v:Vec<String>=vec![];
+
+        for (key,value) in self.read().symbol_map.iter() {
+            let s=format!("key:{}, value:{}",key.to_string(), value.to_string());
+            v.push(s);
+        }
+
+        v.join("\n")
+    }
+
     pub fn new_from_context(ctx: &Context) -> EvalContext {
         let new_ctx = ctx.clone();
         EvalContext {

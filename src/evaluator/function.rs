@@ -109,6 +109,7 @@ impl Function for UserFunction {
         let strings = strings.join(" ");
 
         let eval_ctx = self.curry(args)?;
+        println!("Eval ctx:{}", eval_ctx.to_string());
 
         // then merge outer_ctx
         // args > inner_ctx > outer_ctx
