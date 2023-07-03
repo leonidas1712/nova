@@ -42,9 +42,6 @@ impl Lexer {
             .map(|x| x.to_string())
             .collect();
 
-        tokens.iter().for_each(|x| print!("{} ", x));
-
-
         let lex = Lexer {
             tokens,
             idx: 0,

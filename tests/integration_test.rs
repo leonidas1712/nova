@@ -141,6 +141,21 @@ pub fn fn_test() {
     compare_many(inputs, expected, &mut ctx);
 }
 
+// test ; separation
+#[test]
+pub fn evaluate_all_test() {
+    let mut ctx = EvalContext::new();
+    let expr="let x 2;\nlet y 3;\nlet z 5;\n (add x y z)";
+    let res=evaluate_all(expr, &mut ctx);
+
+    let res=res.unwrap();
+    let expected=["2","3","5","10"];
+
+    for (actual,exp) in res.iter().zip(expected.iter()) {
+        assert_eq!(actual,exp);
+    }
+}
+
 // // (let x 2, y (let x 3),(add x y))
 
 // // ((map fn) x) -> (map fn) res is fn call
