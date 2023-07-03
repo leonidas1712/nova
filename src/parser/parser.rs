@@ -191,8 +191,6 @@ pub fn parse(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
     let mut nodes: Vec<Rc<ASTNode>> = Vec::new();
 
     loop {
-
-        
         if let None = lex.peek() {
             break;
         }

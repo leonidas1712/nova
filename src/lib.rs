@@ -24,44 +24,83 @@ use std::rc::Rc;
 use crate::{
     constants::*,
 };
-use parser::parser::parse_all;
+
+use lexer::Lexer;
+use parser::parser::{parse,parse_all};
+use parser::parse_node::ASTNode;
+use evaluator::evaluator_tco::*;
+use evaluator::data_tco::*;
+use evaluator::function_tco::*;
+use evaluator::context_tco::*;
 use rustyline::{error::ReadlineError, DefaultEditor};
+use message::*;
 
-pub fn evaluate_input_tco(inp: &str, context: &mut evaluator::context_tco::EvalContext) -> String {
-    let mut lexed=lexer::Lexer::new(inp.to_string()).unwrap();
-    println!("B4 PARSE ALL");
+pub fn evaluate_one_node(node:Rc<ASTNode>, context: &mut evaluator::context_tco::EvalContext)->Result<String> {
+    let res= evaluate_outer(context.clone(), node, true)?;
 
-    let p_all=parse_all(lexed);
-    println!("AFT PARSE ALL:{}", p_all.is_ok());
-    
+    let mut string = res.to_string();
 
-    let res = lexer::Lexer::new(inp.to_string())
-        .and_then(|mut lex| parser::parser::parse(&mut lex))
-        .and_then(|node| evaluator::evaluator_tco::evaluate_outer(context.clone(), node, true));
+    //set outer context here
+    if let SetVar(data) = res {
+        let ret_ctx = data.context;
+        let value = data.value;
+        string = value.to_string();
 
+        context.write_context(*ret_ctx);
 
-    match res {
-        Ok(val) => {
-            // dbg!(&val);
-            let mut string = val.to_string();
-
-            //set outer context here
-            if let evaluator::data_tco::SetVar(data) = val {
-                let ret_ctx = data.context;
-                let value = data.value;
-                string = value.to_string();
-
-                context.write_context(*ret_ctx);
-            } else if let evaluator::data_tco::SetFn(rc) = val {
-                let name = rc.get_name();
-                let rc2: Rc<dyn evaluator::function_tco::Function> = rc;
-                context.write().add_function(&name, rc2);
-            }
-            // end set outer ctx
-            string
-        }
-        Err(err) => err.format_error(),
+    } else if let SetFn(rc) = res {
+        let name = rc.get_name();
+        let rc2: Rc<dyn Function> = rc;
+        context.write().add_function(&name, rc2);
     }
+    // end set outer ctx
+    Ok(string)
+}
+
+pub fn evaluate_input_result(node:Rc<ASTNode>, context: &mut evaluator::context_tco::EvalContext)->String {
+    let res=evaluate_one_node(node, context);
+    match res {
+        Ok(data) => data.to_string(),
+        Err(err) => err.format_error()
+    }
+}
+
+pub fn evaluate_input_tco(inp: &str, context: &mut EvalContext) -> String {
+    let parse_result=Lexer::new(inp.to_string())
+    .and_then(|mut lex| parser::parser::parse(&mut lex));
+
+    match parse_result {
+        Ok(node) => evaluate_input_result(node, context),
+        Err(err) => err.format_error()
+    }
+
+    // let res = lexer::Lexer::new(inp.to_string())
+    //     .and_then(|mut lex| parser::parser::parse(&mut lex))
+    //     .and_then(|node| evaluator::evaluator_tco::evaluate_outer(context.clone(), node, true));
+
+
+    // match res {
+    //     Ok(val) => {
+    //         // dbg!(&val);
+    //         let mut string = val.to_string();
+
+    //         //set outer context here
+    //         if let evaluator::data_tco::SetVar(data) = val {
+    //             let ret_ctx = data.context;
+    //             let value = data.value;
+    //             string = value.to_string();
+
+    //             context.write_context(*ret_ctx);
+    //         } else if let evaluator::data_tco::SetFn(rc) = val {
+    //             let name = rc.get_name();
+    //             let rc2: Rc<dyn evaluator::function_tco::Function> = rc;
+    //             context.write().add_function(&name, rc2);
+    //         }
+    //         // end set outer ctx
+    //         string
+    //     }
+    //     Err(err) => err.format_error(),
+    // }
 }
 
 
@@ -107,7 +146,7 @@ pub fn nova_repl_tco(mut context: evaluator::context_tco::EvalContext) {
                 rl.add_history_entry(inp.clone().trim()).unwrap();
 
                 let res = evaluate_input_tco(inp.as_str(), &mut context);
-                println!("{res}");
+                println!("{}", res);
             }
 
             Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
