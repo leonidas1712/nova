@@ -19,6 +19,7 @@ pub mod parser;
 pub mod time;
 
 use std::rc::Rc;
+use std::vec;
 
 
 use crate::{
@@ -57,6 +58,7 @@ pub fn evaluate_one_node(node:Rc<ASTNode>, context: &mut evaluator::context_tco:
     Ok(string)
 }
 
+// result for just one node
 pub fn evaluate_input_result(node:Rc<ASTNode>, context: &mut evaluator::context_tco::EvalContext)->String {
     let res=evaluate_one_node(node, context);
     match res {
@@ -73,34 +75,19 @@ pub fn evaluate_input_tco(inp: &str, context: &mut EvalContext) -> String {
         Ok(node) => evaluate_input_result(node, context),
         Err(err) => err.format_error()
     }
+}
 
-    // let res = lexer::Lexer::new(inp.to_string())
-    //     .and_then(|mut lex| parser::parser::parse(&mut lex))
-    //     .and_then(|node| evaluator::evaluator_tco::evaluate_outer(context.clone(), node, true));
+pub fn evaluate_all(inp: &str, context: &mut EvalContext)->Result<Vec<String>> {
+    let lexed=lex!(inp);
+    let parse_nodes=parse_all(lexed)?;
+    let mut results:Vec<String>=vec![];
 
+    for node in parse_nodes {
+        let res=evaluate_one_node(node, context)?;
+        results.push(res);
+    }
 
-    // match res {
-    //     Ok(val) => {
-    //         // dbg!(&val);
-    //         let mut string = val.to_string();
-
-    //         //set outer context here
-    //         if let evaluator::data_tco::SetVar(data) = val {
-    //             let ret_ctx = data.context;
-    //             let value = data.value;
-    //             string = value.to_string();
-
-    //             context.write_context(*ret_ctx);
-    //         } else if let evaluator::data_tco::SetFn(rc) = val {
-    //             let name = rc.get_name();
-    //             let rc2: Rc<dyn evaluator::function_tco::Function> = rc;
-    //             context.write().add_function(&name, rc2);
-    //         }
-    //         // end set outer ctx
-    //         string
-    //     }
-    //     Err(err) => err.format_error(),
-    // }
+    Ok(results)
 }
 
 
@@ -145,8 +132,17 @@ pub fn nova_repl_tco(mut context: evaluator::context_tco::EvalContext) {
 
                 rl.add_history_entry(inp.clone().trim()).unwrap();
 
-                let res = evaluate_input_tco(inp.as_str(), &mut context);
-                println!("{}", res);
+                let results=evaluate_all(&inp, &mut context);
+            
+                match results {
+                    Ok(strings) => {
+                        for string in strings {
+                            println!("{}", string);
+                        }
+                    },
+                    Err(err) => println!("{}", err.format_error())
+                }
+                
             }
 
             Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {

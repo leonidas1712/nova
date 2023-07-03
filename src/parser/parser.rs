@@ -213,6 +213,7 @@ pub fn parse(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
         }
     }
 
+    // filter out dont add tokens e.g let x 2; - semicolon shouldnt be inside
     let nodes_filtered:Vec<Rc<ASTNode>>=nodes.into_iter()
         .filter(|node| {
             match &node.value {
@@ -240,31 +241,17 @@ pub fn parse(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
     Ok(root)
 }
 
+// parse nodes separated by ;
 pub fn parse_all(mut lex:lexer::Lexer)->Result<Vec<Rc<ASTNode>>> {
     let mut nodes: Vec<Rc<ASTNode>> = Vec::new();
-    println!("Ran parse all");
-
     loop {
         if let None = lex.peek() {
             break;
         }
 
-        // if let Some(token) = lex.peek() {
-        //     if token.eq(STMT_END) {
-        //         break;
-        //     }
-        // }
-
         let res = parse(&mut lex)?;
         nodes.push(res);
     }
-
-    println!("NODES PARSE ALL:");
-
-    for n in nodes.iter() {
-        println!("{}", n.to_string());
-    }
-
     Ok(nodes)
 }
 

@@ -1,11 +1,26 @@
 #![recursion_limit = "5000"]
 use nova::{
     evaluate_input_tco,
+    evaluate_all,
     evaluator::context_tco::{EvalContext},
 };
+// fn compare(inp: &str, expected: &str, ctx: &mut EvalContext) {
+//     let res = evaluate_input_tco(inp.trim(), ctx);
+//     assert_eq!(res, expected.trim());
+// }
+
 fn compare(inp: &str, expected: &str, ctx: &mut EvalContext) {
-    let res = evaluate_input_tco(inp.trim(), ctx);
-    assert_eq!(res, expected.trim());
+    let res = evaluate_all(inp.trim(), ctx);
+    match res {
+        Ok(strings) => {
+            let string=strings.get(0).unwrap();
+            assert_eq!(string, expected.trim());
+        },
+        Err(err) => {
+            println!("{}", err.format_error());
+            assert_eq!(err.format_error(),expected.trim());
+        }
+    }
 }
 
 fn compare_many(inputs: Vec<&str>, expected: Vec<&str>, ctx: &mut EvalContext) {
