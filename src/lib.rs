@@ -1,8 +1,7 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
-#![allow(unused_imports)]
-#![allow(unused_macros)]
-#![recursion_limit = "5000"]
+// #![allow(dead_code)]
+// #![allow(unused_variables)]
+// #![allow(unused_imports)]
+// #![allow(unused_macros)]
 extern crate strum;
 #[macro_use]
 extern crate lazy_static;
