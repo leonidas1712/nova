@@ -8,7 +8,15 @@ macro_rules! err {
     };
 }
 
+#[macro_export]
+macro_rules! errf {
+    ($msg:expr, $( $var:expr ),*) => {
+        Err(Ex::new(format!($msg, $($var)*).as_str()))
+    };
+}
+
 pub use err;
+pub use errf;
 
 #[derive(Debug)]
 pub struct Ex {

@@ -17,6 +17,7 @@ pub mod macros;
 pub mod message;
 pub mod parser;
 pub mod time;
+pub mod file;
 
 use std::rc::Rc;
 use std::vec;
@@ -26,6 +27,7 @@ use crate::{
     constants::*,
 };
 
+use file::import_file;
 use lexer::Lexer;
 use parser::parser::{parse,parse_all};
 use parser::parse_node::ASTNode;
@@ -97,7 +99,14 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     args.next();
     args.for_each(|s| println!("{}", s));
 
-    let ctx=evaluator::context_tco::EvalContext::new();
+    let mut ctx=evaluator::context_tco::EvalContext::new();
+
+    let imp=import_file("stl.txt", &mut ctx);
+
+    if let Err(err) = imp {
+        println!("Import error:{}", err.format_error());
+    }
+
     nova_repl_tco(ctx); 
 
     // use crate::time::{bench,time_comp};
@@ -108,7 +117,7 @@ pub fn nova_repl_tco(mut context: evaluator::context_tco::EvalContext) {
     let mut rl = DefaultEditor::new().unwrap();
 
     println!();
-    println!("Welcome to Nova, a highly expressive, dynamically typed functional programming language.\nType an expression to get started.\n");
+    println!("Welcome to Nova: a highly expressive, dynamically typed functional programming language.\nType an expression to get started.\n");
 
     loop {
         let readline = rl.readline(">>> ");
