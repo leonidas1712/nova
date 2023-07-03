@@ -4,15 +4,8 @@
 #![allow(unused_macros)]
 #![recursion_limit = "5000"]
 
-use nova::evaluator::data::Arg::Evaluated;
-use nova::evaluator::data::DataValue::Num;
-// (recr_t 6000 0)
-use nova::evaluator::context::*;
-use nova::parser::parser::parse;
 use nova::{self};
-use std::borrow::{Borrow, BorrowMut};
-use std::cell::{Ref, RefCell, RefMut};
-use std::{env::args, rc::Rc};
+use std::{env::args};
 
 fn main() {
     nova::run(args());

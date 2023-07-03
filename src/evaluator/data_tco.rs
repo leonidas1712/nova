@@ -181,7 +181,7 @@ pub use DataValue::*;
 
 #[cfg(test)]
 pub mod tests {
-    use super::super::builtins::Add;
+    use super::super::builtins_tco::Add;
     use super::*;
     use std::rc::Rc;
 

@@ -1,6 +1,5 @@
-use crate::{evaluate_input, evaluate_input_tco};
+use crate::{evaluate_input_tco};
 use crate::evaluator::context_tco::EvalContext;
-use crate::setup_context;
 use std::time::{Duration, Instant};
 
 pub fn measure<F: FnOnce() -> ()>(function: F) -> Duration {

@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::constants::*;
-use crate::evaluator::eval_helpers::is_valid_identifier;
+use crate::evaluator::eval_helpers_tco::is_valid_identifier;
 use crate::lexer;
 use crate::message::*;
 use crate::parser::parse_node::*;

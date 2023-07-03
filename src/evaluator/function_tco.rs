@@ -113,7 +113,6 @@ impl Function for UserFunction {
         // IMPORTANT:node is CLONED so the clone compares unequal because id changed
         let cloned = fn_node.as_ref().clone();
       
-
         let res = DeferredExpression {
             ctx: eval_ctx.clone(),
             body: Rc::new(cloned),
