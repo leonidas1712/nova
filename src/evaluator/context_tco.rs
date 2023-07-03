@@ -16,6 +16,7 @@ pub struct EvalContext {
     ctx: Rc<RefCell<Context>>,
 }
 
+
 impl EvalContext {
     pub fn new() -> EvalContext {
         EvalContext {
@@ -81,7 +82,7 @@ impl EvalContext {
 
 #[derive(Clone)]
 pub struct Context {
-    symbol_map: HashMap<String, DataValue>,
+    pub symbol_map: HashMap<String, DataValue>,
 }
 
 pub fn setup_context() -> Context {

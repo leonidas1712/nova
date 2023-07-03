@@ -37,6 +37,8 @@ pub const GT: &str = "gt";
 pub const MOD: &str = "mod";
 pub const DIV: &str = "div";
 
+
+
 // Boolean
 pub const TRUE: &str = "true";
 pub const FALSE: &str = "false";
@@ -50,6 +52,10 @@ pub const LCDR: &str = "lcdr";
 pub const LCAR: &str = "lcar";
 pub const INDEX: &str = "idx";
 pub const EMPTY_LIST: &str = "[]";
+
+// builtins list
+pub const BUILTINS:[&'static str;26]=[ADD,MULT,SUB,DBL,INC,DEC,EQUALS,PUTS,PRINT,OR,AND,
+IMPORT,CHAIN,SET,GET,LT,GT,MOD,DIV,CONS,CAR,CDR,LCONS,LCDR,LCAR,INDEX];
 
 // Lambda
 pub const LAMBDA: &str = "->";

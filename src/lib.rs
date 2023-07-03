@@ -27,7 +27,7 @@ use crate::{
     constants::*,
 };
 
-use file::import_file;
+use file::{import_file, STL_FILE, save_file};
 use lexer::Lexer;
 use parser::parser::{parse,parse_all};
 use parser::parse_node::ASTNode;
@@ -92,28 +92,7 @@ pub fn evaluate_all(inp: &str, context: &mut EvalContext)->Result<Vec<String>> {
     Ok(results)
 }
 
-
-// setup context by making the map of functions and pass it into Context::new, then pass it to nova_repl
-// this is how we can seed Context with map of refs to functions
-pub fn run(mut args: impl Iterator<Item = String>) {
-    args.next();
-    args.for_each(|s| println!("{}", s));
-
-    let mut ctx=evaluator::context_tco::EvalContext::new();
-
-    let imp=import_file("stl.txt", &mut ctx);
-
-    if let Err(err) = imp {
-        println!("Import error - {}", err.format_error());
-    }
-
-    nova_repl_tco(ctx); 
-
-    // use crate::time::{bench,time_comp};
-    // bench(50); // 0.0905372397 for (recr 10000)
-    // time_comp(65537);
-}
-pub fn nova_repl_tco(mut context: evaluator::context_tco::EvalContext) {
+pub fn nova_repl_tco(mut context:EvalContext)->EvalContext {
     let mut rl = DefaultEditor::new().unwrap();
 
     println!();
@@ -161,4 +140,29 @@ pub fn nova_repl_tco(mut context: evaluator::context_tco::EvalContext) {
             _ => (),
         }
     }
+
+    context
+}
+
+// setup context by making the map of functions and pass it into Context::new, then pass it to nova_repl
+// this is how we can seed Context with map of refs to functions
+pub fn run(mut args: impl Iterator<Item = String>) {
+    args.next();
+    args.for_each(|s| println!("{}", s));
+
+    let mut ctx=evaluator::context_tco::EvalContext::new();
+
+    let imp=import_file(STL_FILE, &mut ctx);
+
+    if let Err(err) = imp {
+        println!("Import error - {}", err.format_error());
+    }
+
+    let final_ctx=nova_repl_tco(ctx); 
+
+    save_file(STL_FILE, final_ctx);
+
+    // use crate::time::{bench,time_comp};
+    // bench(50); // 0.0905372397 for (recr 10000)
+    // time_comp(65537);
 }

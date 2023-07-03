@@ -57,6 +57,14 @@ pub fn separate_expressions(file_string:&str)->Result<String> {
     Ok(joined)
 }
 
+pub fn save_file(filename:&str, ctx:EvalContext) {
+    for (key,value) in ctx.read().symbol_map.iter() {
+        if !BUILTINS.contains(&key.as_str()) {
+            println!("str:{}",value.to_string());
+
+        }
+    }
+}
 
 pub fn import_file(filename:&str, ctx:&mut EvalContext)->Result<()>{
     let file=read_file(filename)?;
