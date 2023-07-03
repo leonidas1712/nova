@@ -8,13 +8,17 @@ pub fn measure<F: FnOnce() -> ()>(function: F) -> Duration {
     start.elapsed()
 }
 
-// (recr_t 1000 0)
+const RECR:&'static str="(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))))";
+const RECR_EXP:&'static str="(recr 1000)";
+const RECR_TAIL:&'static str="(def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))))";
+const RECR_TAIL_EXP:&'static str="(recr_t 1000 0)";
+
+// 0.01s for (recr 1000) / (recr_t 1000 0)
 
 pub fn bench(n: u32) {
-    // let recr="(def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))))";
 
-    let recr = "(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))))";
-    let expr = "(recr 10000)";
+    let recr=RECR;
+    let expr=RECR_EXP;
 
     // let expr="(recr_t 1000 0)";
     // (def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))))

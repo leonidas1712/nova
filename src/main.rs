@@ -1,9 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
-#![allow(unused_imports)]
-#![allow(unused_macros)]
-#![recursion_limit = "5000"]
-
 use nova::{self};
 use std::{env::args};
 
