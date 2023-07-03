@@ -1,10 +1,10 @@
 use std::rc::Rc;
-use std::result;
+
 use std::collections::VecDeque;
 
 use crate::parser::parse_node::*;
-use crate::{lex, message::*};
-use crate::constants::*;
+use crate::{message::*};
+
 
 use super::{context_tco::*, data_tco::*, eval_helpers_tco::*, function_tco::*};
 
@@ -93,7 +93,7 @@ pub (crate) fn subtract_depth_tco() {
 
 pub (crate) fn print_max_depth_tco() {
     MAX_DEPTH_TCO.with(|x|{
-        let mut rf=x.borrow();
+        let rf=x.borrow();
         println!("Max depth:{}", *rf);
     });
 }
@@ -201,7 +201,7 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
     let mut fn_stack: VecDeque<FunctionCall> = VecDeque::new();
     let mut results_queue: VecDeque<ExpressionResult> = VecDeque::new();
 
-    let mut max_len=0;
+    let _max_len=0;
 
     let expr_string = &expression.expr.body.to_string();
     call_stack.push_back(expression);

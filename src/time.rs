@@ -28,7 +28,7 @@ pub fn bench(n: u32) {
 
     let mut total: f64 = 0.0;
 
-    for i in 0..n + 1 {
+    for _i in 0..n + 1 {
         let start = Instant::now();
         let r2 = evaluate_input_tco(expr, &mut ctx);
         let end = start.elapsed();

@@ -3,9 +3,9 @@ use std::rc::Rc;
 
 use crate::constants::NumType;
 use crate::message::*;
-use crate::parser::parse_node::{ASTNode, FnDef};
+use crate::parser::parse_node::{ASTNode};
 
-use super::context_tco::{Context, EvalContext};
+use super::context_tco::{EvalContext};
 use super::function_tco::{Function, UserFunction};
 
 // Number, Boolean, List, String, Lambda, FunctionVariable(Box<dyn Function>)
@@ -60,8 +60,8 @@ impl DataValue {
 
     pub fn equals(&self, right: &DataValue) -> bool {
         match self {
-            Num(n) => self.num_equals(right),
-            Bool(b) => self.bool_equals(right),
+            Num(_n) => self.num_equals(right),
+            Bool(_b) => self.bool_equals(right),
             _ => false,
         }
     }

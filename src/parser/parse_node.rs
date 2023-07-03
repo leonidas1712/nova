@@ -1,8 +1,8 @@
 use crate::constants::*;
-use std::cell::RefCell;
+
 use std::fmt::Display;
 use std::ops::Deref;
-use std::rc::{Rc, Weak};
+use std::rc::{Rc};
 
 // todo: IfStmt, LetStmt, FnDef, Lambda, FunctionCall
 // FunctionCall: when we have a symbol or expression which is:
@@ -24,7 +24,7 @@ impl Display for FnDef {
         let param_string = self.params.join(SPACE);
         let param_string = format!("{}{}{}", OPEN_EXPR, param_string, CLOSE_EXPR);
 
-        let st = format!(
+        let _st = format!(
             "{} {} {} {} {} {}",
             OPEN_EXPR,
             FN_NAME,

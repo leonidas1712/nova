@@ -1,21 +1,20 @@
 use std::rc::Rc;
-use std::result;
+
 use std::collections::VecDeque;
 
 use crate::message::*;
 use crate::parser::parse_node::*;
 use crate::{
-    constants::{DONT_ADD, LET_NAME, RESERVED_KEYWORDS, SPLIT_TOKENS},
+    constants::{LET_NAME},
     evaluator::function_tco::UserFunction,
-    parser::parser::tests::test_parse,
 };
-use crate::parser::parse_node::*;
-use crate::{lex, message::*};
-use crate::constants::*;
+
+
+
 
 use super::{context_tco::*, data_tco::*, function_tco::*};
 use super::evaluator_tco::*;
-use super::{context_tco::*, data_tco::*};
+
 
 use std::cell::RefCell;
 thread_local! {
@@ -87,7 +86,7 @@ fn get_args<'a>(func:&FunctionCall, results: &'a mut VecDeque<ExpressionResult>)
 
     // println!("before:{}", results.len());
     // pop after pushing: can't modify during iter
-    for i in 0..args.len() {
+    for _i in 0..args.len() {
         results.pop_back();
     }
     // println!("after:{}", results.len());
@@ -176,7 +175,7 @@ pub fn resolve_let(ctx:&EvalContext, expressions:&Vec<Rc<ASTNode>>, global:bool)
 
         match &nxt_node.value {
             Symbol(string) => {
-                let check=is_valid_identifier(string.as_str())?;
+                let _check=is_valid_identifier(string.as_str())?;
                 var.replace(string.as_str());
             },
             _ => {
@@ -214,7 +213,7 @@ pub struct ResolveExprArgs<'a> {
 
 // unroll expression onto call stack and resolve first member to a function then push to fn_stack
 pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut VecDeque<FunctionCall>,
-    results: &mut VecDeque<ExpressionResult>,args:ResolveExprArgs
+    _results: &mut VecDeque<ExpressionResult>,args:ResolveExprArgs
 )->Result<()> {
     let children=args.children;
     let ctx=args.ctx;
@@ -222,8 +221,8 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
     let ast=args.ast;
 
 
-    let ast1_clone=Rc::clone(ast);
-    let ast2_clone=Rc::clone(ast);
+    let _ast1_clone=Rc::clone(ast);
+    let _ast2_clone=Rc::clone(ast);
 
     
     if children.is_empty() {
@@ -308,7 +307,7 @@ pub fn evaluate_fn(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut VecDe
     let args=get_args(func, results);
     
     if args.len()==0 {
-        let msg=format!("'{}' received 0 arguments.", func.func.to_string());
+        let _msg=format!("'{}' received 0 arguments.", func.func.to_string());
         return err!("");
     }
 

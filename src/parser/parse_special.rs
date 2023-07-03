@@ -2,11 +2,12 @@ use std::rc::Rc;
 
 use crate::constants::*;
 use crate::evaluator::eval_helpers_tco::is_valid_identifier;
-use crate::lexer;
+use crate::{lexer, lex};
 use crate::message::*;
 use crate::parser::parse_node::*;
 
 use super::parser::*;
+use super::parser::tests::test_parse;
 
 pub(super) fn parse_special(
     spec_type: Special,
@@ -22,7 +23,7 @@ pub(super) fn parse_special(
 
 // create FnNode
 // def, name, args, body
-pub(super) fn parse_fn_def(children: Vec<Rc<ASTNode>>, global: bool) -> Result<Rc<ASTNode>> {
+pub(super) fn parse_fn_def(children: Vec<Rc<ASTNode>>, _global: bool) -> Result<Rc<ASTNode>> {
     if children.len() < 4 {
         return err!(
             "Function definitions should have at least 3 parts: a name, parameters and a body."
@@ -129,8 +130,8 @@ pub(super) fn parse_let_expression(
     Ok(Rc::new(ASTNode::new(LetNode(children, global))))
 }
 
-use super::parser::tests::*;
-use lexer::*;
+
+
 
 #[test]
 pub fn parse_let_test() {
@@ -157,6 +158,7 @@ fn parse_if_test() {
 // 2. Next should be an expression (args)
 // 3. the expression should only contain symbols
 // 4. all the symbols should be valid ident
+use lexer::Lexer;
 #[test]
 fn parse_fn_test_valid() {
     let valid = "(def fn (a) a)";

@@ -121,7 +121,7 @@ pub const RESERVED_KEYWORDS: [&'static str; 34] = [
     PIPE,
 ];
 
-use std::{collections::HashSet, hash::Hash};
+use std::{collections::HashSet};
 
 lazy_static! {
     pub static ref RESERVED_SET: HashSet<String> = {

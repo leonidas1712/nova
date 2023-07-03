@@ -100,7 +100,7 @@ impl Function for UserFunction {
         // first clone + add arguments using params and args
 
         let strings: Vec<String> = args.iter().map(|x| x.to_string()).collect();
-        let strings = strings.join(" ");
+        let _strings = strings.join(" ");
 
         let eval_ctx = self.curry(args)?;
 

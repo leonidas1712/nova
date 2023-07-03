@@ -70,7 +70,7 @@ impl Function for Sub {
 
 pub struct Mult;
 impl Function for Mult {
-    fn execute(&self, args: Vec<Arg>, context: &EvalContext) -> Result<Expression> {
+    fn execute(&self, args: Vec<Arg>, _context: &EvalContext) -> Result<Expression> {
         get_nums(args)
             .map(|v| v.into_iter().reduce(|acc, e| acc * e))?
             .ok_or(Ex::new("Could not multiply provided expression"))
@@ -85,7 +85,7 @@ impl Function for Mult {
 
 pub struct Equals;
 impl Function for Equals {
-    fn execute(&self, args: Vec<Arg>, context: &EvalContext) -> Result<Expression> {
+    fn execute(&self, args: Vec<Arg>, _context: &EvalContext) -> Result<Expression> {
         let eval_args = ev!(args);
         check!(EQUALS, 2, eval_args);
 
@@ -102,7 +102,7 @@ impl Function for Equals {
 
 pub struct Succ;
 impl Function for Succ {
-    fn execute(&self, args: Vec<Arg>, context: &EvalContext) -> Result<Expression> {
+    fn execute(&self, args: Vec<Arg>, _context: &EvalContext) -> Result<Expression> {
         let eval_args = get_nums(args)?;
         check!(INC, 1, eval_args);
 
@@ -120,7 +120,7 @@ impl Function for Succ {
 
 pub struct Pred;
 impl Function for Pred {
-    fn execute(&self, args: Vec<Arg>, context: &EvalContext) -> Result<Expression> {
+    fn execute(&self, args: Vec<Arg>, _context: &EvalContext) -> Result<Expression> {
         let eval_args = get_nums(args)?;
         check!(DEC, 1, eval_args);
 

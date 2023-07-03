@@ -1,7 +1,7 @@
-// #![allow(dead_code)]
-// #![allow(unused_variables)]
-// #![allow(unused_imports)]
-// #![allow(unused_macros)]
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+#![allow(unused_macros)]
 extern crate strum;
 #[macro_use]
 extern crate lazy_static;
@@ -9,7 +9,7 @@ extern crate lazy_static;
 #[macro_use]
 extern crate strum_macros;
 
-use std::time::{Duration, Instant};
+
 pub mod constants;
 pub mod evaluator;
 pub mod lexer;
@@ -20,12 +20,9 @@ pub mod time;
 
 use std::rc::Rc;
 
-use crate::evaluator::evaluator_tco::print_max_depth_tco;
+
 use crate::{
     constants::*,
-    evaluator::{
-        evaluator_tco::evaluate_outer,
-    },
 };
 use rustyline::{error::ReadlineError, DefaultEditor};
 

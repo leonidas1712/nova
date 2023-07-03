@@ -1,4 +1,4 @@
-use std::io::empty;
+
 use std::rc::Rc;
 
 use super::parse_special::*;
@@ -117,7 +117,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
     // special
     let first = children.get(0).unwrap();
 
-    let try_special = Special::get_special(first.to_string());
+    let _try_special = Special::get_special(first.to_string());
 
     // try_spec: bool for global
     // global means whether to take return value to set in outer ctx
