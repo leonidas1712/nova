@@ -5,12 +5,9 @@ use std::collections::VecDeque;
 use crate::message::*;
 use crate::parser::parse_node::*;
 use crate::{
-    constants::{LET_NAME},
+    constants::{LET_NAME,STMT_END},
     evaluator::function_tco::UserFunction,
 };
-
-
-
 
 use super::{context_tco::*, data_tco::*, function_tco::*};
 use super::evaluator_tco::*;
@@ -175,6 +172,10 @@ pub fn resolve_let(ctx:&EvalContext, expressions:&Vec<Rc<ASTNode>>, global:bool)
 
         match &nxt_node.value {
             Symbol(string) => {
+                if string.as_str().eq(STMT_END) {
+                    let msg=format!("'{}' can't be used here.", STMT_END);
+                    return err!(msg);
+                }
                 let _check=is_valid_identifier(string.as_str())?;
                 var.replace(string.as_str());
             },

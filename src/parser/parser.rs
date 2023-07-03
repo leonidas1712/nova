@@ -89,6 +89,11 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
     // if we broke out of loop without a closing token => not well formed e.g  (2
     match opt_token {
         Some(last_token) => {
+            if last_token.eq(STMT_END) {
+                let msg=format!("'{}' can't be used inside an expression.", STMT_END);
+                return err!(msg);
+            }
+
             let cmp = (open_token.as_str(), last_token);
             if cmp != EXPR_TUP && cmp != LIST_TUP {
                 // return bracket mismatch and index
@@ -116,8 +121,6 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
 
     // special
     let first = children.get(0).unwrap();
-
-    let _try_special = Special::get_special(first.to_string());
 
     // try_spec: bool for global
     // global means whether to take return value to set in outer ctx
@@ -184,33 +187,87 @@ pub fn parse_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
 
 // for now: return first ASTNode
 // once curried functions: do evaluation in order
-pub fn parse(mut lex: lexer::Lexer) -> Result<Rc<ASTNode>> {
+pub fn parse(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
     let mut nodes: Vec<Rc<ASTNode>> = Vec::new();
+
+    loop {
+
+        
+        if let None = lex.peek() {
+            break;
+        }
+
+        let res = parse_expression(lex)?;
+        nodes.push(res);
+
+        // use ; to separate top level statements
+            // ignore duplicated ';'
+        if let Some(token) = lex.peek() {
+            if token.eq(STMT_END) {
+                while let Some(end) = lex.peek() {
+                    if !end.eq(STMT_END) {
+                        break
+                    }
+                    lex.next();
+                }
+                break;
+            }
+        }
+    }
+
+    let nodes_filtered:Vec<Rc<ASTNode>>=nodes.into_iter()
+        .filter(|node| {
+            match &node.value {
+                Symbol(sym) => {
+                    !DONT_ADD.contains(&sym.as_str())
+                },
+                _ => true
+            }
+        }).collect();
+
+    if nodes_filtered.len() == 0 {
+        let msg = format!("{}:'{}'", EMPTY_MSG, lex.to_string());
+        return err!(msg);
+    };
+
+    let root: Rc<ASTNode> = if nodes_filtered.len() == 1 {
+        nodes_filtered.into_iter().next().unwrap()
+    } else {
+        // if special: return that, otherwise make expr with nodes
+        // global true: so that 'let' without brackets can be used for var assignment
+        try_spec!(nodes_filtered, true);
+        Rc::new(ASTNode::new(ParseExpression(nodes_filtered)))
+    };
+
+    Ok(root)
+}
+
+pub fn parse_all(mut lex:lexer::Lexer)->Result<Vec<Rc<ASTNode>>> {
+    let mut nodes: Vec<Rc<ASTNode>> = Vec::new();
+    println!("Ran parse all");
 
     loop {
         if let None = lex.peek() {
             break;
         }
 
-        let res = parse_expression(&mut lex)?;
+        // if let Some(token) = lex.peek() {
+        //     if token.eq(STMT_END) {
+        //         break;
+        //     }
+        // }
+
+        let res = parse(&mut lex)?;
         nodes.push(res);
     }
 
-    if nodes.len() == 0 {
-        let msg = format!("{}:'{}'", EMPTY_MSG, lex.to_string());
-        return err!(msg);
-    };
+    println!("NODES PARSE ALL:");
 
-    let root: Rc<ASTNode> = if nodes.len() == 1 {
-        nodes.into_iter().next().unwrap()
-    } else {
-        // if special: return that, otherwise make expr with nodes
-        // global true: so that 'let' without brackets can be used for var assignment
-        try_spec!(nodes, true);
-        Rc::new(ASTNode::new(ParseExpression(nodes)))
-    };
+    for n in nodes.iter() {
+        println!("{}", n.to_string());
+    }
 
-    Ok(root)
+    Ok(nodes)
 }
 
 // Tests
@@ -223,9 +280,9 @@ pub mod tests {
     use super::*;
     // parse helpers
     pub fn parse_one(exp: &str) -> String {
-        let lex = crate::lexer::Lexer::new(exp.to_string()).unwrap();
+        let mut lex = crate::lexer::Lexer::new(exp.to_string()).unwrap();
         // dbg!(&lex);
-        let res = parse(lex).unwrap();
+        let res = parse(&mut lex).unwrap();
         // dbg!(&res);
         res.to_string()
     }
@@ -369,11 +426,11 @@ pub mod tests {
     }
 
     fn test_equality_expr(s: &str) {
-        let l = lex!(s);
-        let p = parse(l).unwrap();
+        let mut l = lex!(s);
+        let p = parse(&mut l).unwrap();
 
-        let l2 = lex!(s);
-        let p2 = parse(l2).unwrap();
+        let mut l2 = lex!(s);
+        let p2 = parse(&mut l2).unwrap();
 
         println!("{}", p.to_string_with_parent());
 

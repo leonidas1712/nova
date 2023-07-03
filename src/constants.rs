@@ -59,11 +59,12 @@ pub const LAMBDA_TYPE: &str = "lambda";
 pub const COMP_OPR: &str = "$";
 pub const COMP_LEFT: &str = "@";
 pub const PIPE: &str = ">>";
+pub const STMT_END:&str=";";
 
 // Some useful token arrays
-pub const SPLIT_TOKENS: [&'static str; 11] = [
+pub const SPLIT_TOKENS: [&'static str; 12] = [
     OPEN_EXPR, CLOSE_EXPR, NEWLINE, TAB, VAR_SEP, OPEN_LIST, CLOSE_LIST, SPACE, LAMBDA, COMP_OPR,
-    PIPE,
+    PIPE,STMT_END
 ];
 
 pub const DONT_ADD: [&'static str; 5] = [NEWLINE, TAB, VAR_SEP, SPACE, EMPTY];

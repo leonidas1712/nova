@@ -101,7 +101,6 @@ pub (crate) fn print_max_depth_tco() {
 // main evaluate
 pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: bool,) -> Result<DataValue> {
     // try to match terminals
-
     // update_depth_tco();
     let deferred = DeferredExpression {
         ctx: ctx.clone(),
@@ -126,6 +125,8 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
     let expr = &expression.expr;
 
     let body = &expr.body;
+    println!("Node:{}", body.to_string_with_parent());
+
     let ctx = &expr.ctx;
     let parent=&expression.parent; // dont use body.parent
 

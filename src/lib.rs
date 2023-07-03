@@ -24,11 +24,19 @@ use std::rc::Rc;
 use crate::{
     constants::*,
 };
+use parser::parser::parse_all;
 use rustyline::{error::ReadlineError, DefaultEditor};
 
 pub fn evaluate_input_tco(inp: &str, context: &mut evaluator::context_tco::EvalContext) -> String {
+    let mut lexed=lexer::Lexer::new(inp.to_string()).unwrap();
+    println!("B4 PARSE ALL");
+
+    let p_all=parse_all(lexed);
+    println!("AFT PARSE ALL:{}", p_all.is_ok());
+    
+
     let res = lexer::Lexer::new(inp.to_string())
-        .and_then(|lex| parser::parser::parse(lex))
+        .and_then(|mut lex| parser::parser::parse(&mut lex))
         .and_then(|node| evaluator::evaluator_tco::evaluate_outer(context.clone(), node, true));
 
 

@@ -162,60 +162,60 @@ use lexer::Lexer;
 #[test]
 fn parse_fn_test_valid() {
     let valid = "(def fn (a) a)";
-    let l = lex!(valid);
+    let mut l = lex!(valid);
 
     let valid = "(def fn (a b c) (add a b c) (let x y z) (add 1 2 3))";
-    let l = lex!(valid);
-    assert_eq!(parse(l).unwrap().to_string(), valid.to_string());
+    let mut l = lex!(valid);
+    assert_eq!(parse(&mut l).unwrap().to_string(), valid.to_string());
 
     let valid = "def fn (a b c) (add a b c), (let x y z), (add 1 2)";
-    let l = lex!(valid);
-    let p = parse(l).unwrap().to_string();
+    let mut l = lex!(valid);
+    let p = parse(&mut l).unwrap().to_string();
 
     let exp = "(def fn (a b c) (add a b c) (let x y z) (add 1 2))";
     assert_eq!(p, exp);
 
     let valid = "def fn (a,b,c) (add a b c)"; // commas ok
-    let l = lex!(valid);
-    let p = parse(l).unwrap().to_string();
+    let mut l = lex!(valid);
+    let p = parse(&mut l).unwrap().to_string();
     assert_eq!(p.to_string(), "(def fn (a b c) (add a b c))")
 }
 
 #[test]
 fn parse_fn_test() {
-    let l = lex!("def fn (a)");
-    assert!(parse(l)
+    let mut l = lex!("def fn (a)");
+    assert!(parse(&mut l)
         .err()
         .unwrap()
         .format_error()
         .contains("at least 3"));
 
-    let l = lex!("(def fn (a))");
-    assert!(parse(l)
+    let mut l = lex!("(def fn (a))");
+    assert!(parse(&mut l)
         .err()
         .unwrap()
         .format_error()
         .contains("at least 3"));
 
-    let l = lex!("(def 2 (a) (a b))");
-    assert!(parse(l)
+    let mut l = lex!("(def 2 (a) (a b))");
+    assert!(parse(&mut l)
         .err()
         .unwrap()
         .format_error()
         .contains("should be a symbol"));
 
-    let l = lex!("(def fn a b (a b))");
-    let p = parse(l);
+    let mut l = lex!("(def fn a b (a b))");
+    let p = parse(&mut l);
     dbg!(&p);
-    // assert!(parse(l).err().unwrap().format_error().contains("in an expression"));
+    // assert!(parse(&mut l).err().unwrap().format_error().contains("in an expression"));
 
-    let l = lex!("(def fn (a b 2) (a b))");
-    assert!(parse(l)
+    let mut l = lex!("(def fn (a b 2) (a b))");
+    assert!(parse(&mut l)
         .err()
         .unwrap()
         .format_error()
         .contains("only symbols"));
 
-    let l = lex!("(def fn (a b let) (add a b let))");
-    assert!(parse(l).is_err());
+    let mut l = lex!("(def fn (a b let) (add a b let))");
+    assert!(parse(&mut l).is_err());
 }
