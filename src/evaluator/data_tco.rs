@@ -9,7 +9,6 @@ use super::context_tco::{Context, EvalContext};
 use super::function_tco::{Function, UserFunction};
 
 // Number, Boolean, List, String, Lambda, FunctionVariable(Box<dyn Function>)
-// when we have an enum that has a reference, then a vector of enums and I clone the vector what happens
 
 #[derive(Clone)]
 pub struct LetReturn {
@@ -185,27 +184,27 @@ pub mod tests {
     use super::*;
     use std::rc::Rc;
 
-    // #[test]
-    // fn data_test_getters() {
-    //     let d1 = Num(20);
-    //     let d2 = Bool(true);
-    //     let add = Add {};
-    //     let d3 = FunctionVariable(Rc::new(add));
+    #[test]
+    fn data_test_getters() {
+        let d1 = Num(20);
+        let d2 = Bool(true);
+        let add = Add {};
+        let d3 = FunctionVariable(Rc::new(add));
 
-    //     dbg!(d3.to_string());
+        dbg!(d3.to_string());
 
-    //     assert_eq!(d1.expect_num().unwrap(), 20);
-    //     assert!(d2.expect_num().is_err());
-    //     assert!(d3.expect_num().is_err());
+        assert_eq!(d1.expect_num().unwrap(), 20);
+        assert!(d2.expect_num().is_err());
+        assert!(d3.expect_num().is_err());
 
-    //     assert!(d1.expect_bool().is_err());
-    //     assert_eq!(d2.expect_bool().unwrap(), true);
-    //     assert!(d3.expect_bool().is_err());
+        assert!(d1.expect_bool().is_err());
+        assert_eq!(d2.expect_bool().unwrap(), true);
+        assert!(d3.expect_bool().is_err());
 
-    //     assert!(d1.expect_function().is_err());
-    //     assert!(d2.expect_function().is_err());
-    //     assert!(d3.expect_function().is_ok());
-    // }
+        assert!(d1.expect_function().is_err());
+        assert!(d2.expect_function().is_err());
+        assert!(d3.expect_function().is_ok());
+    }
 
     #[test]
     fn data_test_arg_expect() {

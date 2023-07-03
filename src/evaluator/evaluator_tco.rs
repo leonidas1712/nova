@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use std::result;
+use std::collections::VecDeque;
 
 use crate::parser::parse_node::*;
 use crate::{lex, message::*};
@@ -128,119 +129,118 @@ pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: boo
 // because of issue where when returning from UserFunction execute we need a new owned context
 // can't return &Eval since it's created inside the fn body
 // Good thing is EvalContext.clone() is cheap because of Rc::clone
-use std::collections::VecDeque;
 
-struct ResolveExprArgs<'a> {
-    ast:&'a Rc<ASTNode>, // ast for the function call
-    children:&'a Vec<Rc<ASTNode>>, // all the children of the expression
-    ctx:&'a EvalContext,
-    parent:&'a Option<Rc<ASTNode>> // parent of the expression
-}
+// struct ResolveExprArgs<'a> {
+//     ast:&'a Rc<ASTNode>, // ast for the function call
+//     children:&'a Vec<Rc<ASTNode>>, // all the children of the expression
+//     ctx:&'a EvalContext,
+//     parent:&'a Option<Rc<ASTNode>> // parent of the expression
+// }
 
-// unroll expression onto call stack and resolve first member to a function then push to fn_stack
-fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut VecDeque<FunctionCall>,
-    results: &mut VecDeque<ExpressionResult>,args:ResolveExprArgs
-)->Result<()> {
-    let children=args.children;
-    let ctx=args.ctx;
-    let parent=args.parent;
-    let ast=args.ast;
+// // unroll expression onto call stack and resolve first member to a function then push to fn_stack
+// fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut VecDeque<FunctionCall>,
+//     results: &mut VecDeque<ExpressionResult>,args:ResolveExprArgs
+// )->Result<()> {
+//     let children=args.children;
+//     let ctx=args.ctx;
+//     let parent=args.parent;
+//     let ast=args.ast;
 
-    // println!("EXPR AST:{} ID:{}", ast.to_string(), ast.original.to_string());
+//     // println!("EXPR AST:{} ID:{}", ast.to_string(), ast.original.to_string());
 
-    let ast1_clone=Rc::clone(ast);
-    let ast2_clone=Rc::clone(ast);
+//     let ast1_clone=Rc::clone(ast);
+//     let ast2_clone=Rc::clone(ast);
 
-    // println!("Are the clones equal:{}", ast1_clone.eq(&ast2_clone));
+//     // println!("Are the clones equal:{}", ast1_clone.eq(&ast2_clone));
     
-    if children.is_empty() {
-        return err!("Received empty expression.");
-    }
+//     if children.is_empty() {
+//         return err!("Received empty expression.");
+//     }
 
-    let first_child = children.first().unwrap();
-    let eval_first=evaluate_outer(ctx.clone(), Rc::clone(first_child), false)?;
+//     let first_child = children.first().unwrap();
+//     let eval_first=evaluate_outer(ctx.clone(), Rc::clone(first_child), false)?;
 
-    // we expect first part of expression to resolve to a fn call
-    // let and if handled separately already
-    let func=eval_first.expect_function()?;
-    let func_call=FunctionCall {
-        func:func.clone(),
-        ast:Rc::clone(ast),
-        parent:parent.clone(),
-        context:ctx.clone()
-    };
-    fn_stack.push_back(func_call);
+//     // we expect first part of expression to resolve to a fn call
+//     // let and if handled separately already
+//     let func=eval_first.expect_function()?;
+//     let func_call=FunctionCall {
+//         func:func.clone(),
+//         ast:Rc::clone(ast),
+//         parent:parent.clone(),
+//         context:ctx.clone()
+//     };
+//     fn_stack.push_back(func_call);
 
-    // push rest of child expressions onto call_st
-    let mut rest_children=children.into_iter();
-    rest_children.next(); // go past first
-
-
-    // todo: handle unevaluated separately
-
-    // push in reverse
-    for child in rest_children.rev() {
-        let deferred=DeferredExpression {
-            ctx:ctx.clone(),
-            body:Rc::clone(child)
-        };
-        let stack_expr=StackExpression {
-            expr:deferred,
-            parent:Some(Rc::clone(ast))
-        };
-
-        // assigned parent to one level above supposed to be
-
-        call_stack.push_back(stack_expr);
-    }
+//     // push rest of child expressions onto call_st
+//     let mut rest_children=children.into_iter();
+//     rest_children.next(); // go past first
 
 
-    Ok(())
-}
+//     // todo: handle unevaluated separately
+
+//     // push in reverse
+//     for child in rest_children.rev() {
+//         let deferred=DeferredExpression {
+//             ctx:ctx.clone(),
+//             body:Rc::clone(child)
+//         };
+//         let stack_expr=StackExpression {
+//             expr:deferred,
+//             parent:Some(Rc::clone(ast))
+//         };
+
+//         // assigned parent to one level above supposed to be
+
+//         call_stack.push_back(stack_expr);
+//     }
+
+
+//     Ok(())
+// }
 
 // check call_st[-1].parent and fn_st[-1].ast
     // ast: pub ast: Rc<ASTNode>,
     // parent: parent: Option<Rc<ASTNode>>,
-fn can_resolve(fn_call:&FunctionCall, expr_parent:&Option<Rc<ASTNode>>)->bool {
-    let fn_ast=&fn_call.ast;
+// fn can_resolve(fn_call:&FunctionCall, expr_parent:&Option<Rc<ASTNode>>)->bool {
+//     let fn_ast=&fn_call.ast;
 
-    match expr_parent {
-        Some(parent) => {
-            let p=parent.as_ref();
-            let fn_a=fn_ast.as_ref();
-            let b=p.eq(fn_a);
-            b
-        },
-        None => false
-    }
-}
+//     match expr_parent {
+//         Some(parent) => {
+//             let p=parent.as_ref();
+//             let fn_a=fn_ast.as_ref();
+//             let b=p.eq(fn_a);
+//             b
+//         },
+//         None => false
+//     }
+// }
 
 // given results queue + func_call -> Vec<Args> 
     // pop from the back of the queue until node with parent!=func.ast
 // assume evaluated: uneval handled specially like for if, let
-fn get_args<'a>(func:&FunctionCall, results: &'a mut VecDeque<ExpressionResult>)->Vec<Arg<'a>> {
-    let mut args:VecDeque<Arg>=VecDeque::new();
+// fn get_args<'a>(func:&FunctionCall, results: &'a mut VecDeque<ExpressionResult>)->Vec<Arg<'a>> {
+//     let mut args:VecDeque<Arg>=VecDeque::new();
     
-    // take from back of results queue until we encounter res with diff parent
-    for res in results.iter().rev() {
-        if !can_resolve(func, &res.parent) {
-            break;
-        }
+//     // take from back of results queue until we encounter res with diff parent
+//     for res in results.iter().rev() {
+//         if !can_resolve(func, &res.parent) {
+//             break;
+//         }
 
-        let data=res.data.clone();
-        let arg=Arg::Evaluated(data);
-        args.push_front(arg);
-    }
+//         let data=res.data.clone();
+//         let arg=Arg::Evaluated(data);
+//         args.push_front(arg);
+//     }
 
-    // println!("before:{}", results.len());
-    // pop after pushing: can't modify during iter
-    for i in 0..args.len() {
-        results.pop_back();
-    }
-    // println!("after:{}", results.len());
+//     // println!("before:{}", results.len());
+//     // pop after pushing: can't modify during iter
+//     for i in 0..args.len() {
+//         results.pop_back();
+//     }
+//     // println!("after:{}", results.len());
 
-    args.into_iter().collect()
-}
+//     args.into_iter().collect()
+// }
 
 
 // write function (evaluate_function) to:
@@ -249,112 +249,189 @@ fn get_args<'a>(func:&FunctionCall, results: &'a mut VecDeque<ExpressionResult>)
     // 3. if expression is evald: push to res_q
     // 4. else: push to call_st
     // 5. both cases: parent is set to func.parent
-fn evaluate_fn(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()>{
-    let func=&fn_stack.pop_back().unwrap();
-    let args=get_args(func, results);
+// fn evaluate_fn(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()>{
+//     let func=&fn_stack.pop_back().unwrap();
+//     let args=get_args(func, results);
     
-    if args.len()==0 {
-        let msg=format!("'{}' received 0 arguments.", func.func.to_string());
-        return err!("");
-    }
+//     if args.len()==0 {
+//         let msg=format!("'{}' received 0 arguments.", func.func.to_string());
+//         return err!("");
+//     }
 
-    // println!("Got args of len:{} for func:{}", args.len(), func.func.to_string());
+//     // println!("Got args of len:{} for func:{}", args.len(), func.func.to_string());
 
-    let execute_result=func.func.execute(args, &func.context)?;
-    // println!("Execute result:{}", execute_result.to_string());
+//     let execute_result=func.func.execute(args, &func.context)?;
+//     // println!("Execute result:{}", execute_result.to_string());
 
-    match execute_result {
-        // put on call stack
-        DeferredExpr(def) => {
-            let stack_expr=StackExpression {
-                expr:def,
-                parent:func.parent.clone() // cloning the OPTION
-            };
-            call_stack.push_back(stack_expr);
-        },
+//     match execute_result {
+//         // put on call stack
+//         DeferredExpr(def) => {
+//             let stack_expr=StackExpression {
+//                 expr:def,
+//                 parent:func.parent.clone() // cloning the OPTION
+//             };
+//             call_stack.push_back(stack_expr);
+//         },
 
-        // put on resq
-        EvaluatedExpr(ev) => {
-            let expr_res=ExpressionResult {
-                data:ev,
-                parent:func.parent.clone() // cloning the OPTION - should be same id
-            };
-            results.push_back(expr_res);
-        }
-    }
+//         // put on resq
+//         EvaluatedExpr(ev) => {
+//             let expr_res=ExpressionResult {
+//                 data:ev,
+//                 parent:func.parent.clone() // cloning the OPTION - should be same id
+//             };
+//             results.push_back(expr_res);
+//         }
+//     }
 
-    Ok(())
-}
+//     Ok(())
+// }
 
-fn resolve_let(ctx:&EvalContext, expressions:&Vec<Rc<ASTNode>>, global:bool)->Result<DataValue> {
-    let mut new_ctx=ctx.copy(); // copy, not clone
-    let n=expressions.len();
+// fn resolve_let(ctx:&EvalContext, expressions:&Vec<Rc<ASTNode>>, global:bool)->Result<DataValue> {
+//     let mut new_ctx=ctx.copy(); // copy, not clone
+//     let n=expressions.len();
 
-    let mut var:Option<&str>=None;
-    let mut outer_res:Option<DataValue>=None;
+//     let mut var:Option<&str>=None;
+//     let mut outer_res:Option<DataValue>=None;
 
-    for (idx,nxt_node) in expressions.into_iter().enumerate() {
-        if idx==n-1 {
-            let res=evaluate_outer(new_ctx.clone(), Rc::clone(nxt_node), false)?;
-            if let Some(var_name)=var {
-                new_ctx.write().add_variable(var_name, res.clone());
-            }
+//     for (idx,nxt_node) in expressions.into_iter().enumerate() {
+//         if idx==n-1 {
+//             let res=evaluate_outer(new_ctx.clone(), Rc::clone(nxt_node), false)?;
+//             if let Some(var_name)=var {
+//                 new_ctx.write().add_variable(var_name, res.clone());
+//             }
 
-            outer_res.replace(res);
-            continue;
-        }
+//             outer_res.replace(res);
+//             continue;
+//         }
 
-        // assign result to var name
-        if var.is_some() {
-            let res=evaluate_outer(new_ctx.clone(), Rc::clone(nxt_node), false)?;
-            outer_res.replace(res.clone());
-            new_ctx.write().add_variable(var.unwrap(), res);
-            var.take();
-            continue;
-        }
+//         // assign result to var name
+//         if var.is_some() {
+//             let res=evaluate_outer(new_ctx.clone(), Rc::clone(nxt_node), false)?;
+//             outer_res.replace(res.clone());
+//             new_ctx.write().add_variable(var.unwrap(), res);
+//             var.take();
+//             continue;
+//         }
 
-        match &nxt_node.value {
-            Symbol(string) => {
-                let check=is_valid_identifier(string.as_str())?;
-                var.replace(string.as_str());
-            },
-            _ => {
-                let msg = format!(
-                    "'{}' expected a symbol but got '{}'",
-                    LET_NAME,
-                    nxt_node.to_string()
-                );
-                return err!(&msg);
-            }
-        }
-    }
+//         match &nxt_node.value {
+//             Symbol(string) => {
+//                 let check=is_valid_identifier(string.as_str())?;
+//                 var.replace(string.as_str());
+//             },
+//             _ => {
+//                 let msg = format!(
+//                     "'{}' expected a symbol but got '{}'",
+//                     LET_NAME,
+//                     nxt_node.to_string()
+//                 );
+//                 return err!(&msg);
+//             }
+//         }
+//     }
 
-    if outer_res.is_none() {
-        let msg = format!("'{}' received nothing to evaluate.", LET_NAME);
-        return err!(&msg);
-    }
+//     if outer_res.is_none() {
+//         let msg = format!("'{}' received nothing to evaluate.", LET_NAME);
+//         return err!(&msg);
+//     }
 
-    let res=outer_res.unwrap();
+//     let res=outer_res.unwrap();
 
-    if !global {
-        Ok(res)
-    } else {
-        let data=LetReturn::new(new_ctx, res);
-        Ok(SetVar(data))
-    }
-}
+//     if !global {
+//         Ok(res)
+//     } else {
+//         let data=LetReturn::new(new_ctx, res);
+//         Ok(SetVar(data))
+//     }
+// }
 
-pub fn resolve_fn_node(ctx: &EvalContext, fn_def: &FnDef, outer_call: bool) -> Result<DataValue> {
-    let func = UserFunction::new(ctx, &fn_def);
-    let rc: Rc<UserFunction> = Rc::new(func);
+// pub fn resolve_fn_node(ctx: &EvalContext, fn_def: &FnDef, outer_call: bool) -> Result<DataValue> {
+//     let func = UserFunction::new(ctx, &fn_def);
+//     let rc: Rc<UserFunction> = Rc::new(func);
 
-    if !outer_call {
-        return Ok(FunctionVariable(rc));
-    }
+//     if !outer_call {
+//         return Ok(FunctionVariable(rc));
+//     }
 
-    // to return out a function to set in global variable
-    Ok(SetFn(rc))
-}
+//     // to return out a function to set in global variable
+//     Ok(SetFn(rc))
+// }
+
+// fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,
+//     results: &mut VecDeque<ExpressionResult>,outer_call: bool)
+//  -> Result<()> {
+//     // pop from stack
+//     let expression = call_stack.pop_back().unwrap();
+//     let expr = &expression.expr;
+
+//     let body = &expr.body;
+//     let ctx = &expr.ctx;
+//     let parent=&expression.parent; // dont use body.parent
+
+//     let mut result = ExpressionResult {
+//         data: Num(-1),
+//         parent: parent.clone(),
+//     };
+
+//     match &body.value {
+//         Number(n) => {
+//             result.data = Num(*n);
+//             results.push_back(result);
+//         }
+//         Boolean(b) => {
+//             result.data = Bool(*b);
+//             results.push_back(result);
+//         }
+//         Symbol(sym) => {
+//             let read = ctx.read();
+//             let value = read.get_data_value(&sym);
+
+//             match value {
+//                 Some(val) => {
+//                     result.data = val.clone();
+//                     results.push_back(result);
+//                 }
+//                 None => {
+//                     let err_string = format!("Unrecognised symbol: '{}'", sym);
+//                     return err!(err_string.as_str());
+//                 }
+//             }
+//         }
+//         IfNode(children) => {
+//             let res = evaluate_if(ctx, children)?;
+//             let stack_expr = StackExpression {
+//                 expr: res,
+//                 parent: parent.clone(),
+//             };
+//             call_stack.push_back(stack_expr);
+//         },
+//         // only a side effect, no return (besides err)
+//         ParseExpression(children) => {
+//             let args=ResolveExprArgs {
+//                 children,
+//                 ctx,
+//                 parent,
+//                 ast:body
+//             };
+//             resolve_expression(call_stack, fn_stack, results, args)?;
+//         },
+//         LetNode(children, global) => {
+//             let returned_result=resolve_let(&ctx,children,*global)?;
+//             result.data=returned_result;
+//             results.push_back(result);
+//         },
+//         FnNode(fn_def) => {
+//             let fn_resolve=resolve_fn_node(&ctx, &fn_def, outer_call)?;
+//             result.data=fn_resolve;
+//             results.push_back(result);
+//         }
+//         // List
+//         _ => {
+//             todo!()
+//         }
+//     }
+
+//     Ok(())
+// }
 
 fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,
     results: &mut VecDeque<ExpressionResult>,outer_call: bool)

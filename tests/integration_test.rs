@@ -1,7 +1,7 @@
 #![recursion_limit = "5000"]
 use nova::{
     evaluate_input_tco,
-    evaluator::context_tco::{setup_context, Context, EvalContext},
+    evaluator::context_tco::{EvalContext},
 };
 fn compare(inp: &str, expected: &str, ctx: &mut EvalContext) {
     let res = evaluate_input_tco(inp.trim(), ctx);
@@ -101,35 +101,32 @@ pub fn fn_test() {
     let mut ctx = EvalContext::new();
 
     let inputs = vec![
-        // "(def id (x) x)",
-        // "(id 1)",
+        "(def id (x) x)",
+        "(id 1)",
         "(let x 2 y (def g (a) (add a x)) (y x))",
-        // "(def recr (n) 
-        //     (if (eq n 0) 0 
-        //     (add n (recr (pred n)))
-        // ))",
-        // "(recr 10)",
-        // "(recr 50)",
-        // "(recr 10)",
+        "(def recr (n) 
+            (if (eq n 0) 0 
+            (add n (recr (pred n)))
+        ))",
+        "(recr 10)",
+        "(recr 50)",
+        "(recr 1000)",
     ];
 
     let expected = vec![
-        // "id(x) => x",
-        // "1",
+        "id(x) => x",
+        "1",
         "4",
-        // "recr(n) => (if (eq n 0) 0 (add n (recr (pred n))))",
-        // "55",
-        // "1275",
-        // "55",
+        "recr(n) => (if (eq n 0) 0 (add n (recr (pred n))))",
+        "55",
+        "1275",
+        "500500",
     ];
     
-    let i=1;
-    // compare(inputs[i], expected[i], &mut ctx)
-
     compare_many(inputs, expected, &mut ctx);
 }
 
-// // (let x 2,let y (let x 3),(add x y))
+// // (let x 2, y (let x 3),(add x y))
 
 // // ((map fn) x) -> (map fn) res is fn call
 // // (g (map fn) x) -> (map fn) res is variable
