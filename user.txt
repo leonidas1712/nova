@@ -1,0 +1,3 @@
+(def fn (x a) (def fn2 (y b) (def fn3 (z) (add x y z))));
+(def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))));
+(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))));

@@ -484,6 +484,24 @@ when do we copy ctx:
 
 <!-- 1. add comments -->
 2. how to handle function currying without binding every space
+    -> go through args. eval fn(a)
+        -> if result is a function set fn=res, then keep going with a2..
+        -> at the end: return the result
+    -> for inf args: need to check if parent ast is marked func_call when promoting result 
+        -> if yes: return curried fn, else return result
+    
+curry:
+    - number of args: finite or inf
+    - finite:
+        - apply args one at a time (or use num args to pass in)
+        - once args reached: eval -> ret DataValue
+            - if ret value is a function: use this new function to keep evaluating
+    - curry method:
+        - take Vec<Args>, finite: arg names + ctx, inf: args array
+        - always return curried function
+    - outside: func.execute() => check parent
+        - if parent is fncall: return function
+        - else: func.eval() -> result (Result<DataValue>)
 <!-- 3. :del and others -->
 <!-- 4. unit type -->
 

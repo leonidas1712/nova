@@ -39,6 +39,10 @@ fn get_nums(args: Vec<Arg>) -> Result<Vec<NumType>> {
     return r;
 }
 
+// individual builtins: tell what to do when you have all args
+// builtin struct: impl Function there, do currying logic etc
+    // args: finite or inf => focus on just finite first
+// state: arg names, arg idx 
 pub struct Add;
 impl Function for Add {
     fn execute(&self, args: Vec<Arg>, _context: &EvalContext) -> Result<DataValue> {

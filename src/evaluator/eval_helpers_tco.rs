@@ -321,7 +321,9 @@ pub fn evaluate_fn(args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecD
     }
 
     let execute_result=func_call.func.execute(args, &func_call.context)?;
-
+    // if parent None or parent not marked as func call: func.eval(), put res on resq
+        // if has less args than needed during eval: just return the curried fn
+    // else (func call): put on fn_stack
     match execute_result {
         // put on call stack
         DeferredExpr(def) => {
