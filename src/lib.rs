@@ -28,8 +28,8 @@ use crate::{
 };
 
 use file::{import_file, STL_FILE, save_file, USER_FILE};
-use lexer::Lexer;
-use parser::parser::{parse,parse_all, split_input};
+use lexer::{Lexer,split_input};
+use parser::parser::{parse,parse_all};
 use parser::parse_node::ASTNode;
 use evaluator::evaluator_tco::*;
 use evaluator::data_tco::*;
@@ -183,18 +183,18 @@ pub fn run(mut args: impl Iterator<Item = String>) {
 
     let mut ctx=evaluator::context_tco::EvalContext::new();
 
-    let imp=import_file(STL_FILE, &mut ctx);
+    // let imp=import_file(STL_FILE, &mut ctx);
 
-    if let Err(err) = imp {
-        println!("Import error - {}", err.format_error());
-    }
+    // if let Err(err) = imp {
+    //     println!("Import error - {}", err.format_error());
+    // }
 
     let final_ctx=nova_repl_tco(ctx); 
 
-    if let Err(err) = save_file(USER_FILE, final_ctx) {
-        println!("Couldn't save functions to file: {}", STL_FILE);
-        println!("Error:{}", err.to_string());
-    }
+    // if let Err(err) = save_file(USER_FILE, final_ctx) {
+    //     println!("Couldn't save functions to file: {}", STL_FILE);
+    //     println!("Error:{}", err.to_string());
+    // }
 
     // use crate::time::{bench,time_comp};
     // bench(50); // 0.0905372397 for (recr 10000)

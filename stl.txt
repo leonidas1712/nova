@@ -5,7 +5,19 @@
 
 (def fn (x)
     (def fn2 (y)
-        (add x y)
+        (def fn3 (z)
+            (add x y z)
+        )
+        
+    )
+)
+
+(def h (x,y)
+    (def h2 (a,b)
+        (def h3 (c,d)
+            (add x y a b c d)
+        )
+        
     )
 )
 

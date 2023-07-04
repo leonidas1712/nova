@@ -135,6 +135,14 @@ pub const RESERVED_KEYWORDS: [&'static str; 36] = [
 use std::{collections::HashSet};
 
 lazy_static! {
+    pub static ref SPLIT_SET:HashSet<String> = {
+        let mut split_set = HashSet::new();
+        for word in SPLIT_TOKENS {
+            split_set.insert(word.to_string());
+        }
+        split_set
+    };
+
     pub static ref RESERVED_SET: HashSet<String> = {
         let mut reserved_set = HashSet::new();
         for word in RESERVED_KEYWORDS {
@@ -142,6 +150,7 @@ lazy_static! {
         }
         reserved_set
     };
+    // invalid as identifiers
     pub static ref INVALID_SET: HashSet<String> = {
         let mut invalid_set = HashSet::new();
         for word in DONT_ADD {

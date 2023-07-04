@@ -125,7 +125,7 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
     let expr = &expression.expr;
 
     let body = &expr.body;
-    println!("Resolve_expr:{}", body.to_string_with_parent());
+    // println!("resolve_expr:{}", body.to_string_with_parent());
     let ctx = &expr.ctx;
     let parent=&expression.parent; // dont use body.parent
 
