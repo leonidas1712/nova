@@ -92,6 +92,22 @@ pub fn evaluate_all(inp: &str, context: &mut EvalContext)->Result<Vec<String>> {
     Ok(results)
 }
 
+// :import, :del, :list, :save(?)
+pub fn process_command(command:&str, ctx:&mut EvalContext) {
+    if command.is_empty() {
+        println!("Empty command.");
+        return;
+    }
+    match command {
+        "list" => {
+            println!("{}", ctx.to_string());
+        },
+        _ => {
+            println!("Unknown command: '{}'", command);
+        }
+    }
+}
+
 pub fn nova_repl_tco(mut context:EvalContext)->EvalContext {
     let mut rl = DefaultEditor::new().unwrap();
 
@@ -119,6 +135,12 @@ pub fn nova_repl_tco(mut context:EvalContext)->EvalContext {
                 }
 
                 rl.add_history_entry(inp.clone().trim()).unwrap();
+
+                if inp.starts_with(CMD_PREFIX) {
+                    process_command(&inp[1..], &mut context);
+                    continue;
+                }
+
 
                 let results=evaluate_all(&inp, &mut context);
             

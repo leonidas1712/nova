@@ -90,8 +90,10 @@ pub const STRING: &str = "string";
 
 // REPL commands
 pub const QUIT_STRINGS: [&'static str; 4] = ["quit", "quit()", "exit", "exit()"];
+pub const FAT_ARROW:&str="=>";
+pub const CMD_PREFIX:&str=":";
 
-pub const RESERVED_KEYWORDS: [&'static str; 35] = [
+pub const RESERVED_KEYWORDS: [&'static str; 36] = [
     LET_NAME,
     FN_NAME,
     IF_NAME,
@@ -126,7 +128,8 @@ pub const RESERVED_KEYWORDS: [&'static str; 35] = [
     COMP_OPR,
     COMP_LEFT,
     PIPE,
-    "=>"
+    FAT_ARROW,
+    CMD_PREFIX
 ];
 
 use std::{collections::HashSet};

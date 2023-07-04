@@ -69,14 +69,38 @@ impl EvalContext {
     }
 
     pub fn to_string(&self)->String {
-        let mut v:Vec<String>=vec![];
+        let mut vars:Vec<String>=vec![];
+        let mut fns:Vec<String>=vec![];
 
-        for (key,value) in self.read().symbol_map.iter() {
-            let s=format!("key:{}, value:{}",key.to_string(), value.to_string());
-            v.push(s);
+        let ctx=self.read();
+
+        for key in ctx.symbol_map.keys() {
+            let var=ctx.get_function(key);
+
+            if var.is_some() {
+                let repr=format!("Function: {} => {}", key, var.unwrap().to_string());
+                fns.push(repr);
+                continue;
+            } 
+
+            let var=ctx.get_variable(key).unwrap();
+            let repr=format!("Variable: {} => {}", key, var.to_string());
+            vars.push(repr);
         }
 
-        v.join("\n")
+        vars.sort_by(|a,b| {
+            a.cmp(b)
+        });
+
+        fns.sort_by(|a,b| {
+            a.cmp(b)
+        });
+
+        let mut res=fns.join("\n");
+        res.push_str("\n\n");
+        res.push_str(vars.join("\n").as_str());
+
+        res
     }
 }
 
