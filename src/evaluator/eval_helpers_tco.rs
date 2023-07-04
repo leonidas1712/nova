@@ -214,7 +214,7 @@ pub struct ResolveExprArgs<'a> {
 
 // unroll expression onto call stack and resolve first member to a function then push to fn_stack
 pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &mut VecDeque<FunctionCall>,
-    _results: &mut VecDeque<ExpressionResult>,args:ResolveExprArgs
+    results: &mut VecDeque<ExpressionResult>,args:ResolveExprArgs
 )->Result<()> {
     let children=args.children;
     let ctx=args.ctx;
@@ -246,11 +246,8 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
     // uneval: dont use stack, pass args directly to function
     if func.get_arg_type().eq(&ArgType::Unevaluated) {
         println!("uneval_args:{}", func.to_string());
-        // let args: Vec<Arg> = children.into_iter().map(|x| Unevaluated(Rc::clone(x))).collect();
-
-        // let res=func.execute(args, &ctx)?;
-        
-        // return Ok(())
+        let args: Vec<Arg> = children.into_iter().map(|x| Unevaluated(Rc::clone(x))).collect();
+        return evaluate_fn(args, &func_call, call_stack, results);
     }
     
     fn_stack.push_back(func_call);
@@ -324,7 +321,6 @@ pub fn evaluate_fn(args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecD
         return err!(msg);
     }
 
-
     let execute_result=func_call.func.execute(args, &func_call.context)?;
 
     match execute_result {
@@ -357,34 +353,4 @@ pub fn call_fn_evaluated(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut
     let args=get_args(func, results);
 
     evaluate_fn(args, func, call_stack, results)
-    
-    // if args.len()==0 {
-    //     let _msg=format!("'{}' received 0 arguments.", func.func.to_string());
-    //     return err!("");
-    // }
-
-
-    // let execute_result=func.func.execute(args, &func.context)?;
-
-    // match execute_result {
-    //     // put on call stack
-    //     DeferredExpr(def) => {
-    //         let stack_expr=StackExpression {
-    //             expr:def,
-    //             parent:func.parent.clone() // cloning the OPTION
-    //         };
-    //         call_stack.push_back(stack_expr);
-    //     },
-
-    //     // put on resq
-    //     EvaluatedExpr(ev) => {
-    //         let expr_res=ExpressionResult {
-    //             data:ev,
-    //             parent:func.parent.clone() // cloning the OPTION - should be same id
-    //         };
-    //         results.push_back(expr_res);
-    //     }
-    // }
-
-    // Ok(())
 }
