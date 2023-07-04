@@ -185,6 +185,11 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
             let fn_resolve=resolve_fn_node(&ctx, &fn_def, fn_def.global)?;
             result.data=fn_resolve;
             results.push_back(result);
+        },
+        ParseUnit => {
+            let u=DataValue::Unit;
+            result.data=u;
+            results.push_back(result);
         }
         // List
         _ => {

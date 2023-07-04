@@ -68,6 +68,7 @@ pub enum ParseValue {
     IfNode(Vec<Rc<ASTNode>>),
     LetNode(Vec<Rc<ASTNode>>, bool),
     FnNode(FnDef),
+    ParseUnit
 }
 
 impl ParseValue {
@@ -246,7 +247,8 @@ impl ASTNode {
                 } else {
                     FALSE.to_string()
                 }
-            }
+            },
+            ParseUnit => String::from("")
         }
     }
 }

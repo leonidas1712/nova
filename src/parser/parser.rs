@@ -77,7 +77,14 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
     };
 
     if children.len() == 0 {
+        lex.next();
         let expr = if open_token.eq(OPEN_EXPR) { "()" } else { "[]" };
+
+        if open_token.eq(OPEN_EXPR) {
+            let u=ASTNode::new(ParseUnit);
+            return Ok(Rc::new(u));
+        }
+
         if open_token.eq(OPEN_LIST) {
             // handle nil here
         }

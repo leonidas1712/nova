@@ -194,6 +194,9 @@ pub fn nova_repl_tco(mut context:EvalContext)->EvalContext {
                 match results {
                     Ok(strings) => {
                         for string in strings {
+                            if string.len()==0 {
+                                continue;
+                            }
                             println!("{}", string);
                         }
                     },

@@ -482,7 +482,7 @@ when do we copy ctx:
 - fn curry
 
 
-1. add comments
+<!-- 1. add comments -->
 2. how to handle function currying without binding every space
 <!-- 3. :del and others -->
 4. unit type

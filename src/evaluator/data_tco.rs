@@ -32,7 +32,7 @@ pub enum DataValue {
     FunctionVariable(Rc<dyn Function>), // we need to borrow the function from Context when doing this
     SetVar(LetReturn),                  // returned from 'let' if outer_call=true,
     SetFn(Rc<UserFunction>),
-    Default,
+    Unit, // void type
 }
 
 impl DataValue {
@@ -104,7 +104,7 @@ impl DataValue {
             FunctionVariable(f) => f.to_string(),
             SetVar(lr) => lr.value.to_string(),
             SetFn(func) => func.to_string(),
-            Default => String::from("Default Data Value"),
+            Unit => String::from(""),
         }
     }
 }
