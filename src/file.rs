@@ -1,13 +1,18 @@
+extern crate shellexpand;
+use shellexpand::tilde;
+
 use std::env::join_paths;
 use std::error::Error;
+use std::ffi::OsString;
 use std::fs::{File,read_to_string,write, OpenOptions};
 use std::io::{self, BufRead};
 use std::os;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::ptr::read;
 
+
 use crate::evaluator::context_tco::EvalContext;
-use crate::message::*;
+use crate::{message::*, file};
 use crate::lex;
 use crate::lexer::*;
 use crate::parser::parser::parse_all;
@@ -16,7 +21,7 @@ use crate::constants::*;
 
 // for reading and storing functions in file
 pub const STL_FILE:&str="~/rust/nova/stl.txt";
-pub const USER_FILE:&str="user.txt";
+pub const USER_FILE:&str="~/rust/nova/user.txt";
 
 // convert to chars, insert ; everytime brackets goes to 0 (excluding first)
 // comments: ignore #
@@ -82,7 +87,6 @@ pub fn separate_expressions(file_string:&str)->Result<String> {
     Ok(joined)
 }
 
-
 // partially written by ChatGPT
 pub fn extract_fndef(input:String)->Result<String> {
     // Find the position of the arrow "=>"
@@ -111,9 +115,18 @@ pub fn extract_fndef(input:String)->Result<String> {
 
 // :import, :del, :list
 use std::io::Write;
+
+// full name with ~ expanded
+pub fn get_full_path(filename:&str)->PathBuf {
+    let file_path=shellexpand::tilde(filename).to_string();
+    let file_path=Path::new(&file_path).to_owned();
+    file_path
+}
+
+// save context functions to filename
 pub fn save_file(filename:&str, ctx:EvalContext)->std::result::Result<(),io::Error> {
-    // let mut file=OpenOptions::new().create(true).append(true).open(filename)?;
-    let mut file=File::create(filename)?;
+    let full_path=get_full_path(filename);
+    let mut file=File::create(full_path)?;
 
     let mut count=0;
     for (key,value) in ctx.read().symbol_map.iter() {
@@ -133,6 +146,7 @@ pub fn save_file(filename:&str, ctx:EvalContext)->std::result::Result<(),io::Err
     Ok(())
 }
 
+
 pub fn import_file(filename:&str, ctx:&mut EvalContext)->Result<()>{
     let file=read_file(filename)?;
     println!("Importing file:{}\n", filename);
@@ -149,35 +163,15 @@ pub fn import_file(filename:&str, ctx:&mut EvalContext)->Result<()>{
 
 // get file contents as string
 pub fn read_file(filename:&str)->Result<String> {
-    // let os_string=join_paths([Path::new("~/rust/nova"), Path::new("/stl.txt")]);
-    // let string=os_string.unwrap();
-    // let s=string
+    let file_path=get_full_path(filename);
+    println!("Path: {}", file_path.display());
 
-    use std::fs;
-    let path=fs::canonicalize("~/rust/nova/stl.txt");
-    let path=path.unwrap();
+    let read=read_to_string(file_path);
 
-
-    // match os_string {
-    //     Ok(file) => {
-    //         println!("OS:{:?}", file.to_os_string().to_owned());
-    //         let read=read_to_string(file);
-    //         match read {
-    //             Ok(file_string) => Ok(file_string),
-    //             Err(_) => errf!("File '{}' doesn't exist err1", filename)
-    //         }
-
-    //     },
-
-    //     Err(_) => errf!("File '{}' doesn't exist err2", filename)
-    // }
-
-    // match read {
-    //     Ok(file_string) => Ok(file_string),
-    //     Err(_) => errf!("File '{}' doesn't exist.", filename)
-    // }
-
-    Ok("stl.txt".to_string())
+    match read {
+        Ok(file_string) => Ok(file_string),
+        Err(_) => errf!("File '{}' doesn't exist.", filename)
+    }
 }
 
 // from rust by example

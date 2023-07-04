@@ -238,7 +238,7 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     let final_ctx=nova_repl_tco(ctx); 
 
     if let Err(err) = save_file(USER_FILE, final_ctx) {
-        println!("Couldn't save functions to file: {}", STL_FILE);
+        println!("Couldn't save functions to file: {}", USER_FILE);
         println!("Error:{}", err.to_string());
     }
 
