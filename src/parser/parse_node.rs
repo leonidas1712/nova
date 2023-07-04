@@ -18,7 +18,19 @@ use std::rc::{Rc};
 pub struct FnDef {
     pub name: String,
     pub params: Vec<String>,
-    pub body: Vec<Rc<ASTNode>>, // can have multiple expressions in body
+    pub body: Vec<Rc<ASTNode>>, // can have multiple expressions in body,
+    pub global:bool
+}
+
+impl FnDef {
+    pub fn set_global(&self, global:bool)->FnDef {
+        FnDef {
+            name:self.name.clone(),
+            params:self.params.clone(),
+            body:self.body.clone(),
+            global
+        }
+    }
 }
 
 impl Display for FnDef {
@@ -93,12 +105,6 @@ pub struct ASTNode {
 
 impl Clone for ASTNode {
     fn clone(&self) -> Self {
-        // ASTNode {
-        //     value: self.value.clone(),
-        //     parent: self.parent.clone(),
-        //     original: self.original,
-        // }
-
         ASTNode {
             value: self.value.clone(),
             parent: self.parent.clone(),
@@ -116,6 +122,7 @@ impl PartialEq for ASTNode {
 
 impl Eq for ASTNode {}
 
+//  (app (def h(x) x) 1) -> 1 (currently err)
 impl ASTNode {
     pub fn new(mut value: ParseValue) -> ASTNode {
         // when clone node: the clone node should return true on equals cmp
@@ -195,14 +202,7 @@ impl ASTNode {
     pub fn get_ith_child(&self, index: usize) -> Option<&Rc<ASTNode>> {
         self.get_children().and_then(|v| v.get(index))
     }
-
-    // // sets parent of children
-    // pub fn set_parents(parent: Rc<ASTNode>, children: &mut Vec<ASTNode>) {
-    //     for child in children.iter_mut() {
-    //         child.parent = Rc::downgrade(&parent);
-    //     }
-    // }
-
+    
     pub fn to_string_with_parent(&self) -> String {
         let parent_string = match &self.parent {
             Some(prt) => prt.to_string(),

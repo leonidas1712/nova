@@ -242,7 +242,20 @@ pub fn parse(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
     };
 
     let root: Rc<ASTNode> = if nodes_filtered.len() == 1 {
-        nodes_filtered.into_iter().next().unwrap()
+        let node=nodes_filtered.into_iter().next().unwrap();
+        // if fn_node is the only one inside list expr set global to true
+        // can't do for let because (let x 2) is not global
+        match &node.value {
+            FnNode(def) => {
+                let new_def=def.set_global(true);
+                let mut new_node=node.as_ref().clone();
+                new_node.value=FnNode(new_def);
+                Rc::new(new_node)
+            },
+            _ => {
+                node
+            }
+        }
     } else {
         // if special: return that, otherwise make expr with nodes
         // global true: so that 'let' without brackets can be used for var assignment

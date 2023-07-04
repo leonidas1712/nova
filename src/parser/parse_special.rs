@@ -23,7 +23,7 @@ pub(super) fn parse_special(
 
 // create FnNode
 // def, name, args, body
-pub(super) fn parse_fn_def(children: Vec<Rc<ASTNode>>, _global: bool) -> Result<Rc<ASTNode>> {
+pub(super) fn parse_fn_def(children: Vec<Rc<ASTNode>>, global: bool) -> Result<Rc<ASTNode>> {
     if children.len() < 4 {
         return err!(
             "Function definitions should have at least 3 parts: a name, parameters and a body."
@@ -80,6 +80,7 @@ pub(super) fn parse_fn_def(children: Vec<Rc<ASTNode>>, _global: bool) -> Result<
         name,
         params,
         body: rest,
+        global
     });
 
     Ok(Rc::new(ASTNode::new(fn_node)))

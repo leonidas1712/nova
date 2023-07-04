@@ -125,6 +125,7 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
     let expr = &expression.expr;
 
     let body = &expr.body;
+    println!("Resolve_expr:{}", body.to_string_with_parent());
     let ctx = &expr.ctx;
     let parent=&expression.parent; // dont use body.parent
 
@@ -181,7 +182,7 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
             results.push_back(result);
         },
         FnNode(fn_def) => {
-            let fn_resolve=resolve_fn_node(&ctx, &fn_def, outer_call)?;
+            let fn_resolve=resolve_fn_node(&ctx, &fn_def, fn_def.global)?;
             result.data=fn_resolve;
             results.push_back(result);
         }
