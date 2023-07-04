@@ -93,26 +93,53 @@ pub fn evaluate_all(inp: &str, context: &mut EvalContext)->Result<Vec<String>> {
 }
 
 // :import, :del, :list, :save(?)
-pub fn process_command(command:&str, ctx:&mut EvalContext) {
+pub fn process_command(command:&str, ctx:&mut EvalContext)->Result<()> {
     // let words:&str=command.split_whitespace();
     let words=split_input(command);
 
     if words.is_empty() {
-        println!("Empty command.");
-        return;
+        return err!("Empty command.");
     }
+
+    let command=words.get(0).unwrap().as_str();
+
     match command {
         "list" => {
             println!("{}", ctx.to_string());
         },
         "del" => {
-
+            if words.len()==1 {
+                return err!("No variables given to delete.");
+            }
             
+            let mut vars=words.iter();
+            vars.next();
+
+            let vars:Vec<&String>=vars.collect();
+
+            for var in vars.iter() {
+                if BUILTINS.contains(&var.as_str()) {
+                    return errf!("Can't delete builtin identifier '{}'", var);
+                }
+
+                if let None = ctx.read().get_data_value(var) {
+                    return errf!("Identifier '{}' is not defined.", var);
+                }
+            }
+
+            let mut ctx_write=ctx.write();
+            for var in vars {
+                ctx_write.delete_variable(var);
+                println!("Deleted identifier:{}", var);
+            }
+
         },
         _ => {
             println!("Unknown command: '{}'", command);
         }
     }
+
+    Ok(())
 }
 
 pub fn nova_repl_tco(mut context:EvalContext)->EvalContext {
@@ -144,7 +171,9 @@ pub fn nova_repl_tco(mut context:EvalContext)->EvalContext {
                 rl.add_history_entry(inp.clone().trim()).unwrap();
 
                 if inp.starts_with(CMD_PREFIX) {
-                    process_command(&inp[1..], &mut context);
+                    if let Err(err) = process_command(&inp[1..], &mut context) {
+                        println!("{}", err.format_error());
+                    }
                     continue;
                 }
 
