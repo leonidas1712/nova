@@ -115,6 +115,7 @@ impl DataValue {
 
 // expect_all: (Iterator<Arg>, predicate(Arg)) -> true if all ...
 
+// change to Rc
 pub enum Arg<'a> {
     Evaluated(DataValue),
     Unevaluated(&'a ASTNode), // node could be part of fn body -> Arg can't own it

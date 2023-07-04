@@ -234,7 +234,7 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
                 
             // when call_stack[-1] doesnt match fn_st[-1]: evaluate
             } else {
-                evaluate_fn(&mut fn_stack, &mut call_stack, &mut results_queue)?;
+                call_fn_evaluated(&mut fn_stack, &mut call_stack, &mut results_queue)?;
             }
         }
 
@@ -250,7 +250,7 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
             // 2. pass to fn execute, get Expression
             // 3. push onto res_q with correct parent=fn_ast.parent
         else {
-            evaluate_fn(&mut fn_stack, &mut call_stack, &mut results_queue)?;
+            call_fn_evaluated(&mut fn_stack, &mut call_stack, &mut results_queue)?;
         }
 
         // update_max_len(call_stack.len());

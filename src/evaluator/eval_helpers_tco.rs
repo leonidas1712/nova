@@ -313,11 +313,50 @@ pub fn evaluate_if(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<Def
     }
 }
 
+
 // function call with arguments
 // change to generalise to uneval
-pub fn evaluate_fn(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()>{
+// inner: takes Vec<Arg>, func_call, call_stack, resq
+    // evaluates, puts on call/resq depending
+pub fn evaluate_fn(args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()> {
+    if args.len()==0 {
+        let msg=format!("'{}' received 0 arguments.", func_call.func.to_string());
+        return err!(msg);
+    }
+
+
+    let execute_result=func_call.func.execute(args, &func_call.context)?;
+
+    match execute_result {
+        // put on call stack
+        DeferredExpr(def) => {
+            let stack_expr=StackExpression {
+                expr:def,
+                parent:func_call.parent.clone() // cloning the OPTION
+            };
+            call_stack.push_back(stack_expr);
+        },
+
+        // put on resq
+        EvaluatedExpr(ev) => {
+            let expr_res=ExpressionResult {
+                data:ev,
+                parent:func_call.parent.clone() // cloning the OPTION - should be same id
+            };
+            results.push_back(expr_res);
+        }
+    }
+
+    Ok(())
+}
+
+
+// call function that takes evaluated arguments (args are on the res_q)
+pub fn call_fn_evaluated(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()>{
     let func=&fn_stack.pop_back().unwrap();
     let args=get_args(func, results);
+
+    // evaluate_fn(args, func, call_stack, results)
     
     if args.len()==0 {
         let _msg=format!("'{}' received 0 arguments.", func.func.to_string());
