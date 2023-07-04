@@ -94,6 +94,8 @@ pub fn evaluate_all(inp: &str, context: &mut EvalContext)->Result<Vec<String>> {
 
 // :import, :del, :list, :save(?)
 pub fn process_command(command:&str, ctx:&mut EvalContext) {
+    // let words:&str=command.split_whitespace();
+
     if command.is_empty() {
         println!("Empty command.");
         return;
@@ -101,6 +103,10 @@ pub fn process_command(command:&str, ctx:&mut EvalContext) {
     match command {
         "list" => {
             println!("{}", ctx.to_string());
+        },
+        "del" => {
+
+            
         },
         _ => {
             println!("Unknown command: '{}'", command);
