@@ -1,5 +1,5 @@
 use std::error::Error;
-use std::fs::{File,read_to_string,write};
+use std::fs::{File,read_to_string,write, OpenOptions};
 use std::io::{self, BufRead};
 use std::path::Path;
 use std::ptr::read;
@@ -14,6 +14,7 @@ use crate::constants::*;
 
 // for reading and storing functions in file
 pub const STL_FILE:&str="stl.txt";
+pub const USER_FILE:&str="user.txt";
 
 // convert to chars, insert ; everytime brackets goes to 0 (excluding first)
 // comments: ignore #
@@ -77,11 +78,6 @@ pub fn extract_fndef(input:String)->Result<String> {
             // Extract the expression part
             let expression = input[arrow_pos + 2..].trim();
 
-            // Print the extracted parts
-            println!("ID: {}", id);
-            println!("Arguments: {:?}", arguments_vec);
-            println!("Expression: {}", expression);
-
             // (def id (x) (add x y))
             let fn_def=format!("{}{} {} {}{}{} {}{}",OPEN_EXPR,FN_NAME,id,OPEN_EXPR,args,CLOSE_EXPR,expression,CLOSE_EXPR);
             println!("Fndef:{}", fn_def);
@@ -92,8 +88,10 @@ pub fn extract_fndef(input:String)->Result<String> {
     return errf!("Couldn't save function:{}",input);
 }
 
+// if fn existed before: 
 use std::io::Write;
 pub fn save_file(filename:&str, ctx:EvalContext)->std::result::Result<(),io::Error> {
+    // let mut file=OpenOptions::new().create(true).append(true).open(filename)?;
     let mut file=File::create(filename)?;
 
     for (key,value) in ctx.read().symbol_map.iter() {

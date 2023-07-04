@@ -27,7 +27,7 @@ use crate::{
     constants::*,
 };
 
-use file::{import_file, STL_FILE, save_file};
+use file::{import_file, STL_FILE, save_file, USER_FILE};
 use lexer::Lexer;
 use parser::parser::{parse,parse_all};
 use parser::parse_node::ASTNode;
@@ -146,6 +146,8 @@ pub fn nova_repl_tco(mut context:EvalContext)->EvalContext {
 
 // setup context by making the map of functions and pass it into Context::new, then pass it to nova_repl
 // this is how we can seed Context with map of refs to functions
+
+// append new functions to end of user file
 pub fn run(mut args: impl Iterator<Item = String>) {
     args.next();
     args.for_each(|s| println!("{}", s));
@@ -160,7 +162,7 @@ pub fn run(mut args: impl Iterator<Item = String>) {
 
     let final_ctx=nova_repl_tco(ctx); 
 
-    if let Err(err) = save_file(STL_FILE, final_ctx) {
+    if let Err(err) = save_file(USER_FILE, final_ctx) {
         println!("Couldn't save functions to file: {}", STL_FILE);
         println!("Error:{}", err.to_string());
     }
