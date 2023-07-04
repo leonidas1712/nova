@@ -94,7 +94,6 @@ pub fn evaluate_all(inp: &str, context: &mut EvalContext)->Result<Vec<String>> {
 
 // :import, :del, :list, :save(?)
 pub fn process_command(command:&str, ctx:&mut EvalContext)->Result<()> {
-    // let words:&str=command.split_whitespace();
     let words=split_input(command);
 
     if words.is_empty() {
@@ -102,6 +101,8 @@ pub fn process_command(command:&str, ctx:&mut EvalContext)->Result<()> {
     }
 
     let command=words.get(0).unwrap().as_str();
+    let mut args=words.iter();
+    args.next();
 
     match command {
         "list" => {
@@ -112,8 +113,7 @@ pub fn process_command(command:&str, ctx:&mut EvalContext)->Result<()> {
                 return err!("No variables given to delete.");
             }
             
-            let mut vars=words.iter();
-            vars.next();
+            let vars=args.clone();
 
             let vars:Vec<&String>=vars.collect();
 
@@ -133,6 +133,17 @@ pub fn process_command(command:&str, ctx:&mut EvalContext)->Result<()> {
                 println!("Deleted identifier:{}", var);
             }
 
+        },
+        "import" => {
+            if words.len()==1 {
+                return err!("No files given to import.");
+            }
+
+            let files=args.clone();
+            
+            for file in files {
+                import_file(file, ctx)?;
+            }
         },
         _ => {
             println!("Unknown command: '{}'", command);
