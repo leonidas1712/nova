@@ -1,6 +1,2 @@
-(def id (x) x);
-(def fn (x) (def fn2 (y) (def fn3 (z) (add x y z))));
-(def h (x y) (def h2 (a b) (def h3 (c d) (add x y a b c d))));
-(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))));
-(def app (f elem) (f elem));
 (def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))));
+(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))));

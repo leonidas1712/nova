@@ -26,10 +26,8 @@ pub struct Lexer {
 }
 
 // need to split but retain !DONT_ADD
-    // [2] -> [,2,]
-    // ((2) (3)) => (,(,2,),(,3,),)
 
-// basic split
+// basic split for commands
 pub (crate) fn split_input(input:&str)->Vec<String>{
     let split:Vec<String>=input
     .split(|c:char| INVALID_SET.contains(&c.to_string()))
@@ -43,14 +41,6 @@ pub (crate) fn split_input(input:&str)->Vec<String>{
 }
 
 impl Lexer {  
-    // use split tokens to split and only add chars not in dont_add
-        // hard to do because >1 len substrs
-    // fn split(input:&str)->String {
-    //     split_input(input);
-
-    //     String::from("hi")
-    // }
-
     pub fn new(input: String) -> Result<Lexer> {
         let original = input.clone();
         let mut filtered = input;
@@ -105,6 +95,7 @@ impl Lexer {
 impl Iterator for Lexer {
     type Item = String;
 
+    // can add comments here
     fn next(&mut self) -> Option<Self::Item> {
         return match self.tokens.get(self.idx).map(|x| x.to_owned().to_string()) {
             Some(string) => {
@@ -129,6 +120,7 @@ pub mod lexer_test {
         assert_eq!(expected.to_vec(), lex.tokens);
     }
 
+    // splits on -> and >>
     #[test]
     pub fn lexer_test_splits_on_bigger() {
         let expr = String::from("\t(x sum >>  x  $  y z   g ) >> (  z, y -> (add z)  \n)");

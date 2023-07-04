@@ -217,24 +217,30 @@ pub fn nova_repl_tco(mut context:EvalContext)->EvalContext {
 // this is how we can seed Context with map of refs to functions
 
 // append new functions to end of user file
+
+// -r: import stl
 pub fn run(mut args: impl Iterator<Item = String>) {
     args.next();
-    args.for_each(|s| println!("{}", s));
+    let args:Vec<String>=args.map(|x| x.to_string()).collect();
+    let args=args.join("");
 
     let mut ctx=evaluator::context_tco::EvalContext::new();
 
-    // let imp=import_file(STL_FILE, &mut ctx);
+    if args.contains('r') {
+        let imp=import_file(STL_FILE, &mut ctx);
 
-    // if let Err(err) = imp {
-    //     println!("Import error - {}", err.format_error());
-    // }
+        if let Err(err) = imp {
+            println!("Import error - {}", err.format_error());
+        }
+    }
 
+    
     let final_ctx=nova_repl_tco(ctx); 
 
-    // if let Err(err) = save_file(USER_FILE, final_ctx) {
-    //     println!("Couldn't save functions to file: {}", STL_FILE);
-    //     println!("Error:{}", err.to_string());
-    // }
+    if let Err(err) = save_file(USER_FILE, final_ctx) {
+        println!("Couldn't save functions to file: {}", STL_FILE);
+        println!("Error:{}", err.to_string());
+    }
 
     // use crate::time::{bench,time_comp};
     // bench(50); // 0.0905372397 for (recr 10000)
