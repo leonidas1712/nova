@@ -242,13 +242,24 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
         parent:parent.clone(),
         context:ctx.clone()
     };
+
+    // uneval: dont use stack, pass args directly to function
+    if func.get_arg_type().eq(&ArgType::Unevaluated) {
+        println!("uneval_args:{}", func.to_string());
+        let args: Vec<Arg> = children.into_iter().map(|x| Unevaluated(x)).collect();
+
+        // let res=func.execute(args, &ctx)?;
+        
+        // return Ok(())
+    }
+    
     fn_stack.push_back(func_call);
-    update_max_len_fn(fn_stack.len());
+
+    // update_max_len_fn(fn_stack.len());
 
     // push rest of child expressions onto call_st
     let mut rest_children=children.into_iter();
     rest_children.next(); // go past first
-
 
     // todo: handle unevaluated separately
 
@@ -303,6 +314,7 @@ pub fn evaluate_if(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<Def
 }
 
 // function call with arguments
+// change to generalise to uneval
 pub fn evaluate_fn(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()>{
     let func=&fn_stack.pop_back().unwrap();
     let args=get_args(func, results);

@@ -410,7 +410,7 @@ pub mod tests {
     pub fn parse_list_expression_test_err() {
         let lex = &mut Lexer::new("(add".to_string()).unwrap();
         let res = parse_list_expression(lex).unwrap_err();
-        // println!("{}", res.format_error());
+
         assert!(&res.format_error().to_lowercase().contains("excess"));
 
         let lex = &mut Lexer::new("(1,2]".to_string()).unwrap();
