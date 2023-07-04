@@ -1,6 +1,8 @@
+use std::env::join_paths;
 use std::error::Error;
 use std::fs::{File,read_to_string,write, OpenOptions};
 use std::io::{self, BufRead};
+use std::os;
 use std::path::Path;
 use std::ptr::read;
 
@@ -13,7 +15,7 @@ use crate::evaluate_all;
 use crate::constants::*;
 
 // for reading and storing functions in file
-pub const STL_FILE:&str="stl.txt";
+pub const STL_FILE:&str="~/rust/nova/stl.txt";
 pub const USER_FILE:&str="user.txt";
 
 // convert to chars, insert ; everytime brackets goes to 0 (excluding first)
@@ -145,13 +147,37 @@ pub fn import_file(filename:&str, ctx:&mut EvalContext)->Result<()>{
     Ok(())
 }
 
+// get file contents as string
 pub fn read_file(filename:&str)->Result<String> {
-    let read=read_to_string(filename);
+    // let os_string=join_paths([Path::new("~/rust/nova"), Path::new("/stl.txt")]);
+    // let string=os_string.unwrap();
+    // let s=string
 
-    match read {
-        Ok(file_string) => Ok(file_string),
-        Err(_) => errf!("File '{}' doesn't exist.", filename)
-    }
+    use std::fs;
+    let path=fs::canonicalize("~/rust/nova/stl.txt");
+    let path=path.unwrap();
+
+
+    // match os_string {
+    //     Ok(file) => {
+    //         println!("OS:{:?}", file.to_os_string().to_owned());
+    //         let read=read_to_string(file);
+    //         match read {
+    //             Ok(file_string) => Ok(file_string),
+    //             Err(_) => errf!("File '{}' doesn't exist err1", filename)
+    //         }
+
+    //     },
+
+    //     Err(_) => errf!("File '{}' doesn't exist err2", filename)
+    // }
+
+    // match read {
+    //     Ok(file_string) => Ok(file_string),
+    //     Err(_) => errf!("File '{}' doesn't exist.", filename)
+    // }
+
+    Ok("stl.txt".to_string())
 }
 
 // from rust by example
