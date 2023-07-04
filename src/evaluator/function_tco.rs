@@ -1,3 +1,4 @@
+use core::num;
 use std::rc::Rc;
 
 use crate::constants::CLOSE_EXPR;
@@ -51,22 +52,54 @@ impl UserFunction {
         }
     }
 
+    fn expected_params(&self)->usize {
+        self.params.len()-self.params_idx
+    }
+
+    // create curried function given new eval context and idx
+    // body needs to be new nodes (?)
+    fn curried_function(&self, args: Vec<Arg>)->Result<UserFunction> {
+        let new_idx=self.params_idx+args.len();
+        let new_ctx=self.curry(args)?;
+
+        let new_body:Vec<Rc<ASTNode>>=self.body
+            .iter()
+            .map(|node| node.as_ref().clone())
+            .map(|node| Rc::new(node))
+            .collect();
+
+        Ok(UserFunction {
+            context:new_ctx, // can remove this and use passed in
+            name:self.name.clone(),
+            params:self.params.clone(),
+            params_idx:new_idx,
+            body:new_body
+        })
+    }
+
     pub fn curry(&self, args: Vec<Arg>) -> Result<EvalContext> {
         let mut new_ctx = EvalContext::new();
         let eval_args = Arg::expect_all_eval(args)?;
+        let num_args=eval_args.len();
 
-        if eval_args.len() != self.params.len() {
+        // can't curry for too many
+        if num_args > self.expected_params() {
             let msg = format!(
                 "'{}' expected {} arguments but received {}.",
                 self.get_name(),
-                self.params.len(),
-                eval_args.len()
+                self.expected_params(),
+                num_args
             );
             return err!(msg);
         }
 
         // add args to context using params
-        let zipped = self.params.clone().into_iter().zip(eval_args.into_iter());
+        let curried_params=self.params
+            .clone()
+            .into_iter()
+            .take(num_args);
+
+        let zipped = curried_params.zip(eval_args.into_iter());
 
         zipped.for_each(|tup| {
             new_ctx.write().add_variable(tup.0.as_str(), tup.1);
@@ -109,7 +142,11 @@ impl UserFunction {
 
     fn to_string(&self) -> String {
         let name = &self.name;
-        let params = &self.params;
+        let params:Vec<String> = self.params.iter()
+            .take(self.expected_params())
+            .map(|x| x.clone())
+            .collect();
+        
         let body = &self.body;
 
         let params = params.join(VAR_SEP);
