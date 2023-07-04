@@ -1,4 +1,5 @@
 (def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))));
-(def id (x) x);
 (def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))));
+(def app (f elem) (f elem));
+(def id (x) x);
 (def fn (x) (def fn2 (y) (add x y)));

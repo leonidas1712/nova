@@ -8,3 +8,5 @@
         (add x y)
     )
 )
+
+(def app (f elem) (f elem))

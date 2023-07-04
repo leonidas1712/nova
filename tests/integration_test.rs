@@ -156,6 +156,27 @@ pub fn evaluate_all_test() {
     }
 }
 
+// returned function not added to fn defs
+#[test]
+pub fn test_fn_return() {
+    let func="(def fn (x) (def fn2 (y) (add x y)))";
+    let mut ctx=EvalContext::new();
+    let res=evaluate_all(func, &mut ctx).expect("Should define function.");
+    println!("{}", res.get(0).expect("Should have at least one node"));
+
+    evaluate_all("(fn 1)", &mut ctx).expect("Should call function.");
+    assert!(ctx.read().get_function("fn2").is_none());
+
+    evaluate_all("(def app (f elem) (f elem))", &mut ctx).expect("Should define app");
+    let call="(app (def h(x) (succ x)) 1)"; // not global so h(x) eval as fn var
+
+    let res=evaluate_all(call, &mut ctx).expect("Should call app on h");
+    let res=res
+        .get(0)
+        .expect("Should have one result");
+
+    assert!(res.eq("2"));
+}
 // // (let x 2, y (let x 3),(add x y))
 
 // // ((map fn) x) -> (map fn) res is fn call
