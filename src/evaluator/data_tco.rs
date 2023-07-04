@@ -116,14 +116,14 @@ impl DataValue {
 // expect_all: (Iterator<Arg>, predicate(Arg)) -> true if all ...
 
 // change to Rc
-pub enum Arg<'a> {
+pub enum Arg {
     Evaluated(DataValue),
-    Unevaluated(&'a ASTNode), // node could be part of fn body -> Arg can't own it
+    Unevaluated(Rc<ASTNode>), // node could be part of fn body -> Arg can't own it
 }
 
 pub use Arg::*;
 
-impl<'a> Arg<'a> {
+impl Arg {
     pub fn expect_eval(self) -> Result<DataValue> {
         match self {
             Evaluated(val) => Ok(val),
@@ -134,7 +134,7 @@ impl<'a> Arg<'a> {
         }
     }
 
-    pub fn expect_uneval(self) -> Result<&'a ASTNode> {
+    pub fn expect_uneval(self) -> Result<Rc<ASTNode>> {
         match self {
             Unevaluated(node) => Ok(node),
             Evaluated(val) => {
@@ -149,8 +149,8 @@ impl<'a> Arg<'a> {
         return k;
     }
 
-    pub fn expect_all_uneval(args: Vec<Arg<'a>>) -> Result<Vec<&'a ASTNode>> {
-        let k: Result<Vec<&'a ASTNode>> = args.into_iter().map(|a| a.expect_uneval()).collect();
+    pub fn expect_all_uneval(args: Vec<Arg>) -> Result<Vec<Rc<ASTNode>>> {
+        let k: Result<Vec<Rc<ASTNode>>> = args.into_iter().map(|a| a.expect_uneval()).collect();
         return k;
     }
 
@@ -164,7 +164,7 @@ impl<'a> Arg<'a> {
 
 pub use Arg::*;
 
-impl<'a> Display for Arg<'a> {
+impl Display for Arg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.to_string())
     }

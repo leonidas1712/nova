@@ -55,9 +55,9 @@ pub fn print_max_len_fn() {
 
 
 // evaluated args
-pub fn get_eval_args_from_nodes<'a>(
+pub fn get_eval_args_from_nodes(
     iter: impl Iterator<Item = Result<DataValue>> + Clone,
-) -> Result<Vec<Arg<'a>>> {
+) -> Result<Vec<Arg>> {
     let res_iter: Result<Vec<DataValue>> = iter.clone().into_iter().collect();
     let results = res_iter.map(|v| {
         let args: Vec<Arg> = v.into_iter().map(|x| Arg::Evaluated(x)).collect();
@@ -67,7 +67,7 @@ pub fn get_eval_args_from_nodes<'a>(
 }
 
 // get args from results queue for func
-fn get_args<'a>(func:&FunctionCall, results: &'a mut VecDeque<ExpressionResult>)->Vec<Arg<'a>> {
+fn get_args(func:&FunctionCall, results: &mut VecDeque<ExpressionResult>)->Vec<Arg> {
     let mut args:VecDeque<Arg>=VecDeque::new();
     
     // take from back of results queue until we encounter res with diff parent
@@ -246,7 +246,7 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
     // uneval: dont use stack, pass args directly to function
     if func.get_arg_type().eq(&ArgType::Unevaluated) {
         println!("uneval_args:{}", func.to_string());
-        let args: Vec<Arg> = children.into_iter().map(|x| Unevaluated(x)).collect();
+        // let args: Vec<Arg> = children.into_iter().map(|x| Unevaluated(Rc::clone(x))).collect();
 
         // let res=func.execute(args, &ctx)?;
         
@@ -356,35 +356,35 @@ pub fn call_fn_evaluated(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut
     let func=&fn_stack.pop_back().unwrap();
     let args=get_args(func, results);
 
-    // evaluate_fn(args, func, call_stack, results)
+    evaluate_fn(args, func, call_stack, results)
     
-    if args.len()==0 {
-        let _msg=format!("'{}' received 0 arguments.", func.func.to_string());
-        return err!("");
-    }
+    // if args.len()==0 {
+    //     let _msg=format!("'{}' received 0 arguments.", func.func.to_string());
+    //     return err!("");
+    // }
 
 
-    let execute_result=func.func.execute(args, &func.context)?;
+    // let execute_result=func.func.execute(args, &func.context)?;
 
-    match execute_result {
-        // put on call stack
-        DeferredExpr(def) => {
-            let stack_expr=StackExpression {
-                expr:def,
-                parent:func.parent.clone() // cloning the OPTION
-            };
-            call_stack.push_back(stack_expr);
-        },
+    // match execute_result {
+    //     // put on call stack
+    //     DeferredExpr(def) => {
+    //         let stack_expr=StackExpression {
+    //             expr:def,
+    //             parent:func.parent.clone() // cloning the OPTION
+    //         };
+    //         call_stack.push_back(stack_expr);
+    //     },
 
-        // put on resq
-        EvaluatedExpr(ev) => {
-            let expr_res=ExpressionResult {
-                data:ev,
-                parent:func.parent.clone() // cloning the OPTION - should be same id
-            };
-            results.push_back(expr_res);
-        }
-    }
+    //     // put on resq
+    //     EvaluatedExpr(ev) => {
+    //         let expr_res=ExpressionResult {
+    //             data:ev,
+    //             parent:func.parent.clone() // cloning the OPTION - should be same id
+    //         };
+    //         results.push_back(expr_res);
+    //     }
+    // }
 
-    Ok(())
+    // Ok(())
 }
