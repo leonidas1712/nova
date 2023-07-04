@@ -1,6 +1,9 @@
 (def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))));
 (def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))));
 
+# comment here #
+# more commenting# 
+
 (def id (x) x)
 
 (def fn (x)
@@ -12,6 +15,7 @@
     )
 )
 
+# comments #
 (def h (x,y)
     (def h2 (a,b)
         (def h3 (c,d)
@@ -22,3 +26,6 @@
 )
 
 (def app (f elem) (f elem))
+
+# what does this do? #
+(def g (x) (add x 2))

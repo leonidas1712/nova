@@ -37,8 +37,6 @@ pub const GT: &str = "gt";
 pub const MOD: &str = "mod";
 pub const DIV: &str = "div";
 
-
-
 // Boolean
 pub const TRUE: &str = "true";
 pub const FALSE: &str = "false";
@@ -92,6 +90,8 @@ pub const STRING: &str = "string";
 pub const QUIT_STRINGS: [&'static str; 4] = ["quit", "quit()", "exit", "exit()"];
 pub const FAT_ARROW:&str="=>";
 pub const CMD_PREFIX:&str=":";
+
+pub const COMMENT:&str="#";
 
 pub const RESERVED_KEYWORDS: [&'static str; 36] = [
     LET_NAME,

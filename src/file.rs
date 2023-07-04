@@ -22,9 +22,30 @@ pub fn separate_expressions(file_string:&str)->Result<String> {
     let mut all_chars:Vec<String>=vec![];
     let mut stack:Vec<String>=vec![];
     let mut line=1;
+
+    let mut comment_stack:Vec<bool>=vec![];
     
     for (idx,char) in file_string.chars().enumerate() {
         let char_string=char.to_string();
+
+        // same character so we cant nest comments e.g # # internal # # - invalid
+        // this is why backlash is needed to escape in strings
+        if char_string.eq(COMMENT) {
+            if comment_stack.is_empty() {
+                comment_stack.push(true);
+
+            } else {
+                comment_stack.pop();
+            }
+            continue;
+        }
+
+        // comment: don't read
+        if !comment_stack.is_empty() {
+            continue;
+        }
+
+
         if char_string.eq(STMT_END) && all_chars.last().unwrap().eq(STMT_END) {
             continue;
         }

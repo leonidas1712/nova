@@ -484,6 +484,8 @@ when do we copy ctx:
 
 1. add comments
 2. how to handle function currying without binding every space
-3. :del and others
+<!-- 3. :del and others -->
 4. unit type
+
+
 5. splitting by regex
