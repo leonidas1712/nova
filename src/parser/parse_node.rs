@@ -4,6 +4,11 @@ use std::fmt::Display;
 use std::ops::Deref;
 use std::rc::{Rc};
 
+// functions that return other functions but outer args no match
+    // (x->y->(add x y)) (1) (2)
+    // (def curr (x) (def curr2 (y) (add x y)));
+        // (curr 1 2) => err
+
 // todo: IfStmt, LetStmt, FnDef, Lambda, FunctionCall
 // FunctionCall: when we have a symbol or expression which is:
 // 1. nested inside another expression (more than 1 inside parent.value)

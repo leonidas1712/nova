@@ -1,11 +1,23 @@
 
+extern crate regex;
+use regex::{Regex,RegexSet};
+
 use std::rc::Rc;
 
 use super::parse_special::*;
+
 use crate::constants::*;
 use crate::lexer;
 use crate::message::*;
 use crate::parser::parse_node::*;
+
+pub (crate) fn split_input(input:&str) {
+    let set = RegexSet::new(&[
+        r" ",
+        r",",
+    ]).unwrap();
+    
+}
 
 pub(super) enum Special {
     If,

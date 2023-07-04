@@ -29,7 +29,7 @@ use crate::{
 
 use file::{import_file, STL_FILE, save_file, USER_FILE};
 use lexer::Lexer;
-use parser::parser::{parse,parse_all};
+use parser::parser::{parse,parse_all, split_input};
 use parser::parse_node::ASTNode;
 use evaluator::evaluator_tco::*;
 use evaluator::data_tco::*;
@@ -95,6 +95,7 @@ pub fn evaluate_all(inp: &str, context: &mut EvalContext)->Result<Vec<String>> {
 // :import, :del, :list, :save(?)
 pub fn process_command(command:&str, ctx:&mut EvalContext) {
     // let words:&str=command.split_whitespace();
+    split_input(command);
 
     if command.is_empty() {
         println!("Empty command.");
