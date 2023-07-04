@@ -1,9 +1,17 @@
 (def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))));
 (def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))));
 
-# (fn 1 2 3 4 5) => 15 #
+# (fn 1 2 3 4) => 15 #
 (def fn (x,a)
     (def fn2 (y,b)
         (add x a y b)
     )
+)
+
+(def h (a,b)
+    (add a b)
+)
+
+(def h2 (a,b,c)
+    (add a b c)
 )

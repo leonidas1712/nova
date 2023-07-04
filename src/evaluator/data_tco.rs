@@ -101,6 +101,16 @@ impl DataValue {
         }
     }
 
+    pub fn expect_user_function(&self) -> Result<&Rc<UserFunction>> {
+        match &self {
+            &SetFn(fn_ref) => Ok(&fn_ref),
+            _ => {
+                let msg = format!("Expected user function but got '{}'", self.to_string());
+                err!(msg.as_str())
+            }
+        }
+    }
+
     pub fn to_string(&self) -> String {
         match self {
             Num(n) => n.to_string(),
