@@ -160,7 +160,10 @@ pub fn run(mut args: impl Iterator<Item = String>) {
 
     let final_ctx=nova_repl_tco(ctx); 
 
-    save_file(STL_FILE, final_ctx);
+    if let Err(err) = save_file(STL_FILE, final_ctx) {
+        println!("Couldn't save functions to file: {}", STL_FILE);
+        println!("Error:{}", err.to_string());
+    }
 
     // use crate::time::{bench,time_comp};
     // bench(50); // 0.0905372397 for (recr 10000)

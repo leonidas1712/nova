@@ -1,4 +1,5 @@
-use std::fs::{File,read_to_string};
+use std::error::Error;
+use std::fs::{File,read_to_string,write};
 use std::io::{self, BufRead};
 use std::path::Path;
 use std::ptr::read;
@@ -57,13 +58,57 @@ pub fn separate_expressions(file_string:&str)->Result<String> {
     Ok(joined)
 }
 
-pub fn save_file(filename:&str, ctx:EvalContext) {
-    for (key,value) in ctx.read().symbol_map.iter() {
-        if !BUILTINS.contains(&key.as_str()) {
-            println!("str:{}",value.to_string());
 
+pub fn extract_fndef(input:String)->Result<String> {
+    // let input = "id(x,y) => (add x y)";
+
+    // Find the position of the arrow "=>"
+    if let Some(arrow_pos) = input.find("=>") {
+        // Extract the ID part
+        // Find the position of the opening and closing parentheses
+        if let (Some(open_paren_pos), Some(close_paren_pos)) = (input.find('('), input.find(')')) {
+            let id = input[..open_paren_pos].trim();
+            // Extract the arguments part
+            let arguments = input[open_paren_pos + 1..close_paren_pos].trim();
+            let arguments_vec: Vec<&str> = arguments.split(',').map(str::trim).collect();
+
+            let args=arguments_vec.join(" ");
+
+            // Extract the expression part
+            let expression = input[arrow_pos + 2..].trim();
+
+            // Print the extracted parts
+            println!("ID: {}", id);
+            println!("Arguments: {:?}", arguments_vec);
+            println!("Expression: {}", expression);
+
+            // (def id (x) (add x y))
+            let fn_def=format!("{}{} {} {}{}{} {}{}",OPEN_EXPR,FN_NAME,id,OPEN_EXPR,args,CLOSE_EXPR,expression,CLOSE_EXPR);
+            println!("Fndef:{}", fn_def);
+            return Ok(fn_def);
         }
     }
+
+    return errf!("Couldn't save function:{}",input);
+}
+
+use std::io::Write;
+pub fn save_file(filename:&str, ctx:EvalContext)->std::result::Result<(),io::Error> {
+    let mut file=File::create(filename)?;
+
+    for (key,value) in ctx.read().symbol_map.iter() {
+        if BUILTINS.contains(&key.as_str()) {
+            continue;
+        }
+
+        if let Ok(fn_string) = extract_fndef(value.to_string()) {
+            file.write(fn_string.as_bytes())?;
+            file.write(b";\n")?;
+        }
+
+    }
+
+    Ok(())
 }
 
 pub fn import_file(filename:&str, ctx:&mut EvalContext)->Result<()>{

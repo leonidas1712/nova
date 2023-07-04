@@ -38,10 +38,10 @@ pub fn is_valid_identifier(s: &str) -> Result<String> {
     let s = s.to_string();
 
     if INVALID_SET.contains(&s) {
-        let msg = format!("Invalid identifier -  {}", s);
+        let msg = format!("Invalid identifier -  '{}'", s);
         return err!(&msg);
     } else if RESERVED_SET.contains(&s) {
-        let msg = format!("Invalid identifier - {}' is a reserved keyword.", s);
+        let msg = format!("Invalid identifier - '{}' is a reserved keyword.", s);
         return err!(&msg);
     }
 
