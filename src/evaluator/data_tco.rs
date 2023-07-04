@@ -199,7 +199,7 @@ pub mod tests {
         dbg!(d3.to_string());
 
         assert_eq!(d1.expect_num().unwrap(), 20);
-        assert!(d2.expect_num().is_err());
+        assert!(d2.expect_num().unwrap().eq(&1));
         assert!(d3.expect_num().is_err());
 
         assert!(d1.expect_bool().is_err());

@@ -31,6 +31,7 @@ pub struct UserFunction {
     context: EvalContext,
     name: String,
     params: Vec<String>,
+    params_idx:usize,
     body: Vec<Rc<ASTNode>>,
 }
 // clone fn_def because it could have come from a closure: the original function still needs it
@@ -45,6 +46,7 @@ impl UserFunction {
             context: stored_ctx, // copy to get new copy that doesn't affect
             name: fn_def.name.clone(),
             params: fn_def.params.clone(),
+            params_idx:0,
             body: fn_def.body.clone(), // ASTNode.clone
         }
     }
@@ -74,6 +76,32 @@ impl UserFunction {
 
         Ok(new_ctx)
     }
+
+    // pub fn curry(&self, args: Vec<Arg>) -> Result<EvalContext> {
+    //     let mut new_ctx = EvalContext::new();
+    //     let eval_args = Arg::expect_all_eval(args)?;
+
+    //     if eval_args.len() != self.params.len() {
+    //         let msg = format!(
+    //             "'{}' expected {} arguments but received {}.",
+    //             self.get_name(),
+    //             self.params.len(),
+    //             eval_args.len()
+    //         );
+    //         return err!(msg);
+    //     }
+
+    //     // add args to context using params
+    //     let zipped = self.params.clone().into_iter().zip(eval_args.into_iter());
+
+    //     zipped.for_each(|tup| {
+    //         new_ctx.write().add_variable(tup.0.as_str(), tup.1);
+    //     });
+
+    //     let new_ctx = new_ctx.merge_context(&self.context);
+
+    //     Ok(new_ctx)
+    // }
 
     pub fn get_name(&self) -> String {
         self.name.clone()

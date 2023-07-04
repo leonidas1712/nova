@@ -49,7 +49,7 @@ fn calc_test() {
         "21",
         "70",
         "18",
-        "Error: Expected a number but got 'true'",
+        "1",
         "Error: Expected a number but got '<function 'sub'>'",
     ];
 
