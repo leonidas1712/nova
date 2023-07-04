@@ -30,7 +30,7 @@ pub struct Lexer {
     // ((2) (3)) => (,(,2,),(,3,),)
 
 // basic split
-pub (crate) fn split_input(input:&str) {
+pub (crate) fn split_input(input:&str)->Vec<String>{
     let split:Vec<String>=input
     .split(|c:char| INVALID_SET.contains(&c.to_string()))
     .map(|x| x.to_string().trim().to_owned())
@@ -39,7 +39,7 @@ pub (crate) fn split_input(input:&str) {
         x_string.len() > 0 && !INVALID_SET.contains(x_string.as_str())
     }).
     collect();
-    
+    split
 }
 
 impl Lexer {  
