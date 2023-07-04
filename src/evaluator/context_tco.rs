@@ -124,6 +124,7 @@ pub fn setup_context() -> Context {
     reg!(INC, Succ);
     reg!(DEC, Pred);
     reg!(PRINT, Print);
+    reg!(CHAIN, Chain);
 
     ctx
 }

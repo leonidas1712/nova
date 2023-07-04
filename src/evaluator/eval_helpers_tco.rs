@@ -243,20 +243,19 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
         context:ctx.clone()
     };
 
+      // push rest of child expressions onto call_st
+      let mut rest_children=children.into_iter();
+      rest_children.next(); // go past first
+
     // uneval: dont use stack, pass args directly to function
     if func.get_arg_type().eq(&ArgType::Unevaluated) {
-        println!("uneval_args:{}", func.to_string());
-        let args: Vec<Arg> = children.into_iter().map(|x| Unevaluated(Rc::clone(x))).collect();
+        let args: Vec<Arg> = rest_children.map(|x| Unevaluated(Rc::clone(x))).collect();
         return evaluate_fn(args, &func_call, call_stack, results);
     }
     
     fn_stack.push_back(func_call);
 
     // update_max_len_fn(fn_stack.len());
-
-    // push rest of child expressions onto call_st
-    let mut rest_children=children.into_iter();
-    rest_children.next(); // go past first
 
     // todo: handle unevaluated separately
 
