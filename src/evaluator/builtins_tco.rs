@@ -33,6 +33,12 @@ macro_rules! check {
     };
 }
 
+macro_rules! unit {
+    () => {
+        Ok(EvaluatedExpr(Unit))
+    };
+}
+
 fn get_nums(args: Vec<Arg>) -> Result<Vec<NumType>> {
     let r: Result<Vec<NumType>> =
         Arg::expect_all_eval(args).and_then(|f| f.into_iter().map(|x| x.expect_num()).collect());
@@ -143,10 +149,28 @@ impl Function for Print {
         let values=ev!(args);
         values.iter().for_each(|x| println!("{}", x.to_string()));
 
-        Ok(EvaluatedExpr(Unit))
+        unit!()
     }
 
     fn to_string(&self) -> String {
         name!(PRINT)
+    }
+}
+
+// take a bunch of expressions, run them, do nothing
+// to do some side effects
+pub struct Chain;
+impl Function for Chain {
+    fn execute(&self, args: Vec<Arg>, context: &EvalContext) -> Result<Expression> {
+        
+        unit!()
+    }
+
+    fn to_string(&self) -> String {
+        name!(CHAIN)
+    }
+
+    fn get_arg_type(&self) -> ArgType {
+        ArgType::Unevaluated
     }
 }

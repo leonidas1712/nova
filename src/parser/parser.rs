@@ -417,17 +417,14 @@ pub mod tests {
         let res = parse_list_expression(lex).unwrap_err();
         assert!(&res.format_error().contains("Mismatched brackets"));
 
+        // () is Unit/ void
         let lex = &mut lex!("()");
-        let res = parse_list_expression(lex).unwrap_err();
-        assert!(res
-            .format_error()
-            .contains("Can't parse empty expression: '()'"));
+        let res = parse_list_expression(lex).unwrap();
+        assert!(res.to_string().eq(""));
 
         let lex = &mut lex!("(add 2 ())");
-        let res = parse_list_expression(lex).unwrap_err();
-        assert!(res
-            .format_error()
-            .contains("Can't parse empty expression: '()'"));
+        let res = parse_list_expression(lex);
+        assert!(res.is_ok());
     }
 
     fn test_equality_expr(s: &str) {
