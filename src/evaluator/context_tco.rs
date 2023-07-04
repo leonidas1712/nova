@@ -125,7 +125,7 @@ pub fn setup_context() -> Context {
     reg!(DEC, Pred);
     reg!(PRINT, Print);
     reg!(CHAIN, Chain);
-
+    
     ctx
 }
 // has function/variable: just check if ident in map. if it is, check the type

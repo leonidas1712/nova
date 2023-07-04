@@ -67,9 +67,13 @@ impl DataValue {
     }
 
     // expect functions
+        // cast bool to 0/1
     pub fn expect_num(&self) -> Result<NumType> {
         match self {
             Num(num) => Ok(*num),
+            Bool(b) => {
+                Ok(if *b { 1 } else { 0 })
+            }
             _ => {
                 let msg = format!("Expected a number but got '{}'", self.to_string());
                 err!(msg.as_str())

@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::constants::*;
 use crate::message::*;
 
@@ -160,7 +162,6 @@ impl Function for Print {
 // take a bunch of expressions, run them, do nothing
 // to do some side effects
 pub struct Chain;
-use std::rc::Rc;
 impl Function for Chain {
     fn execute(&self, args: Vec<Arg>, context: &EvalContext) -> Result<Expression> {
         let args=Arg::expect_all_uneval(args)?;
