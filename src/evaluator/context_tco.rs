@@ -123,6 +123,7 @@ pub fn setup_context() -> Context {
     reg!(EQUALS, Equals);
     reg!(INC, Succ);
     reg!(DEC, Pred);
+    reg!(PRINT, Print);
 
     ctx
 }

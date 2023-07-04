@@ -12,6 +12,7 @@ macro_rules! name {
     };
 }
 
+// Vec<Arg> -> Vec<DataValue>
 macro_rules! ev {
     ($args:expr) => {
         Arg::expect_all_eval($args)?
@@ -133,5 +134,19 @@ impl Function for Pred {
 
     fn to_string(&self) -> String {
         name!(DEC)
+    }
+}
+
+pub struct Print;
+impl Function for Print {
+    fn execute(&self, args: Vec<Arg>, context: &EvalContext) -> Result<Expression> {
+        let values=ev!(args);
+        values.iter().for_each(|x| println!("{}", x.to_string()));
+
+        Ok(EvaluatedExpr(Unit))
+    }
+
+    fn to_string(&self) -> String {
+        name!(PRINT)
     }
 }
