@@ -18,7 +18,7 @@ use super::evaluator_tco::*;
 
 // &Context: need to be able to re-use the context
 pub trait Function {
-    fn execute(&self, args: Vec<Arg>, context: &EvalContext) -> Result<Expression>;
+    fn execute(&self, args: &[Arg], context: &EvalContext) -> Result<Expression>;
 
     // default: Evaluated
     fn get_arg_type(&self) -> ArgType {
@@ -72,7 +72,7 @@ impl UserFunction {
 
     // create curried function given new eval context and idx
     // body needs to be new nodes (?)
-    pub fn curried_function(&self, args: Vec<Arg>)->Result<UserFunction> {
+    pub fn curried_function(&self, args: &[Arg])->Result<UserFunction> {
         let new_idx=self.params_idx+args.len();
         let new_ctx=self.curry(args)?;
 
@@ -91,7 +91,7 @@ impl UserFunction {
         })
     }
 
-    pub fn curry(&self, args: Vec<Arg>) -> Result<EvalContext> {
+    pub fn curry(&self, args: &[Arg]) -> Result<EvalContext> {
         let mut new_ctx = EvalContext::new();
         let eval_args = Arg::expect_all_eval(args)?;
         let num_args=eval_args.len();
@@ -151,7 +151,7 @@ impl UserFunction {
 }
 
 impl Function for UserFunction {
-    fn execute(&self, args: Vec<Arg>, outer_ctx: &EvalContext) -> Result<Expression> {
+    fn execute(&self, args:&[Arg], outer_ctx: &EvalContext) -> Result<Expression> {
         let num_args=args.len();
 
         // return curried function if args less

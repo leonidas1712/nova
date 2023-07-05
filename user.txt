@@ -1,0 +1,2 @@
+(def fn (c) (add a b c));
+(def fn (a b c) (add a b c));

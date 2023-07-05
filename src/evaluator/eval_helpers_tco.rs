@@ -359,11 +359,11 @@ pub fn evaluate_fn(args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecD
         match &num_args {
             // partial application
             Finite(n) if args.len() > *n => {
-                func_call.func.execute(args, &func_call.context)?
+                func_call.func.execute(&args, &func_call.context)?
             },
             // n <= args.len() or infinite - inf should return a curried function
             _ => {
-                func_call.func.execute(args, &func_call.context)?
+                func_call.func.execute(&args, &func_call.context)?
             }
         }
     };

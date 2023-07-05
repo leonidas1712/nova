@@ -130,6 +130,8 @@ impl DataValue {
 // expect_all: (Iterator<Arg>, predicate(Arg)) -> true if all ...
 
 // change to Rc
+
+#[derive (Clone)]
 pub enum Arg {
     Evaluated(DataValue),
     Unevaluated(Rc<ASTNode>), // node could be part of fn body -> Arg can't own it
@@ -158,13 +160,13 @@ impl Arg {
         }
     }
 
-    pub fn expect_all_eval(args: Vec<Arg>) -> Result<Vec<DataValue>> {
-        let k: Result<Vec<DataValue>> = args.into_iter().map(|a| a.expect_eval()).collect();
+    pub fn expect_all_eval(args: &[Arg]) -> Result<Vec<DataValue>> {
+        let k: Result<Vec<DataValue>> = args.into_iter().map(|a| a.clone().expect_eval()).collect();
         return k;
     }
 
-    pub fn expect_all_uneval(args: Vec<Arg>) -> Result<Vec<Rc<ASTNode>>> {
-        let k: Result<Vec<Rc<ASTNode>>> = args.into_iter().map(|a| a.expect_uneval()).collect();
+    pub fn expect_all_uneval(args: &[Arg]) -> Result<Vec<Rc<ASTNode>>> {
+        let k: Result<Vec<Rc<ASTNode>>> = args.into_iter().map(|a| a.clone().expect_uneval()).collect();
         return k;
     }
 
@@ -234,7 +236,7 @@ pub mod tests {
         let d1 = DataValue::Num(20);
         let v1: Vec<Arg> = vec![Evaluated(d), Evaluated(d1)];
 
-        let res = Arg::expect_all_eval(v1);
+        let res = Arg::expect_all_eval(&v1);
         assert!(res.is_ok());
         let n = res.unwrap();
 
