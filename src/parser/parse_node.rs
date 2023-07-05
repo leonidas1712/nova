@@ -102,6 +102,7 @@ pub struct ASTNode {
     // then the initial parent can get dropped and the children get dropped successively
     pub parent: Option<Rc<ASTNode>>,
     pub original: Uuid,
+    pub is_func:bool
 }
 
 impl Clone for ASTNode {
@@ -110,6 +111,7 @@ impl Clone for ASTNode {
             value: self.value.clone(),
             parent: self.parent.clone(),
             original: Uuid::new_v4(),
+            is_func:self.is_func
         }
     }
 }
@@ -136,6 +138,7 @@ impl ASTNode {
             value: value.clone(),
             parent: None,
             original: original_ref,
+            is_func:false
         };
         let original = Rc::new(original);
 
@@ -166,12 +169,14 @@ impl ASTNode {
                     value: new_value,
                     parent: None,
                     original: original_ref,
+                    is_func:false
                 }
             }
             _ => ASTNode {
                 value,
                 parent: None,
                 original: original_ref,
+                is_func:false
             },
         }
     }
@@ -180,7 +185,8 @@ impl ASTNode {
         ASTNode {
             value:self.value.clone(),
             parent:self.parent.clone(),
-            original:self.original
+            original:self.original,
+            is_func:self.is_func
         }
     }
 
@@ -213,8 +219,9 @@ impl ASTNode {
         let self_string = self.to_string();
 
         format!(
-            "\n[\n\ttype:{}\n\tself:{},\n\tparent:{}\n]\n",
+            "\n[\n\ttype:{}\n\tis_func:{}\n\tself:{},\n\tparent:{}\n]\n",
             self.get_type(),
+            self.is_func,
             self_string,
             parent_string
         )

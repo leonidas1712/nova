@@ -126,7 +126,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
         return Ok(node);
     }
 
-    // special
+    // mark first as func call
     let first = children.get(0).unwrap();
 
     // try_spec: bool for global
