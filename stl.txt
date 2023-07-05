@@ -1,6 +1,10 @@
 (def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))));
 (def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))));
 
+(def r_swap (acc n)
+    (recr_t n acc)
+)
+
 # (fn 1 2 3 4) => 15 #
 (def fn (x,a)
     (def fn2 (y,b)
@@ -15,3 +19,5 @@
 (def h2 (a,b,c)
     (add a b c)
 )
+
+# (def g (a b) (def g2 (y) x)) #
