@@ -26,8 +26,40 @@ pub trait Function {
     }
 
     fn get_num_args(&self) -> NumArgs;
+    // fn get_params(&self)->Params;
 
     fn to_string(&self) -> String;
+}
+
+// represents params for a function
+    // finite: n, params body, params_idx. n = number of params (calculated by params.len and idx)
+    // inf: min
+pub struct FiniteParams {
+    params:Vec<String>,
+    params_idx:usize,
+}
+
+pub struct InfiniteParams {
+    min:usize
+}
+
+pub enum Params {
+    Finite(FiniteParams),
+    Infinite(InfiniteParams)
+}
+
+impl Params {
+    fn new_finite(params:Vec<String>)->Params {
+        Params::Finite(
+            FiniteParams { params, params_idx: 0 }
+        )
+    }
+
+    fn new_infinite(min:usize)->Params {
+        Params::Infinite(
+            InfiniteParams { min }
+        )
+    }
 }
 
 use crate::parser::parse_node::FnDef;
@@ -176,7 +208,6 @@ impl Function for UserFunction {
 
         // IMPORTANT:node is CLONED so the clone compares unequal because id changed
         let cloned = fn_node.as_ref().clone();
-        println!("Cloned in exec:{}", cloned.to_string_with_parent());
       
         let res = DeferredExpression {
             ctx: eval_ctx.clone(),
