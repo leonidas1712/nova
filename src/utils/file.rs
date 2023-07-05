@@ -12,7 +12,7 @@ use std::ptr::read;
 
 
 use crate::evaluator::context_tco::EvalContext;
-use crate::{message::*, file};
+use crate::{message::*};
 use crate::lex;
 use crate::lexer::*;
 use crate::parser::parser::parse_all;

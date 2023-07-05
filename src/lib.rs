@@ -5,29 +5,28 @@
 extern crate strum;
 #[macro_use]
 extern crate lazy_static;
-
 #[macro_use]
 extern crate strum_macros;
 
 
-pub mod constants;
+pub mod utils;
 pub mod evaluator;
 pub mod lexer;
-pub mod macros;
-pub mod message;
 pub mod parser;
-pub mod time;
-pub mod file;
 
 use std::rc::Rc;
 use std::vec;
 
-
 use crate::{
-    constants::*,
+    utils::constants::*,
+    utils::file::*
 };
 
-use file::{import_file, STL_FILE, save_file, USER_FILE};
+pub use utils::constants;
+pub use utils::message;
+
+pub use utils::file::{import_file, STL_FILE, save_file, USER_FILE};
+
 use lexer::{Lexer,split_input};
 use parser::parser::{parse,parse_all};
 use parser::parse_node::ASTNode;

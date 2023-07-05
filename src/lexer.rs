@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 use crate::constants::*;
-use crate::file::separate_expressions;
 use crate::message::*;
 
 #[macro_export]
