@@ -1,3 +1,4 @@
+use core::num;
 use std::rc::Rc;
 
 use std::collections::VecDeque;
@@ -310,6 +311,35 @@ pub fn evaluate_if(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<Def
 }
 
 
+// // inner could return an inf function
+// pub fn partial_apply(func_call:&FunctionCall, args:Vec<Arg>)->Result<Expression>{
+//     let mut func_to_call=&func_call.func;
+//     // args.
+//     // let mut args_q=VecDeque::from(args); 
+//     // let mut args_iter=args.into_iter().peekable();
+
+//     let mut num_args=&func_call.func.get_num_args();
+//     let mut func=&func_call.func;
+//     let mut ctx=&func_call.context;
+
+//     // break when returned is not a function or args run out
+//         // 1. take args according to number (inf: all, finite: n)
+//         // 2. pass to execute, get result
+//         // 3. if expr is not a func or args left 0: return out.
+//         // 4. else: func=res, continue
+    
+//     loop {
+//         // res:Expr
+//         let res=match num_args {
+//             Finite(n) => {
+//                 let args_q=VecDeque::from(args);
+//             },
+//             Infinite => {
+//                 func.execute(args, ctx)?;
+//             }
+//         };
+//     }
+// }
 // function call with arguments
 // change to generalise to uneval
 // inner: takes Vec<Arg>, func_call, call_stack, resq
@@ -324,7 +354,19 @@ pub fn evaluate_fn(args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecD
     // 2. > expected: pass in expected args to execute. if ret value is a func: continue to execute on rest
         // else: throw err
     // 3. for inf: when promoting, look at parent is_func. if false, coerce to value. else return curried func
-    let execute_result=func_call.func.execute(args, &func_call.context)?;
+    let num_args=func_call.func.get_num_args();
+    let execute_result={
+        match &num_args {
+            // partial application
+            Finite(n) if args.len() > *n => {
+                func_call.func.execute(args, &func_call.context)?
+            },
+            // n <= args.len() or infinite - inf should return a curried function
+            _ => {
+                func_call.func.execute(args, &func_call.context)?
+            }
+        }
+    };
 
     // if parent None or parent not marked as func call: func.eval(), put res on resq
         // if has less args than needed during eval: just return the curried fn
@@ -351,6 +393,43 @@ pub fn evaluate_fn(args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecD
 
     Ok(())
 }
+// pub fn evaluate_fn(args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()> {
+//     if args.len()==0 {
+//         let msg=format!("'{}' received 0 arguments.", func_call.func.to_string());
+//         return err!(msg);
+//     }
+
+//     // 1. if args.len <= func.expected: proceed as normal
+//     // 2. > expected: pass in expected args to execute. if ret value is a func: continue to execute on rest
+//         // else: throw err
+//     // 3. for inf: when promoting, look at parent is_func. if false, coerce to value. else return curried func
+//     let execute_result=func_call.func.execute(args, &func_call.context)?;
+
+//     // if parent None or parent not marked as func call: func.eval(), put res on resq
+//         // if has less args than needed during eval: just return the curried fn
+//     // else (func call): put on fn_stack
+//     match execute_result {
+//         // put on call stack
+//         DeferredExpr(def) => {
+//             let stack_expr=StackExpression {
+//                 expr:def,
+//                 parent:func_call.parent.clone() // cloning the OPTION
+//             };
+//             call_stack.push_back(stack_expr);
+//         },
+
+//         // put on resq
+//         EvaluatedExpr(ev) => {
+//             let expr_res=ExpressionResult {
+//                 data:ev,
+//                 parent:func_call.parent.clone() // cloning the OPTION - should be same id
+//             };
+//             results.push_back(expr_res);
+//         }
+//     }
+
+//     Ok(())
+// }
 
 
 // call function that takes evaluated arguments (args are on the res_q)

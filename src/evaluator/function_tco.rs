@@ -199,14 +199,16 @@ impl Function for UserFunction {
 use crate::Lexer;
 #[test]
 fn test_curry() {
-    let func="(def fn (x a) (def fn2 (y b) (add x a y b)))";
+    let func="(def fn (a b c) (add a b c))";
     let mut lx=lex!(func);
     let p=parse(&mut lx).expect("Should parse fn def");
     let ctx=EvalContext::new();
 
     let ev=evaluate_outer(ctx,p,true)
         .expect("Should evaluate");
-
-    let ev=ev.expect_user_function().expect("Should be user");
+    
+    let func="(fn 1 2)";
+    let mut lx=lex!(func);
+    let p=parse(&mut lx).expect("Should parse fn def");
 
 }
