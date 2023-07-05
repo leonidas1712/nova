@@ -507,3 +507,40 @@ curry:
 
 
 5. splitting by regex
+
+// break when returned is not a function or args run out
+    // ret: 1. DE:return out, put on call_st. 2. Data:Var - ret out,
+    // 3. Data:Fn
+        // a. have more args: continue eval
+        // b. no more args: ret out
+
+    // return is deferred expr?: put on call stack with sa
+        // 1. take args according to number (inf: all, finite: n)
+        // 2. pass to execute, get result
+        // 3. if expr is not a func or args left 0: return out.
+        // 4. else: func=res, continue
+
+(def fn (a,b) (add a b))
+
+func_call, args:Vec<Arg>
+# (fn 1 2 3 4)  - currently err #
+# ((add 1 2) 3 4) - curr err #
+
+-> func: Finite or Inf
+->  finite(n)
+    -> args > n : (fn 1 2 3 4...) 
+        -> ret value another func: ok, continue with func=result, num_args=func.num_args
+        -> else: err
+    args <= n: just return out 
+    -> args == n: (fn 1 2) => data
+        -> ret value: whatever it is return out
+    -> args < n: (fn 1) => curried
+        -> ret value: whatever it is return out
+
+-> inf
+    -> initially: just evaluate no currying
+    -> args < min: (add 1) => err
+    -> args == min: (add 1 2) => check parent if is_func or not
+    -> args > min: (add 1 2 3 ..) => check parent if is_func or not
+        -> is_func True => return curried fn
+        -> false => return result (coerce)

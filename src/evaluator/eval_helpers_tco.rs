@@ -223,8 +223,8 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
     let ast=args.ast;
 
 
-    let _ast1_clone=Rc::clone(ast);
-    let _ast2_clone=Rc::clone(ast);
+    // let _ast1_clone=Rc::clone(ast);
+    // let _ast2_clone=Rc::clone(ast);
 
     
     if children.is_empty() {
@@ -250,7 +250,7 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
 
     // uneval: dont use stack, pass args directly to function
     if func.get_arg_type().eq(&ArgType::Unevaluated) {
-        let args: Vec<Arg> = rest_children.map(|x| Unevaluated(Rc::clone(x))).collect();
+        let mut args: Vec<Arg> = rest_children.map(|x| Unevaluated(Rc::clone(x))).collect();
         return evaluate_fn(args, &func_call, call_stack, results);
     }
     
@@ -310,41 +310,31 @@ pub fn evaluate_if(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<Def
     }
 }
 
+// finite: only take n args?, leave the rest
 
 // // inner could return an inf function
-// pub fn partial_apply(func_call:&FunctionCall, args:Vec<Arg>)->Result<Expression>{
-//     let mut func_to_call=&func_call.func;
-//     // args.
-//     // let mut args_q=VecDeque::from(args); 
-//     // let mut args_iter=args.into_iter().peekable();
+pub fn partial_apply(func_call:&FunctionCall, mut args:Vec<Arg>)->Result<Expression>{
+    let mut func_to_call=&func_call.func;
+    // args.
+    let mut args_q=VecDeque::from(args); 
+    // let mut args_iter=args.into_iter().peekable();
 
-//     let mut num_args=&func_call.func.get_num_args();
-//     let mut func=&func_call.func;
-//     let mut ctx=&func_call.context;
+    let mut num_args=&func_call.func.get_num_args();
+    let mut func=&func_call.func;
+    let mut ctx=&func_call.context;
 
-//     // break when returned is not a function or args run out
-//         // 1. take args according to number (inf: all, finite: n)
-//         // 2. pass to execute, get result
-//         // 3. if expr is not a func or args left 0: return out.
-//         // 4. else: func=res, continue
     
-//     loop {
-//         // res:Expr
-//         let res=match num_args {
-//             Finite(n) => {
-//                 let args_q=VecDeque::from(args);
-//             },
-//             Infinite => {
-//                 func.execute(args, ctx)?;
-//             }
-//         };
-//     }
-// }
+
+
+
+    Ok(EvaluatedExpr(Num(2)))
+}
+
 // function call with arguments
 // change to generalise to uneval
 // inner: takes Vec<Arg>, func_call, call_stack, resq
     // evaluates, puts on call/resq depending
-pub fn evaluate_fn(args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()> {
+pub fn evaluate_fn(mut args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()> {
     if args.len()==0 {
         let msg=format!("'{}' received 0 arguments.", func_call.func.to_string());
         return err!(msg);

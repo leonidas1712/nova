@@ -1,2 +1,1 @@
-(def fn (c) (add a b c));
-(def fn (a b c) (add a b c));
+(def fn (x a) (def fn2 (y b) (add x a y b)));

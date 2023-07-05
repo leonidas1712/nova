@@ -29,6 +29,13 @@ impl Expression {
             _ => None
         }
     }
+
+    pub fn is_deferred(&self)->bool {
+        match &self {
+            DeferredExpr(_) => true,
+            _ => false
+        }
+    }
 }
 
 pub use Expression::*;
