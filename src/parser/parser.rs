@@ -76,6 +76,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
         children.push(res);
     };
 
+    // empty case: () => Unit, [] => list
     if children.len() == 0 {
         lex.next();
         let expr = if open_token.eq(OPEN_EXPR) { "()" } else { "[]" };
@@ -125,15 +126,20 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
         let node = children.into_iter().next().unwrap();
         return Ok(node);
     }
-
-    // mark first as func call
-    let first = children.get(0).unwrap();
-
     // try_spec: bool for global
     // global means whether to take return value to set in outer ctx
     // false: expr just returns normal value
 
-    try_spec!(children, false);
+    try_spec!(children, false); // this macro returns out of the function if match
+
+    // mark first as func call
+    // let first = children.get_mut(0).unwrap();
+        // todo: change to use RefCell<ASTNode> internally then only return Rc at the top level
+    let mut children_nodes:Vec<ASTNode>=children.into_iter().map(|r| r.as_ref().clone()).collect();
+    let first=children_nodes.first_mut().unwrap();
+    first.is_func=true;
+
+    let children=children_nodes.into_iter().map(|n| Rc::new(n)).collect();
 
     let node_val = if open_token == OPEN_EXPR {
         ParseExpression(children)
