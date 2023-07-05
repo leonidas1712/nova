@@ -190,8 +190,15 @@ pub enum ArgType {
     Unevaluated,
 }
 
+#[derive(PartialEq)]
+pub enum NumArgs {
+    Finite(usize),
+    Infinite
+}
+
 pub use Arg::*;
 pub use DataValue::*;
+pub use NumArgs::*;
 
 #[cfg(test)]
 pub mod tests {

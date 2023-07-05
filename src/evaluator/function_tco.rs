@@ -25,6 +25,8 @@ pub trait Function {
         ArgType::Evaluated
     }
 
+    fn get_num_args(&self) -> NumArgs;
+
     fn to_string(&self) -> String;
 }
 
@@ -123,32 +125,6 @@ impl UserFunction {
         Ok(new_ctx)
     }
 
-    // pub fn curry(&self, args: Vec<Arg>) -> Result<EvalContext> {
-    //     let mut new_ctx = EvalContext::new();
-    //     let eval_args = Arg::expect_all_eval(args)?;
-
-    //     if eval_args.len() != self.params.len() {
-    //         let msg = format!(
-    //             "'{}' expected {} arguments but received {}.",
-    //             self.get_name(),
-    //             self.params.len(),
-    //             eval_args.len()
-    //         );
-    //         return err!(msg);
-    //     }
-
-    //     // add args to context using params
-    //     let zipped = self.params.clone().into_iter().zip(eval_args.into_iter());
-
-    //     zipped.for_each(|tup| {
-    //         new_ctx.write().add_variable(tup.0.as_str(), tup.1);
-    //     });
-
-    //     let new_ctx = new_ctx.merge_context(&self.context);
-
-    //     Ok(new_ctx)
-    // }
-
     pub fn get_name(&self) -> String {
         self.name.clone()
     }
@@ -211,6 +187,10 @@ impl Function for UserFunction {
         return Ok(res);
     }
 
+    fn get_num_args(&self) -> NumArgs {
+        // can change later to support *args
+        Finite(self.num_expected_params())
+    }
     fn to_string(&self) -> String {
         self.to_string()
     }

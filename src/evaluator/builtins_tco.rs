@@ -56,6 +56,10 @@ impl Function for Add {
         total.map(|n| Num(n)).map(|val| EvaluatedExpr(val))
     }
 
+    fn get_num_args(&self) -> NumArgs {
+        Infinite
+    }
+
     fn to_string(&self) -> String {
         // ADD.to_string()
         name!(ADD)
@@ -70,6 +74,10 @@ impl Function for Sub {
             .ok_or(Ex::new("Could not subtract provided expression"))
             .map(|x| Num(x))
             .map(|val| EvaluatedExpr(val))
+    }
+
+    fn get_num_args(&self) -> NumArgs {
+        Infinite
     }
 
     fn to_string(&self) -> String {
@@ -87,6 +95,10 @@ impl Function for Mult {
             .map(|val| EvaluatedExpr(val))
     }
 
+    fn get_num_args(&self) -> NumArgs {
+        Infinite
+    }
+
     fn to_string(&self) -> String {
         name!(MULT)
     }
@@ -102,6 +114,10 @@ impl Function for Equals {
         let right = eval_args.get(1).unwrap();
 
         Ok(EvaluatedExpr(Bool(left.equals(right))))
+    }
+
+    fn get_num_args(&self) -> NumArgs {
+        Finite(2)
     }
 
     fn to_string(&self) -> String {
@@ -122,6 +138,10 @@ impl Function for Succ {
             .ok_or(Ex::new("Couldn't add num."))
     }
 
+    fn get_num_args(&self) -> NumArgs {
+        Finite(1)
+    }
+
     fn to_string(&self) -> String {
         name!(INC)
     }
@@ -140,6 +160,10 @@ impl Function for Pred {
             .ok_or(Ex::new("Couldn't subtract num.")) // err unreachable
     }
 
+    fn get_num_args(&self) -> NumArgs {
+        Finite(1)
+    }
+
     fn to_string(&self) -> String {
         name!(DEC)
     }
@@ -152,6 +176,10 @@ impl Function for Print {
         values.iter().for_each(|x| println!("{}", x.to_string()));
 
         unit!()
+    }
+
+    fn get_num_args(&self) -> NumArgs {
+        Infinite
     }
 
     fn to_string(&self) -> String {
@@ -177,5 +205,9 @@ impl Function for Chain {
 
     fn get_arg_type(&self) -> ArgType {
         ArgType::Unevaluated
+    }
+
+    fn get_num_args(&self) -> NumArgs {
+        Infinite
     }
 }

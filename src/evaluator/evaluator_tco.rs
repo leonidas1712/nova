@@ -22,6 +22,15 @@ pub enum Expression {
     EvaluatedExpr(DataValue),
 }
 
+impl Expression {
+    pub fn get_evaluated(&self)->Option<&DataValue> {
+        match &self {
+            EvaluatedExpr(value) => Some(value),
+            _ => None
+        }
+    }
+}
+
 pub use Expression::*;
 
 // function call on the call stack

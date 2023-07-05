@@ -320,7 +320,12 @@ pub fn evaluate_fn(args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecD
         return err!(msg);
     }
 
+    // 1. if args.len <= func.expected: proceed as normal
+    // 2. > expected: pass in expected args to execute. if ret value is a func: continue to execute on rest
+        // else: throw err
+    // 3. for inf: when promoting, look at parent is_func. if false, coerce to value. else return curried func
     let execute_result=func_call.func.execute(args, &func_call.context)?;
+
     // if parent None or parent not marked as func call: func.eval(), put res on resq
         // if has less args than needed during eval: just return the curried fn
     // else (func call): put on fn_stack
