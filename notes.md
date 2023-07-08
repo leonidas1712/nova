@@ -569,3 +569,42 @@ Finite/inf
 2. inf
     -> always return a curried function
     -> caller: check parent to know if must resolve
+
+
+0. params
+1. state for builtins (params)
+2. execute/resolve
+
+// resolve: Result<Expression>
+    // Finite: if args < expected, return curried function. == exp: return value. > exp: err
+    // inf: args < min: curried. else: return result
+
+
+
+
+trait Function
+-> get_curr_args(&self)->&[Arg]
+    ->
+-> get_arity(&self) -> NumArgs : abstract
+    -> actual: use Params.get...
+-> apply(args:&[Arg])->Result<Rc<Function>> : abstract
+    -> actual: use Params.apply
+-> resolve(&self) -> Result<Expression>
+-> evaluate(args:&[Arg], ctx:EvalContext)->Result<Expression> : abstract
+    -> actual: 
+        UserFn -> same as before
+        BI->call the function
+
+
+
+    
+
+// UserFn: name, ctx, body, params
+    // resolve: call fn body,merge, etc.
+// BuiltIn: name, params, <resolve fn>
+
+// BuiltIn(Add, Infinite)
+    // execute(...)
+
+// BuiltIn(Cons, Finite)
+    // execute(...)

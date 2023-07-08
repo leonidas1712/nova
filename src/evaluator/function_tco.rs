@@ -1,5 +1,6 @@
 use core::num;
 use std::rc::Rc;
+use std::vec;
 
 use crate::constants::CLOSE_EXPR;
 use crate::constants::OPEN_EXPR;
@@ -34,15 +35,92 @@ pub trait Function {
 // represents params for a function
     // finite: n, params body, params_idx. n = number of params (calculated by params.len and idx)
     // inf: min
+
+#[derive (Clone)]
 pub struct FiniteParams {
-    params:Vec<String>,
-    params_idx:usize,
-    // received_params:
+    pub params:Vec<String>,
+    pub params_idx:usize,
+    pub received_params:Vec<Arg>
 }
 
-pub struct InfiniteParams {
-    min:usize
+impl FiniteParams {
+    pub fn new(params:Vec<String>)->FiniteParams {
+        FiniteParams { params, params_idx: 0, received_params: vec![] }
+    }
+
+    pub fn curry(&self,args:&[Arg])->FiniteParams {
+        let mut new_params=self.received_params.clone();
+        new_params.extend_from_slice(args);
+
+        FiniteParams { 
+            params: self.params.clone(), 
+            params_idx: self.params_idx+args.len(), 
+            received_params: new_params
+        }
+    }
+
+    pub fn expected_params(&self)->Vec<String> {
+        self.params.iter()
+            .skip(self.params_idx)
+            .map(|x| x.clone())
+            .collect()
+    }
+
+    pub fn num_expected_params(&self)->usize {
+        self.expected_params().len()
+    }
+
+    // resolve the curried parameters into a context
+    pub fn resolve(&self)-> Result<impl Iterator<Item = (String,Arg)>>{
+         // can't curry for too many
+         let num_args=self.received_params.len();
+
+         if num_args > self.num_expected_params() {
+            let msg = format!(
+                "expected {} arguments but received {}.",
+                self.num_expected_params(),
+                num_args
+            );
+            return err!(msg);
+        } else {
+            let new_ctx=EvalContext::new();
+
+            let curried_params=self.expected_params()
+            .clone()
+            .into_iter()
+            .take(num_args);
+
+            // (param name, arg)
+            let zipped = curried_params.zip(self.received_params.clone().into_iter());
+
+            Ok(zipped)
+        }
+    }
 }
+
+
+#[derive (Clone)]
+pub struct InfiniteParams {
+    pub received_params:Vec<Arg>,
+    pub min:usize
+}
+
+impl InfiniteParams {
+    pub fn new(min:usize)->InfiniteParams {
+        InfiniteParams {
+            received_params:vec![],
+            min
+        }
+    }
+
+    pub fn curry(&self,args:&[Arg])->InfiniteParams {
+        let mut new_params=self.received_params.clone();
+        new_params.extend_from_slice(args);
+
+        InfiniteParams { received_params: new_params, min: self.min }
+    }
+}
+
 
 pub enum Params {
     Finite(FiniteParams),
@@ -53,19 +131,21 @@ pub enum Params {
     // finite: String->Arg
     // inf: Vec<Arg>
 // curry: add to table/array
+// resolve: return a Result<EvalContext> with the params added
+    // err for not enough/too many
 // use:
     // Evaluated: 
 
 impl Params {
     pub fn new_finite(params:Vec<String>)->Params {
         Params::Finite(
-            FiniteParams { params, params_idx: 0 }
+            FiniteParams::new(params)
         )
     }
 
     pub fn new_infinite(min:usize)->Params {
         Params::Infinite(
-            InfiniteParams { min }
+            InfiniteParams::new(min)
         )
     }
 
@@ -80,6 +160,9 @@ impl Params {
             },
             Params::Infinite(_) => None
         }
+    }
+
+    pub fn curry(&self, args:&[Arg]) {
     }
 
     // pub fn curry(&self, args: &[Arg]) -> Result<EvalContext> {
@@ -120,6 +203,8 @@ impl Params {
 
 use crate::parser::parse_node::FnDef;
 
+
+// BuiltIn: name String, params:Params
 // name, params, body
 #[derive(Clone)]
 pub struct UserFunction {
