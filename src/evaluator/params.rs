@@ -171,6 +171,20 @@ pub fn finite_params_test() {
     let fin_4=fin_4.check("fn").expect("Should be ok");
     assert_eq!(fin_4.received_args().len(),2);
 
+    let mut fin_get=fin.apply(&args[0..2])
+    .check("add")
+    .map(|x| x.received_args())
+    .expect("Should have args")
+    .into_iter();
+
+    let fin_get=fin_get.next()
+        .expect("Should have arg")
+        .expect_eval()
+        .expect("Should be eval")
+        .expect_num().expect("Should be num");
+    
+    assert_eq!(fin_get, 20);
+
 }
 
 #[test]
