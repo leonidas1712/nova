@@ -61,6 +61,7 @@ impl InfiniteParams {
 }
 
 
+#[derive(Clone)]
 pub enum Params {
     Finite(FiniteParams),
     Infinite(InfiniteParams)
@@ -139,10 +140,10 @@ impl Params {
         }
     }
 
-    pub fn received_args(&self)->&Vec<Arg> {
+    pub fn received_args(self)->Vec<Arg> {
         match self {
-            Params::Finite(fin) => &fin.received_args,
-            Params::Infinite(inf) => &inf.received_args
+            Params::Finite(fin) => fin.received_args,
+            Params::Infinite(inf) => inf.received_args
         }
     }
 }
@@ -159,7 +160,6 @@ pub fn finite_params_test() {
 
     let fin_2=fin.apply(&args[0..2]);
     assert!(fin_2.expected_params().expect("Should be vec").is_empty());
-    dbg!(fin_2.received_args().len());
     assert!(fin_2.check("fn").is_ok());
 
     let fin_3=fin.apply(&args[0..3]);
@@ -178,11 +178,11 @@ pub fn inf_params_test() {
     let args=[Arg::Evaluated(Num(20)), Arg::Evaluated(Num(30)), Arg::Evaluated(Num(40))];
     
     let inf_1=inf.apply(&args[0..1]);
-    assert_eq!(inf_1.received_args().len(),1);
+    assert_eq!(inf_1.clone().received_args().len(),1);
     assert!(inf_1.check("add").is_err());
 
     let inf_2=inf.apply(&args[0..2]);
-    assert_eq!(inf_2.received_args().len(),2);
+    assert_eq!(inf_2.clone().received_args().len(),2);
     assert!(inf_2.check("add").is_ok());
 
 }
