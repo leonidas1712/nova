@@ -232,6 +232,7 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
     }
 
     let first_child = children.first().unwrap();
+    // recursively evaluate function call
     let eval_first=evaluate_outer(ctx.clone(), Rc::clone(first_child), false)?;
 
     // we expect first part of expression to resolve to a fn call
@@ -334,11 +335,26 @@ pub fn evaluate_if(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<Def
 // change to generalise to uneval
 // inner: takes Vec<Arg>, func_call, call_stack, resq
     // evaluates, puts on call/resq depending
+
+// change: func.execute should always return a curried function
+    // func.resolve forces the function to return the actual value
+    // for finite: return the function as is if args < needed, else return the eval value
+    // inf: return func if args < min, else return eval value
+
+    // when to call func.resolve: when func_call.ast is_func==false
+    // when we get a curried function: put on fn_stack
 pub fn evaluate_fn(mut args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()> {
     if args.len()==0 {
         let msg=format!("'{}' received 0 arguments.", func_call.func.to_string());
         return err!(msg);
     }
+
+    // 1. if func.ast is_func (result expected to be function) 
+        // call func.execute -> should get a FunctionVariable
+        // put on fnstack with ast=parent, parent=parent.parent
+    // 2. if func.ast NOT is_func (result expected to be final result) -> call func.resolve
+        // put on call_stack or result as normal
+
 
     // 1. if args.len <= func.expected: proceed as normal
     // 2. > expected: pass in expected args to execute. if ret value is a func: continue to execute on rest
@@ -361,6 +377,8 @@ pub fn evaluate_fn(mut args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut 
     // if parent None or parent not marked as func call: func.eval(), put res on resq
         // if has less args than needed during eval: just return the curried fn
     // else (func call): put on fn_stack
+
+    println!("AST during eval:{}", func_call.ast.to_string_with_parent());
     match execute_result {
         // put on call stack
         DeferredExpr(def) => {

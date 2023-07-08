@@ -37,6 +37,7 @@ pub trait Function {
 pub struct FiniteParams {
     params:Vec<String>,
     params_idx:usize,
+    // received_params:
 }
 
 pub struct InfiniteParams {
@@ -48,18 +49,73 @@ pub enum Params {
     Infinite(InfiniteParams)
 }
 
+// params: just stores Arg
+    // finite: String->Arg
+    // inf: Vec<Arg>
+// curry: add to table/array
+// use:
+    // Evaluated: 
+
 impl Params {
-    fn new_finite(params:Vec<String>)->Params {
+    pub fn new_finite(params:Vec<String>)->Params {
         Params::Finite(
             FiniteParams { params, params_idx: 0 }
         )
     }
 
-    fn new_infinite(min:usize)->Params {
+    pub fn new_infinite(min:usize)->Params {
         Params::Infinite(
             InfiniteParams { min }
         )
     }
+
+    pub fn expected_params(&self)->Option<Vec<String>> {
+        match &self {
+            Params::Finite(finite) => {
+                let exp:Vec<String>=finite.params.iter()
+                .skip(finite.params_idx)
+                .map(|x| x.clone())
+                .collect();
+                Some(exp)
+            },
+            Params::Infinite(_) => None
+        }
+    }
+
+    // pub fn curry(&self, args: &[Arg]) -> Result<EvalContext> {
+    //     let mut new_ctx = EvalContext::new();
+    //     let eval_args = Arg::expect_all_eval(args)?;
+    //     let num_args=eval_args.len();
+
+    //     // can't curry for too many
+    //     if num_args > self.num_expected_params() {
+    //         let msg = format!(
+    //             "'{}' expected {} arguments but received {}.",
+    //             self.get_name(),
+    //             self.num_expected_params(),
+    //             num_args
+    //         );
+    //         return err!(msg);
+    //     }
+
+    //     // add args to context using params
+    //         // need to account for already in
+    //     let curried_params=self.expected_params()
+    //         .clone()
+    //         .into_iter()
+    //         .take(num_args);
+
+    //     let zipped = curried_params.zip(eval_args.into_iter());
+
+    //     zipped.for_each(|tup| {
+    //         new_ctx.write().add_variable(tup.0.as_str(), tup.1);
+    //     });
+
+    //     let new_ctx = new_ctx.merge_context(&self.context);
+
+    //     Ok(new_ctx)
+    // }
+
 }
 
 use crate::parser::parse_node::FnDef;
@@ -67,14 +123,23 @@ use crate::parser::parse_node::FnDef;
 // name, params, body
 #[derive(Clone)]
 pub struct UserFunction {
-    context: EvalContext,
-    name: String,
-    params: Vec<String>,
-    params_idx:usize,
-    body: Vec<Rc<ASTNode>>,
+    context: EvalContext, // ctx at creation - user only
+    name: String, // b also
+    params: Vec<String>, // builtin also
+    params_idx:usize, // b also
+    body: Vec<Rc<ASTNode>>, // user only
 }
 // clone fn_def because it could have come from a closure: the original function still needs it
 // same reason for context: to impl closure we need to capture ctx at time of creation
+
+// context: inner context at time of creation
+// params: stores context from currying of args
+// curry: curry inner params, just pass along prev ctx
+// at time of execution: merge there
+
+// inf args: curry by adding to internal Vec<Arg>
+// time of exec: return curried function with the additional args
+    // 
 impl UserFunction {
     pub fn new(context: &EvalContext, fn_def: &FnDef) -> UserFunction {
         let mut stored_ctx=context.copy();

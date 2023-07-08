@@ -544,3 +544,28 @@ func_call, args:Vec<Arg>
     -> args > min: (add 1 2 3 ..) => check parent if is_func or not
         -> is_func True => return curried fn
         -> false => return result (coerce)
+
+
+
+// 1. if func.ast is_func (result expected to be function) 
+    // call func.execute -> should get a FunctionVariable
+    // put on fnstack with ast=parent, parent=parent.parent
+
+    execute: 
+        -> finite: err if args > expected. else, return curried function
+            -> clone Rc<ctx>
+        -> inf: err if args < min. else, return curried function
+            -> clone vec first, later traverse up LL
+
+// 2. if func.ast NOT is_func (result expected to be final result) -> call func.resolve
+    // put on call_stack or result as normal        
+
+Uneval/Eval, Finite/Inf
+
+Finite/inf
+
+1. finite
+    -> curry as long as params avail
+2. inf
+    -> always return a curried function
+    -> caller: check parent to know if must resolve
