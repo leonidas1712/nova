@@ -171,3 +171,18 @@ pub fn finite_params_test() {
     assert_eq!(fin_4.received_args().len(),2);
 
 }
+
+#[test]
+pub fn inf_params_test() {
+    let inf=Params::new_infinite(2);
+    let args=[Arg::Evaluated(Num(20)), Arg::Evaluated(Num(30)), Arg::Evaluated(Num(40))];
+    
+    let inf_1=inf.apply(&args[0..1]);
+    assert_eq!(inf_1.received_args().len(),1);
+    assert!(inf_1.check("add").is_err());
+
+    let inf_2=inf.apply(&args[0..2]);
+    assert_eq!(inf_2.received_args().len(),2);
+    assert!(inf_2.check("add").is_ok());
+
+}
