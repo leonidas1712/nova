@@ -590,7 +590,9 @@ trait Function
 -> apply(args:&[Arg])->Result<Rc<Function>> : abstract
     -> actual: use Params.apply
 -> resolve(&self) -> Result<Expression>
--> evaluate(args:&[Arg], ctx:EvalContext)->Result<Expression> : abstract
+
+// what to do when all args are received
+-> execute(args:&[Arg], ctx:EvalContext)->Result<Expression> : abstract
     -> actual: 
         UserFn -> same as before
         BI->call the function

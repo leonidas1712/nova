@@ -16,6 +16,7 @@ use crate::parser::parser::parse;
 use super::context_tco::*;
 use super::data_tco::*;
 use super::evaluator_tco::*;
+use super::params::Params;
 
 // &Context: need to be able to re-use the context
 pub trait Function {
@@ -43,6 +44,7 @@ pub struct UserFunction {
     name: String, // b also
     params: Vec<String>, // builtin also
     params_idx:usize, // b also
+    // params:Params,
     body: Vec<Rc<ASTNode>>, // user only
 }
 // clone fn_def because it could have come from a closure: the original function still needs it
@@ -65,13 +67,15 @@ impl UserFunction {
         UserFunction {
             context: stored_ctx, // copy to get new copy that doesn't affect
             name: fn_def.name.clone(),
-            params: fn_def.params.clone(),
+            // params:Params::new_finite(fn_def.params.clone()),
+            params:fn_def.params.clone(),
             params_idx:0,
             body: fn_def.body.clone(), // ASTNode.clone
         }
     }
 
     pub fn expected_params(&self)->Vec<String> {
+        // self.params.expected_params()
         self.params.iter()
             .skip(self.params_idx)
             .map(|x| x.clone())
