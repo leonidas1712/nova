@@ -355,6 +355,13 @@ pub fn evaluate_fn(mut args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut 
     // 2. if func.ast NOT is_func (result expected to be final result) -> call func.resolve
         // put on call_stack or result as normal
 
+    // let func=func.apply(args.slice)
+    // if func_call.ast.is_func:
+        // fn_stack.push_back(new fn call with func...)
+    // else:
+        // let execute_result=func.resolve()
+
+
 
     // 1. if args.len <= func.expected: proceed as normal
     // 2. > expected: pass in expected args to execute. if ret value is a func: continue to execute on rest

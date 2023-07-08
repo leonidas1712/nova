@@ -28,6 +28,8 @@ pub trait Function {
     }
 
     fn get_num_args(&self) -> NumArgs;
+
+    fn apply(&self,args: &[Arg]) -> Rc<dyn Function>;
     // fn get_params(&self)->Params;
 
     fn to_string(&self) -> String;
@@ -42,9 +44,9 @@ use crate::parser::parse_node::FnDef;
 pub struct UserFunction {
     context: EvalContext, // ctx at creation - user only
     name: String, // b also
-    params: Vec<String>, // builtin also
-    params_idx:usize, // b also
-    // params:Params,
+    // params: Vec<String>, // builtin also
+    // params_idx:usize, // b also
+    params:Params,
     body: Vec<Rc<ASTNode>>, // user only
 }
 // clone fn_def because it could have come from a closure: the original function still needs it
@@ -67,58 +69,59 @@ impl UserFunction {
         UserFunction {
             context: stored_ctx, // copy to get new copy that doesn't affect
             name: fn_def.name.clone(),
-            // params:Params::new_finite(fn_def.params.clone()),
-            params:fn_def.params.clone(),
-            params_idx:0,
+            params:Params::new_finite(fn_def.params.clone()),
+            // params:fn_def.params.clone(),
+            // params_idx:0,
             body: fn_def.body.clone(), // ASTNode.clone
         }
     }
 
-    pub fn expected_params(&self)->Vec<String> {
-        // self.params.expected_params()
-        self.params.iter()
-            .skip(self.params_idx)
-            .map(|x| x.clone())
-            .collect()
+    pub fn expected_params(&self)->Option<Vec<String>> {
+        self.params.expected_params()
     }
 
-    pub fn num_expected_params(&self)->usize {
+    pub fn num_expected_params(&self)->Option<usize> {
         // self.params.len()-self.params_idx
-        self.expected_params().len()
+        self.expected_params().map(|x| x.len())
     }
 
     // create curried function given new eval context and idx
     // body needs to be new nodes (?)
-    pub fn curried_function(&self, args: &[Arg])->Result<UserFunction> {
-        let new_idx=self.params_idx+args.len();
-        let new_ctx=self.curry(args)?;
+    // pub fn curried_function(&self, args: &[Arg])->Result<UserFunction> {
+    //     let new_idx=self.params_idx+args.len();
+    //     let new_ctx=self.curry(args)?;
 
-        let new_body:Vec<Rc<ASTNode>>=self.body
-            .iter()
-            .map(|node| node.as_ref().clone())
-            .map(|node| Rc::new(node))
-            .collect();
+    //     let new_body:Vec<Rc<ASTNode>>=self.body
+    //         .iter()
+    //         .map(|node| node.as_ref().clone())
+    //         .map(|node| Rc::new(node))
+    //         .collect();
 
-        Ok(UserFunction {
-            context:new_ctx, // can remove this and use passed in
-            name:self.name.clone(),
-            params:self.params.clone(),
-            params_idx:new_idx,
-            body:new_body
-        })
-    }
+    //     Ok(UserFunction {
+    //         context:new_ctx, // can remove this and use passed in
+    //         name:self.name.clone(),
+    //         params:self.params.clone(),
+    //         params_idx:new_idx,
+    //         body:new_body
+    //     })
+    // }
 
     pub fn curry(&self, args: &[Arg]) -> Result<EvalContext> {
         let mut new_ctx = EvalContext::new();
         let eval_args = Arg::expect_all_eval(args)?;
         let num_args=eval_args.len();
 
+        if self.params.expected_params().is_none() {
+            return Ok(new_ctx);
+        }
+
+        let num_expected=self.num_expected_params().unwrap();
         // can't curry for too many
-        if num_args > self.num_expected_params() {
+        if num_args > num_expected {
             let msg = format!(
                 "'{}' expected {} arguments but received {}.",
                 self.get_name(),
-                self.num_expected_params(),
+                num_expected,
                 num_args
             );
             return err!(msg);
@@ -127,6 +130,7 @@ impl UserFunction {
         // add args to context using params
             // need to account for already in
         let curried_params=self.expected_params()
+            .unwrap()
             .clone()
             .into_iter()
             .take(num_args);
@@ -149,10 +153,7 @@ impl UserFunction {
     fn to_string(&self) -> String {
         let name = &self.name;
 
-        let params:Vec<String> = self.params.iter()
-            .skip(self.params.len() - self.num_expected_params())
-            .map(|x| x.clone())
-            .collect();
+        let params:Vec<String> = self.expected_params().unwrap_or(vec!["*args".to_string()]);
 
         let body = &self.body;
 
@@ -168,19 +169,48 @@ impl UserFunction {
 }
 
 impl Function for UserFunction {
+    // apply args and return new functiom
+    fn apply(&self,args: &[Arg]) -> Rc<dyn Function> {
+        // let new_idx=self.params_idx+args.len();
+        // let new_ctx=self.curry(args)?;
+
+        let new_body:Vec<Rc<ASTNode>>=self.body
+            .iter()
+            .map(|node| node.as_ref().clone())
+            .map(|node| Rc::new(node))
+            .collect();
+
+        let new_fn=UserFunction {
+            context:self.context.clone(),
+            name:self.name.clone(),
+            params:self.params.apply(args),
+            body:new_body
+        };
+
+        Rc::new(new_fn)
+
+        // Ok(UserFunction {
+        //     context:new_ctx, // can remove this and use passed in
+        //     name:self.name.clone(),
+        //     params:self.params.clone(),
+        //     params_idx:new_idx,
+        //     body:new_body
+        // })
+    }
+
     fn execute(&self, args:&[Arg], outer_ctx: &EvalContext) -> Result<Expression> {
         let num_args=args.len();
 
         // return curried function if args less
-        if num_args < self.num_expected_params() {
-            let func=self.curried_function(args)?;
-            let d=Rc::new(func);
-            return Ok(
-                EvaluatedExpr(
-                    FunctionVariable(d)
-                )
-            );
-        }
+        // if num_args < self.num_expected_params().unwrap() {
+        //     let func=self.curried_function(args)?;
+        //     let d=Rc::new(func);
+        //     return Ok(
+        //         EvaluatedExpr(
+        //             FunctionVariable(d)
+        //         )
+        //     );
+        // }
 
         // first clone + add arguments using params and args
         let eval_ctx = self.curry(args)?;
@@ -206,7 +236,10 @@ impl Function for UserFunction {
 
     fn get_num_args(&self) -> NumArgs {
         // can change later to support *args
-        Finite(self.num_expected_params())
+        match self.num_expected_params() {
+            Some(n) => Finite(n),
+            None => Infinite
+        }
     }
     fn to_string(&self) -> String {
         self.to_string()
