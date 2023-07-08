@@ -584,7 +584,7 @@ Finite/inf
 
 trait Function
 -> get_curr_args(&self)->&[Arg]
-    ->
+    -> use for resolve
 -> get_arity(&self) -> NumArgs : abstract
     -> actual: use Params.get...
 -> apply(args:&[Arg])->Result<Rc<Function>> : abstract
@@ -594,6 +594,36 @@ trait Function
     -> actual: 
         UserFn -> same as before
         BI->call the function
+
+
+BuiltIn
+    -> members: params, name, function to use for eval
+        -> fn: &[Arg], ctx -> Result<Expression>
+    -> get_curr, get_arity, apply
+    -> evaluate: call fn.eval
+
+User:
+    -> same as before
+
+pub fn add...
+BI::new(params::Infinite, "add", add_fn)
+
+pub fn cons...
+BI::new(params::Finite("head", "tail"), "cons", cons_fn)
+
+let succ=BI::new(params::Finite("num"), "succ", succ_fn)
+succ.apply(1,2,3) 
+    -> params.apply -> check for too many
+
+succ.resolve()
+    -> check args 
+
+
+let add=BI::new(params::Infinite, "add", add_fn)
+    -> add.apply(1,2,3)...
+    -> add.resolve() -> check params arity matches here
+
+
 
 
 

@@ -350,7 +350,7 @@ pub fn evaluate_fn(mut args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut 
     }
 
     // 1. if func.ast is_func (result expected to be function) 
-        // call func.execute -> should get a FunctionVariable
+        // call func.apply -> should get a FunctionVariable
         // put on fnstack with ast=parent, parent=parent.parent
     // 2. if func.ast NOT is_func (result expected to be final result) -> call func.resolve
         // put on call_stack or result as normal

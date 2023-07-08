@@ -61,7 +61,6 @@ impl Function for Add {
     }
 
     fn to_string(&self) -> String {
-        // ADD.to_string()
         name!(ADD)
     }
 }
