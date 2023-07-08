@@ -140,6 +140,7 @@ impl Params {
         }
     }
 
+    // consume so we can use it
     pub fn received_args(self)->Vec<Arg> {
         match self {
             Params::Finite(fin) => fin.received_args,
@@ -184,5 +185,17 @@ pub fn inf_params_test() {
     let inf_2=inf.apply(&args[0..2]);
     assert_eq!(inf_2.clone().received_args().len(),2);
     assert!(inf_2.check("add").is_ok());
+
+    let inf_3=inf
+    .apply(&args[..])
+    .check("add")
+    .map(|x| x.received_args())
+    .expect("Should have args");
+
+    let mut inf_3=inf_3.into_iter();
+    let arg=inf_3.next().expect("Should have arg");
+    let val=arg.expect_eval().expect("Should be ok").expect_num().expect("Should be num");
+
+    assert_eq!(val,20);
 
 }
