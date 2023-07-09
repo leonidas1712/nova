@@ -1,4 +1,5 @@
 use core::num;
+use std::cmp::Ordering;
 use std::rc::Rc;
 use std::vec;
 
@@ -26,6 +27,8 @@ pub trait Function {
 
     // args so far for resolve
     fn get_args(&self)->Params;
+
+    fn resolve(&self, context:&EvalContext)->Result<Expression>;
 
     // default: Evaluated
     fn get_arg_type(&self) -> ArgType {
@@ -172,6 +175,9 @@ impl UserFunction {
 }
 
 impl Function for UserFunction {
+    fn resolve(&self, context:&EvalContext)->Result<Expression> {
+        todo!()
+    }
     // apply args and return new functiom
     fn apply(&self,args: &[Arg]) -> Rc<dyn Function> {
         // let new_idx=self.params_idx+args.len();

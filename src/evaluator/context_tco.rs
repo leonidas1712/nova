@@ -117,6 +117,15 @@ pub fn setup_context() -> Context {
         };
     }
 
+    macro_rules! regb {
+        ($fn:expr) => {
+            let b=$fn();
+            ctx.add_function(b.name.clone().as_str(), Rc::new(b));
+        };
+    }
+
+    regb!(build_add);
+
     // reg!(ADD, Add);
     // reg!(SUB, Sub);
     // reg!(MULT, Mult);

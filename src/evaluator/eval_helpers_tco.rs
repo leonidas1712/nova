@@ -252,7 +252,7 @@ pub fn resolve_expression(call_stack: &mut VecDeque<StackExpression>,fn_stack: &
     // uneval: dont use stack, pass args directly to function
     if func.get_arg_type().eq(&ArgType::Unevaluated) {
         let mut args: Vec<Arg> = rest_children.map(|x| Unevaluated(Rc::clone(x))).collect();
-        return evaluate_fn(args, &func_call, call_stack, results);
+        return evaluate_fn(args, &func_call, call_stack, results, fn_stack);
     }
     
     fn_stack.push_back(func_call);
@@ -343,7 +343,7 @@ pub fn evaluate_if(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<Def
 
     // when to call func.resolve: when func_call.ast is_func==false
     // when we get a curried function: put on fn_stack
-pub fn evaluate_fn(mut args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>)->Result<()> {
+pub fn evaluate_fn(mut args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut VecDeque<StackExpression>, results: &mut VecDeque<ExpressionResult>, fn_stack: &mut VecDeque<FunctionCall>)->Result<()> {
     if args.len()==0 {
         let msg=format!("'{}' received 0 arguments.", func_call.func.to_string());
         return err!(msg);
@@ -355,31 +355,32 @@ pub fn evaluate_fn(mut args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut 
     // 2. if func.ast NOT is_func (result expected to be final result) -> call func.resolve
         // put on call_stack or result as normal
 
-    // let func=func.apply(args.slice)
-    // if func_call.ast.is_func:
-        // fn_stack.push_back(new fn call with func...)
-    // else:
-        // let execute_result=func.resolve()
+    let func=func_call.func.apply(&args);
+    if func_call.ast.is_func {
+        let expr_res=ExpressionResult {
+            data:FunctionVariable(func),
+            parent:func_call.parent.clone() // cloning the OPTION - should be same id
+        };
+        results.push_back(expr_res);
+        return Ok(())
+    }  
+
+    let execute_result=func.resolve(&func_call.context)?;
 
 
-
-    // 1. if args.len <= func.expected: proceed as normal
-    // 2. > expected: pass in expected args to execute. if ret value is a func: continue to execute on rest
-        // else: throw err
-    // 3. for inf: when promoting, look at parent is_func. if false, coerce to value. else return curried func
-    let num_args=func_call.func.get_num_expected_params();
-    let execute_result={
-        match &num_args {
-            // partial application
-            Finite(n) if args.len() > *n => {
-                func_call.func.execute(&args, &func_call.context)?
-            },
-            // n <= args.len() or infinite - inf should return a curried function
-            _ => {
-                func_call.func.execute(&args, &func_call.context)?
-            }
-        }
-    };
+    // let num_args=func_call.func.get_num_expected_params();
+    // let execute_result={
+    //     match &num_args {
+    //         // partial application
+    //         Finite(n) if args.len() > *n => {
+    //             func_call.func.execute(&args, &func_call.context)?
+    //         },
+    //         // n <= args.len() or infinite - inf should return a curried function
+    //         _ => {
+    //             func_call.func.execute(&args, &func_call.context)?
+    //         }
+    //     }
+    // };
 
     // if parent None or parent not marked as func call: func.eval(), put res on resq
         // if has less args than needed during eval: just return the curried fn
@@ -454,5 +455,5 @@ pub fn call_fn_evaluated(fn_stack: &mut VecDeque<FunctionCall>, call_stack: &mut
     let func=&fn_stack.pop_back().unwrap();
     let args=get_args(func, results);
 
-    evaluate_fn(args, func, call_stack, results)
+    evaluate_fn(args, func, call_stack, results, fn_stack)
 }

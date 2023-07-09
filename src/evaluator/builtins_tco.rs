@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+use std::rc;
 use std::rc::Rc;
 
 use crate::constants::*;
@@ -50,15 +52,16 @@ fn get_nums(args: &[Arg]) -> Result<Vec<NumType>> {
 
 type Exec=fn(&[Arg],&EvalContext)->Result<Expression>;
 
+#[derive (Clone)]
 pub struct BuiltIn {
-    name:String,
+    pub name:String,
     params:Params,
     exec_fn:Exec,
     arg_type:ArgType
 }
 
 impl BuiltIn {
-    pub fn new(&self, name:String, params:Params, exec_fn:Exec, arg_type:ArgType)->Self{
+    pub fn new(name:String, params:Params, exec_fn:Exec, arg_type:ArgType)->Self{
         BuiltIn { name, params, exec_fn, arg_type }
     }
 }
@@ -78,6 +81,29 @@ impl Function for BuiltIn {
         (self.exec_fn)(args,context)
     }
 
+    fn resolve(&self, context: &EvalContext)->Result<Expression> {
+        match &self.params {
+            Params::Finite(fin) => {
+                match fin.params_diff() {
+                    Ordering::Less => Ok(EvaluatedExpr(FunctionVariable(Rc::new(self.clone())))),
+                    Ordering::Equal => self.execute(&fin.received_args, context),
+                    Ordering::Greater => {
+                        let msg=format!("'{}' expected {} arguments but received {}.", 
+                            self.name, fin.params.len(), fin.received_args.len());
+                        err!(msg)
+                    }
+                }
+            },
+            Params::Infinite(inf) => {
+                if inf.received_args.len() < inf.min {
+                    Ok(EvaluatedExpr(FunctionVariable(Rc::new(self.clone()))))
+                } else {
+                    self.execute(&inf.received_args, context)
+                }
+            }
+        }
+    }
+
     fn get_arg_type(&self) -> ArgType {
         self.arg_type.clone()
     }
@@ -93,6 +119,63 @@ impl Function for BuiltIn {
     fn to_string(&self) -> String {
         format!("<function '{}'>", self.name)
     }
+}
+
+pub struct BuiltInBuilder {
+    name:Option<String>,
+    params:Option<Params>,
+    exec_fn:Option<Exec>,
+    arg_type:Option<ArgType>
+}
+
+impl BuiltInBuilder {
+    pub fn new()->Self {
+        BuiltInBuilder { name: None, params: None, exec_fn: None, arg_type: None }
+    }
+
+    pub fn name(mut self, name:&str)->Self {
+        self.name.replace(name.to_string());
+        self
+    }
+    
+    pub fn params(mut self, params:Params)->Self {
+        self.params.replace(params);
+        self
+    }
+
+    pub fn exec(mut self, exec_fn:Exec)->Self {
+        self.exec_fn.replace(exec_fn);
+        self
+    }
+
+    pub fn arg_type(mut self, arg_type:ArgType)->Self {
+        self.arg_type.replace(arg_type);
+        self
+    }
+
+    pub fn build(self)->BuiltIn {
+        let name=self.name.expect("Empty name");
+        let params=self.params.expect("Empty params");
+        let exec=self.exec_fn.expect("Empty exec");
+        let arg_type=self.arg_type.expect("Empty arg type");
+        BuiltIn::new(name, params, exec, arg_type)
+    }
+}
+
+fn add(args: &[Arg], _context: &EvalContext) -> Result<Expression> {
+    let r = get_nums(args);
+    let total: Result<NumType> = r.map(|v| v.into_iter().sum());
+
+    total.map(|n| Num(n)).map(|val| EvaluatedExpr(val))
+}
+
+pub fn build_add()->BuiltIn {
+    BuiltInBuilder::new()
+        .name(ADD)
+        .params(Params::new_infinite(2))
+        .arg_type(ArgType::Evaluated)
+        .exec(add)
+        .build()
 }
 
 // pub struct Add;
