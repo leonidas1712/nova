@@ -25,9 +25,7 @@ pub trait Function {
 
     fn execute(&self, args: &[Arg], context: &EvalContext) -> Result<Expression>;
 
-    
-
-    fn resolve(&self, context:&EvalContext)->Result<Expression>;
+    fn resolve(&self, context: &EvalContext) -> Result<Expression>;
 
     // default: Evaluated
     fn get_arg_type(&self) -> ArgType {
@@ -35,7 +33,7 @@ pub trait Function {
     }
 
     // args so far for resolve
-    // fn get_args(&self)->Params;
+    // fn get_params(&self)->&Params;
 
     // num expected params - remove later
     // fn get_num_expected_params(&self) -> NumParams;
@@ -220,18 +218,6 @@ impl Function for UserFunction {
         return Ok(res);
     }
 
-    // fn get_args(&self)->Params {
-    //     self.params.clone()
-    // }
-
-    // fn get_num_expected_params(&self) -> NumParams {
-    //     // can change later to support *args
-    //     // match self.params.get_num_params() {
-    //     //     Some(n) => Finite(n),
-    //     //     None => Infinite
-    //     // }
-    //     self.params.get_num_params()
-    // }
     fn to_string(&self) -> String {
         self.to_string()
     }
