@@ -1,4 +1,0 @@
-(def fn2 (a b c) (add a b c));
-(def fn (a b) (add a b));
-(def fn2 (c) (add a b c));
-(def app (f elem) (f elem));

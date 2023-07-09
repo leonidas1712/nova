@@ -15,6 +15,7 @@ impl FiniteParams {
         FiniteParams { params, params_idx: 0, received_args: vec![] }
     }
 
+    // cloning received - potential n^2
     pub fn apply(&self,args:&[Arg])->FiniteParams {
         let mut new_params=self.received_args.clone();
         new_params.extend_from_slice(args);
@@ -37,10 +38,6 @@ impl FiniteParams {
             .skip(self.params_idx)
             .map(|x| x.clone())
             .collect()
-    }
-
-    pub fn num_expected_params(&self)->usize {
-        self.expected_params().len()
     }
 
     // 0 <= diff < length: received less than expected
@@ -99,14 +96,6 @@ impl Params {
     }
 }
 
-// params: just stores Arg
-    // finite: String->Arg
-    // inf: Vec<Arg>
-// curry: add to table/array
-// resolve: return a Result<EvalContext> with the params added
-    // err for not enough/too many
-// use:
-    // Evaluated: 
 
 impl Params {
     pub fn new_finite(params:Vec<&str>)->Params {
@@ -128,45 +117,6 @@ impl Params {
             Params::Infinite(inf) => Params::Infinite(inf.apply(args))
         }
     }
-
-    // validation: that function received all params needed for execution
-        // call for resolve
-    // name: function name
-    pub fn check(self, name:&str)->Result<Self> {
-        match &self {
-            Params::Finite(fin) => {
-                let expected=fin.params.len();
-                let actual=fin.received_args.len();
-
-                if expected!=actual {
-                    let msg=format!("'{}' expected {} arguments but received {}.", name, expected, actual);
-                    err!(msg)
-                } else {
-                    Ok(self)
-                }
-            },
-
-            Params::Infinite(inf) => {
-                let actual=inf.received_args.len();
-                if actual < inf.min {
-                    let msg=format!("'{}' expected at least {} arguments but received {}.", name, inf.min, actual);
-                    err!(msg)
-                } else {
-                    Ok(self)
-                }
-            }
-        }
-    }
-
-    // num expected params
-    pub fn get_num_params(&self)->NumParams {
-        match &self {
-            Params::Finite(fin) => NumParams::Finite(fin.num_expected_params()),
-            Params::Infinite(_) => NumParams::Infinite
-
-        }
-    }
-
     // expected params names for finite
     pub fn expected_params(&self)->Option<Vec<String>> {
         match &self {
@@ -211,35 +161,14 @@ pub fn finite_params_test() {
     let fin=Params::new_finite(vec!["a", "b"]);
     let args=[Arg::Evaluated(Num(20)), Arg::Evaluated(Num(30)), Arg::Evaluated(Num(40)), Arg::Evaluated(Num(50))];
 
-    let fin_1=fin.apply(&args[0..1]);
-    assert_eq!(vec!["b".to_string()], fin_1.expected_params().expect("Should be ok"));
-    assert!(fin_1.check("fn").is_err());
+    let mut fin_get=fin.apply(&args[0..2]);
+    let fin_get=fin_get.received_args();
 
-    let fin_2=fin.apply(&args[0..2]);
-    assert!(fin_2.expected_params().expect("Should be vec").is_empty());
-    assert!(fin_2.check("fn").is_ok());
-
-    let fin_3=fin.apply(&args[0..3]);
-    assert!(fin_3.expected_params().expect("Should be vec").is_empty());
-    assert!(fin_3.check("fn").is_err());
-
-    let fin_4=fin.apply(&args[0..2]);
-    let fin_4=fin_4.check("fn").expect("Should be ok");
-    assert_eq!(fin_4.received_args().len(),2);
-
-    let mut fin_get=fin.apply(&args[0..2])
-    .check("add")
-    .map(|x| x.received_args())
-    .expect("Should have args")
-    .into_iter();
-
-    let fin_get=fin_get.next()
-        .expect("Should have arg")
-        .expect_eval()
-        .expect("Should be eval")
-        .expect_num().expect("Should be num");
+    let mut fin_get=fin_get.into_iter();
+    let x=fin_get.next();
+    let x=x.unwrap().expect_eval().expect("Should eval").expect_num().expect("Should num");
     
-    assert_eq!(fin_get, 20);
+    assert_eq!(x, 20);
 
     let fin_5=fin.apply(&args[..]).apply(&args[..]);
 
@@ -258,22 +187,7 @@ pub fn inf_params_test() {
     
     let inf_1=inf.apply(&args[0..1]);
     assert_eq!(inf_1.clone().received_args().len(),1);
-    assert!(inf_1.check("add").is_err());
 
     let inf_2=inf.apply(&args[0..2]);
     assert_eq!(inf_2.clone().received_args().len(),2);
-    assert!(inf_2.check("add").is_ok());
-
-    let inf_3=inf
-    .apply(&args[..])
-    .check("add")
-    .map(|x| x.received_args())
-    .expect("Should have args");
-
-    let mut inf_3=inf_3.into_iter();
-    let arg=inf_3.next().expect("Should have arg");
-    let val=arg.expect_eval().expect("Should be ok").expect_num().expect("Should be num");
-
-    assert_eq!(val,20);
-
 }

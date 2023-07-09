@@ -25,8 +25,7 @@ pub trait Function {
 
     fn execute(&self, args: &[Arg], context: &EvalContext) -> Result<Expression>;
 
-    // args so far for resolve
-    fn get_args(&self)->Params;
+    
 
     fn resolve(&self, context:&EvalContext)->Result<Expression>;
 
@@ -35,8 +34,11 @@ pub trait Function {
         ArgType::Evaluated
     }
 
+    // args so far for resolve
+    // fn get_args(&self)->Params;
+
     // num expected params - remove later
-    fn get_num_expected_params(&self) -> NumParams;
+    // fn get_num_expected_params(&self) -> NumParams;
 
     fn to_string(&self) -> String;
 }
@@ -50,8 +52,6 @@ use crate::parser::parse_node::FnDef;
 pub struct UserFunction {
     context: EvalContext, // ctx at creation - user only
     name: String, // b also
-    // params: Vec<String>, // builtin also
-    // params_idx:usize, // b also
     params:Params,
     body: Vec<Rc<ASTNode>>, // user only
 }
@@ -220,18 +220,18 @@ impl Function for UserFunction {
         return Ok(res);
     }
 
-    fn get_args(&self)->Params {
-        self.params.clone()
-    }
+    // fn get_args(&self)->Params {
+    //     self.params.clone()
+    // }
 
-    fn get_num_expected_params(&self) -> NumParams {
-        // can change later to support *args
-        // match self.params.get_num_params() {
-        //     Some(n) => Finite(n),
-        //     None => Infinite
-        // }
-        self.params.get_num_params()
-    }
+    // fn get_num_expected_params(&self) -> NumParams {
+    //     // can change later to support *args
+    //     // match self.params.get_num_params() {
+    //     //     Some(n) => Finite(n),
+    //     //     None => Infinite
+    //     // }
+    //     self.params.get_num_params()
+    // }
     fn to_string(&self) -> String {
         self.to_string()
     }

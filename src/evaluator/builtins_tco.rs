@@ -106,14 +106,6 @@ impl Function for BuiltIn {
         self.arg_type.clone()
     }
 
-    fn get_args(&self)->Params {
-        self.params.clone()
-    }
-    
-    fn get_num_expected_params(&self) -> NumParams {
-        self.params.get_num_params()
-    }
-
     fn to_string(&self) -> String {
         // format!("<function '{}' len:{}, recv:{}>", self.name, self.params.clone().received_args().len(),self.params.to_string())
         format!("<function '{}'>", self.name)
