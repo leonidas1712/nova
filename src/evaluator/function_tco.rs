@@ -71,11 +71,13 @@ impl UserFunction {
         let mut stored_ctx=context.copy();
 
         stored_ctx.write().delete_variable(&fn_def.name);
+        let params=fn_def.params.clone();
+        let params=params.iter().map(|x| x.as_str()).collect();
 
         UserFunction {
             context: stored_ctx, // copy to get new copy that doesn't affect
             name: fn_def.name.clone(),
-            params:Params::new_finite(fn_def.params.clone()),
+            params:Params::new_finite(params),
             // params:fn_def.params.clone(),
             // params_idx:0,
             body: fn_def.body.clone(), // ASTNode.clone

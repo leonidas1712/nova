@@ -88,9 +88,9 @@ pub enum Params {
     // Evaluated: 
 
 impl Params {
-    pub fn new_finite(params:Vec<String>)->Params {
+    pub fn new_finite(params:Vec<&str>)->Params {
         Params::Finite(
-            FiniteParams::new(params)
+            FiniteParams::new(params.iter().map(|x| x.to_string()).collect())
         )
     }
 
@@ -174,7 +174,7 @@ use crate::DataValue::*;
 use super::data_tco::NumParams;
 #[test]
 pub fn finite_params_test() {
-    let fin=Params::new_finite(vec![String::from("a"), String::from("b")]);
+    let fin=Params::new_finite(vec!["a", "b"]);
     let args=[Arg::Evaluated(Num(20)), Arg::Evaluated(Num(30)), Arg::Evaluated(Num(40)), Arg::Evaluated(Num(50))];
 
     let fin_1=fin.apply(&args[0..1]);

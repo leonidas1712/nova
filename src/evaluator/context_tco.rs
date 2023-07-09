@@ -125,6 +125,9 @@ pub fn setup_context() -> Context {
     }
 
     regb!(build_add);
+    regb!(build_sub);
+    regb!(build_mult);
+    regb!(build_equals);
 
     // reg!(ADD, Add);
     // reg!(SUB, Sub);
