@@ -20,17 +20,20 @@ use super::params::Params;
 
 // &Context: need to be able to re-use the context
 pub trait Function {
+    fn apply(&self,args: &[Arg]) -> Rc<dyn Function>;
+
     fn execute(&self, args: &[Arg], context: &EvalContext) -> Result<Expression>;
+
+    // args so far for resolve
+    fn get_args(&self)->Params;
 
     // default: Evaluated
     fn get_arg_type(&self) -> ArgType {
         ArgType::Evaluated
     }
 
-    fn get_num_args(&self) -> NumArgs;
-
-    fn apply(&self,args: &[Arg]) -> Rc<dyn Function>;
-    // fn get_params(&self)->Params;
+    // num expected params - remove later
+    fn get_num_expected_params(&self) -> NumParams;
 
     fn to_string(&self) -> String;
 }
@@ -188,14 +191,6 @@ impl Function for UserFunction {
         };
 
         Rc::new(new_fn)
-
-        // Ok(UserFunction {
-        //     context:new_ctx, // can remove this and use passed in
-        //     name:self.name.clone(),
-        //     params:self.params.clone(),
-        //     params_idx:new_idx,
-        //     body:new_body
-        // })
     }
 
     fn execute(&self, args:&[Arg], outer_ctx: &EvalContext) -> Result<Expression> {
@@ -234,7 +229,11 @@ impl Function for UserFunction {
         return Ok(res);
     }
 
-    fn get_num_args(&self) -> NumArgs {
+    fn get_args(&self)->Params {
+        self.params.clone()
+    }
+
+    fn get_num_expected_params(&self) -> NumParams {
         // can change later to support *args
         match self.num_expected_params() {
             Some(n) => Finite(n),

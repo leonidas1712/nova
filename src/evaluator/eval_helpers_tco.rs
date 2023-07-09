@@ -367,7 +367,7 @@ pub fn evaluate_fn(mut args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut 
     // 2. > expected: pass in expected args to execute. if ret value is a func: continue to execute on rest
         // else: throw err
     // 3. for inf: when promoting, look at parent is_func. if false, coerce to value. else return curried func
-    let num_args=func_call.func.get_num_args();
+    let num_args=func_call.func.get_num_expected_params();
     let execute_result={
         match &num_args {
             // partial application

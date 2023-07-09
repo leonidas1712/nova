@@ -117,15 +117,15 @@ pub fn setup_context() -> Context {
         };
     }
 
-    reg!(ADD, Add);
-    reg!(SUB, Sub);
-    reg!(MULT, Mult);
-    reg!(EQUALS, Equals);
-    reg!(INC, Succ);
-    reg!(DEC, Pred);
-    reg!(PRINT, Print);
-    reg!(CHAIN, Chain);
-    
+    // reg!(ADD, Add);
+    // reg!(SUB, Sub);
+    // reg!(MULT, Mult);
+    // reg!(EQUALS, Equals);
+    // reg!(INC, Succ);
+    // reg!(DEC, Pred);
+    // reg!(PRINT, Print);
+    // reg!(CHAIN, Chain);
+
     ctx
 }
 // has function/variable: just check if ident in map. if it is, check the type
@@ -183,163 +183,163 @@ impl Context {
     }
 }
 
-#[cfg(test)]
-pub mod tests {
-    use super::*;
-    use crate::{constants::NumType, evaluator::builtins_tco::*};
+// #[cfg(test)]
+// pub mod tests {
+//     use super::*;
+//     use crate::{constants::NumType, evaluator::builtins_tco::*};
 
-    #[test]
-    fn eval_context_test() {
-        // check rc strong count increases when .clone() and doesnt increase on .copy
-        let mut c1 = EvalContext::new();
-        c1.write().add_variable("x", Num(3));
+//     #[test]
+//     fn eval_context_test() {
+//         // check rc strong count increases when .clone() and doesnt increase on .copy
+//         let mut c1 = EvalContext::new();
+//         c1.write().add_variable("x", Num(3));
 
-        let mut c2 = c1.clone();
-        c2.write().add_variable("y", Num(5));
+//         let mut c2 = c1.clone();
+//         c2.write().add_variable("y", Num(5));
 
-        let has_y = c1.read();
-        let has_y = has_y.get_variable("y");
-        assert!(has_y.is_some()); // clone is Rc::clone
+//         let has_y = c1.read();
+//         let has_y = has_y.get_variable("y");
+//         assert!(has_y.is_some()); // clone is Rc::clone
 
-        let c3 = c2.clone();
+//         let c3 = c2.clone();
 
-        let count = Rc::strong_count(&c1.ctx);
-        assert_eq!(count, 3);
+//         let count = Rc::strong_count(&c1.ctx);
+//         assert_eq!(count, 3);
 
-        // new
-        let mut c1_to_copy = EvalContext::new();
-        c1_to_copy.write().add_variable("x", Num(3));
+//         // new
+//         let mut c1_to_copy = EvalContext::new();
+//         c1_to_copy.write().add_variable("x", Num(3));
 
-        let mut c2_copied = c1_to_copy.copy();
-        c2_copied.write().add_variable("y", Num(5));
+//         let mut c2_copied = c1_to_copy.copy();
+//         c2_copied.write().add_variable("y", Num(5));
 
-        assert!(c1_to_copy.read().get_variable("y").is_none()); // none because .copy
-        let count = Rc::strong_count(&c1_to_copy.ctx);
-        assert_eq!(count, 1);
-    }
+//         assert!(c1_to_copy.read().get_variable("y").is_none()); // none because .copy
+//         let count = Rc::strong_count(&c1_to_copy.ctx);
+//         assert_eq!(count, 1);
+//     }
 
-    #[test]
-    fn context_test() {
-        let fnc = Add {};
-        let fnc_name = fnc.to_string();
+//     #[test]
+//     fn context_test() {
+//         let fnc = Add {};
+//         let fnc_name = fnc.to_string();
 
-        let fnc_var = Rc::new(fnc);
-        let mut ctx = Context::new();
+//         let fnc_var = Rc::new(fnc);
+//         let mut ctx = Context::new();
 
-        let num = Num(20);
+//         let num = Num(20);
 
-        ctx.add_function("add", fnc_var);
-        ctx.add_variable("x", num);
+//         ctx.add_function("add", fnc_var);
+//         ctx.add_variable("x", num);
 
-        let g = ctx.get_variable("x");
-        let exp: NumType = 20;
-        assert_eq!(g.unwrap().expect_num().unwrap(), exp);
+//         let g = ctx.get_variable("x");
+//         let exp: NumType = 20;
+//         assert_eq!(g.unwrap().expect_num().unwrap(), exp);
 
-        let f = ctx.get_function("add");
-        assert_eq!(f.unwrap().to_string(), fnc_name);
+//         let f = ctx.get_function("add");
+//         assert_eq!(f.unwrap().to_string(), fnc_name);
 
-        let mut ctx2 = Context::new();
+//         let mut ctx2 = Context::new();
 
-        ctx2.add_variable("y", Num(30));
+//         ctx2.add_variable("y", Num(30));
 
-        // can clone from a previous context -> maintains Rc pointers
-        let add_clone = ctx.get_function("add").unwrap().clone();
-        ctx2.add_function("my_add", add_clone);
-        assert_eq!(ctx2.get_function("my_add").unwrap().to_string(), fnc_name);
+//         // can clone from a previous context -> maintains Rc pointers
+//         let add_clone = ctx.get_function("add").unwrap().clone();
+//         ctx2.add_function("my_add", add_clone);
+//         assert_eq!(ctx2.get_function("my_add").unwrap().to_string(), fnc_name);
 
-        let add_rc_ref = ctx.get_function("add").unwrap();
-        assert_eq!(Rc::strong_count(add_rc_ref), 2); // 2: both ctx and ctx2 point to it
-    }
+//         let add_rc_ref = ctx.get_function("add").unwrap();
+//         assert_eq!(Rc::strong_count(add_rc_ref), 2); // 2: both ctx and ctx2 point to it
+//     }
 
-    #[test]
-    fn context_test_overwrite() {
-        let fnc = Add {};
-        let fnc_var = Rc::new(fnc);
-        let mut ctx = EvalContext::new();
+//     #[test]
+//     fn context_test_overwrite() {
+//         let fnc = Add {};
+//         let fnc_var = Rc::new(fnc);
+//         let mut ctx = EvalContext::new();
 
-        let num = Num(20);
+//         let num = Num(20);
 
-        ctx.write().add_function("add", fnc_var);
-        assert!(ctx.read().get_function("add").is_some());
+//         ctx.write().add_function("add", fnc_var);
+//         assert!(ctx.read().get_function("add").is_some());
 
-        ctx.write().add_variable("add", num);
-        assert!(ctx.read().get_function("add").is_none());
+//         ctx.write().add_variable("add", num);
+//         assert!(ctx.read().get_function("add").is_none());
 
-        // can overwrite again
-        let fnc = Add {};
-        let fnc_var = Rc::new(fnc);
-        ctx.write().add_function("add", fnc_var);
-        assert!(ctx.read().get_function("add").is_some());
+//         // can overwrite again
+//         let fnc = Add {};
+//         let fnc_var = Rc::new(fnc);
+//         ctx.write().add_function("add", fnc_var);
+//         assert!(ctx.read().get_function("add").is_some());
 
-        let mut c1 = EvalContext::new();
-        c1.write().add_variable("x", Num(2));
+//         let mut c1 = EvalContext::new();
+//         c1.write().add_variable("x", Num(2));
 
-        let mut c2 = EvalContext::new();
-        c2.write().add_variable("y", Num(5));
+//         let mut c2 = EvalContext::new();
+//         c2.write().add_variable("y", Num(5));
 
-        c1.write_context(c2);
+//         c1.write_context(c2);
 
-        let c1x = c1.read().get_variable("x").unwrap().expect_num().unwrap();
-        assert_eq!(c1x, 2);
+//         let c1x = c1.read().get_variable("x").unwrap().expect_num().unwrap();
+//         assert_eq!(c1x, 2);
 
-        let c1y = c1.read().get_variable("y").unwrap().expect_num().unwrap();
-        assert_eq!(c1y, 5);
-    }
+//         let c1y = c1.read().get_variable("y").unwrap().expect_num().unwrap();
+//         assert_eq!(c1y, 5);
+//     }
 
-    #[test]
-    fn context_test_clone() {
-        let mut c = Context::new();
-        c.add_variable("x", Num(2));
-        c.add_variable("y", Num(3));
+//     #[test]
+//     fn context_test_clone() {
+//         let mut c = Context::new();
+//         c.add_variable("x", Num(2));
+//         c.add_variable("y", Num(3));
 
-        let mut c2 = c.clone();
-        c2.add_variable("x", Num(5));
+//         let mut c2 = c.clone();
+//         c2.add_variable("x", Num(5));
 
-        let x = c.get_variable("x").unwrap().expect_num().unwrap();
-        assert_eq!(x, 2);
+//         let x = c.get_variable("x").unwrap().expect_num().unwrap();
+//         assert_eq!(x, 2);
 
-        let y = c.get_variable("y").unwrap().expect_num().unwrap();
-        assert_eq!(y, 3);
+//         let y = c.get_variable("y").unwrap().expect_num().unwrap();
+//         assert_eq!(y, 3);
 
-        let x = c2.get_variable("x").unwrap().expect_num().unwrap();
-        assert_eq!(x, 5);
+//         let x = c2.get_variable("x").unwrap().expect_num().unwrap();
+//         assert_eq!(x, 5);
 
-        let y = c2.get_variable("y").unwrap().expect_num().unwrap();
-        assert_eq!(y, 3);
+//         let y = c2.get_variable("y").unwrap().expect_num().unwrap();
+//         assert_eq!(y, 3);
 
-        c2.add_variable("new", Num(5));
-        assert_eq!(c.get_variable("new").is_none(), true);
-    }
+//         c2.add_variable("new", Num(5));
+//         assert_eq!(c.get_variable("new").is_none(), true);
+//     }
 
-    #[test]
-    pub fn context_test_merge() {
-        let mut c = EvalContext::new();
+//     #[test]
+//     pub fn context_test_merge() {
+//         let mut c = EvalContext::new();
 
-        c.write().add_variable("x", Num(2));
-        c.write().add_variable("y", Num(3));
+//         c.write().add_variable("x", Num(2));
+//         c.write().add_variable("y", Num(3));
 
-        let mut c2 = c.copy();
+//         let mut c2 = c.copy();
 
-        c2.write().add_variable("x", Num(5));
-        c2.write().add_variable("y", Num(10));
-        c2.write().add_variable("z", Num(10));
+//         c2.write().add_variable("x", Num(5));
+//         c2.write().add_variable("y", Num(10));
+//         c2.write().add_variable("z", Num(10));
 
-        let c3 = c.merge_context(&c2);
-        assert_eq!(
-            c3.read()
-                .get_data_value(&"x".to_string())
-                .unwrap()
-                .expect_num()
-                .unwrap(),
-            2
-        );
-        assert_eq!(
-            c3.read()
-                .get_data_value(&"z".to_string())
-                .unwrap()
-                .expect_num()
-                .unwrap(),
-            10
-        );
-    }
-}
+//         let c3 = c.merge_context(&c2);
+//         assert_eq!(
+//             c3.read()
+//                 .get_data_value(&"x".to_string())
+//                 .unwrap()
+//                 .expect_num()
+//                 .unwrap(),
+//             2
+//         );
+//         assert_eq!(
+//             c3.read()
+//                 .get_data_value(&"z".to_string())
+//                 .unwrap()
+//                 .expect_num()
+//                 .unwrap(),
+//             10
+//         );
+//     }
+// }

@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use crate::Arg;
 use crate::message::*;
 
@@ -33,6 +35,15 @@ impl FiniteParams {
 
     pub fn num_expected_params(&self)->usize {
         self.expected_params().len()
+    }
+
+    // 0 <= diff < length: received less than expected
+    // == length: received expected
+    // > length: too many
+
+    // len=2, idx=0
+    pub fn params_diff(&self)->Ordering {
+        self.params_idx.cmp(&self.params.len())
     }
 }
 
@@ -126,6 +137,15 @@ impl Params {
         }
     }
 
+    // num expected params
+    pub fn get_num_params(&self)->NumParams {
+        match &self {
+            Params::Finite(fin) => NumParams::Finite(fin.num_expected_params()),
+            Params::Infinite(_) => NumParams::Infinite
+
+        }
+    }
+
     // expected params names for finite
     pub fn expected_params(&self)->Option<Vec<String>> {
         match &self {
@@ -150,10 +170,12 @@ impl Params {
 }
 
 use crate::DataValue::*;
+
+use super::data_tco::NumParams;
 #[test]
 pub fn finite_params_test() {
     let fin=Params::new_finite(vec![String::from("a"), String::from("b")]);
-    let args=[Arg::Evaluated(Num(20)), Arg::Evaluated(Num(30)), Arg::Evaluated(Num(40))];
+    let args=[Arg::Evaluated(Num(20)), Arg::Evaluated(Num(30)), Arg::Evaluated(Num(40)), Arg::Evaluated(Num(50))];
 
     let fin_1=fin.apply(&args[0..1]);
     assert_eq!(vec!["b".to_string()], fin_1.expected_params().expect("Should be ok"));
@@ -184,6 +206,14 @@ pub fn finite_params_test() {
         .expect_num().expect("Should be num");
     
     assert_eq!(fin_get, 20);
+
+    let fin_5=fin.apply(&args[..]).apply(&args[..]);
+
+    if let Params::Finite(fin) = fin_5 {
+        println!("Params len:{}", fin.params.len());
+        println!("Idx: {}", fin.params_idx);
+    }
+  
 
 }
 

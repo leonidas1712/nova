@@ -579,6 +579,9 @@ Finite/inf
     // Finite: if args < expected, return curried function. == exp: return value. > exp: err
     // inf: args < min: curried. else: return result
 
+get_args -> fin -> fin.num_exp 
+ => 0 means == exp: call execute
+
 
 
 
@@ -593,6 +596,22 @@ trait Function
 
 // what to do when all args are received
 -> execute(args:&[Arg], ctx:EvalContext)->Result<Expression> : abstract
+    -> actual: 
+        UserFn -> same as before
+        BI->call the function
+
+
+trait Function2
+-> get_curr_args(&self)->&Params
+    -> use for resolve
+-> get_arity(&self) -> NumArgs : abstract
+    -> actual: use Params.get...
+-> apply(args:&[Arg])->Result<Rc<Function>> : abstract
+    -> actual: use Params.apply
+-> resolve(&self, ctx:&EvalContext) -> Result<Expression>
+
+// what to do when all args are received
+-> execute(args:&[Arg], ctx:&EvalContext)->Result<Expression> : abstract
     -> actual: 
         UserFn -> same as before
         BI->call the function

@@ -7,6 +7,7 @@ use super::context_tco::*;
 use super::data_tco::*;
 use super::evaluator_tco::*;
 use super::function_tco::*;
+use super::params::Params;
 
 macro_rules! name {
     ($name:expr) => {
@@ -47,166 +48,213 @@ fn get_nums(args: &[Arg]) -> Result<Vec<NumType>> {
     return r;
 }
 
-pub struct Add;
-impl Function for Add {
-    fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
-        let r = get_nums(args);
-        let total: Result<NumType> = r.map(|v| v.into_iter().sum());
+type Exec=fn(&[Arg],&EvalContext)->Result<Expression>;
 
-        total.map(|n| Num(n)).map(|val| EvaluatedExpr(val))
-    }
+pub struct BuiltIn {
+    name:String,
+    params:Params,
+    exec_fn:Exec,
+    arg_type:ArgType
+}
 
-    fn get_num_args(&self) -> NumArgs {
-        Infinite
-    }
-
-    fn to_string(&self) -> String {
-        name!(ADD)
+impl BuiltIn {
+    pub fn new(&self, name:String, params:Params, exec_fn:Exec, arg_type:ArgType)->Self{
+        BuiltIn { name, params, exec_fn, arg_type }
     }
 }
 
-pub struct Sub;
-impl Function for Sub {
-    fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
-        get_nums(args)
-            .map(|v| v.into_iter().reduce(|acc, e| acc - e))?
-            .ok_or(Ex::new("Could not subtract provided expression"))
-            .map(|x| Num(x))
-            .map(|val| EvaluatedExpr(val))
+impl Function for BuiltIn {
+    fn apply(&self,args: &[Arg]) -> Rc<dyn Function> {
+        let new_fn=BuiltIn {
+            name:self.name.clone(),
+            params:self.params.apply(args),
+            exec_fn:self.exec_fn,
+            arg_type:self.arg_type.clone()
+        };
+        Rc::new(new_fn)
     }
 
-    fn get_num_args(&self) -> NumArgs {
-        Infinite
-    }
-
-    fn to_string(&self) -> String {
-        name!(SUB)
-    }
-}
-
-pub struct Mult;
-impl Function for Mult {
-    fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
-        get_nums(args)
-            .map(|v| v.into_iter().reduce(|acc, e| acc * e))?
-            .ok_or(Ex::new("Could not multiply provided expression"))
-            .map(|x| Num(x))
-            .map(|val| EvaluatedExpr(val))
-    }
-
-    fn get_num_args(&self) -> NumArgs {
-        Infinite
-    }
-
-    fn to_string(&self) -> String {
-        name!(MULT)
-    }
-}
-
-pub struct Equals;
-impl Function for Equals {
-    fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
-        let eval_args = ev!(args);
-        check!(EQUALS, 2, eval_args);
-
-        let left = eval_args.get(0).unwrap();
-        let right = eval_args.get(1).unwrap();
-
-        Ok(EvaluatedExpr(Bool(left.equals(right))))
-    }
-
-    fn get_num_args(&self) -> NumArgs {
-        Finite(2)
-    }
-
-    fn to_string(&self) -> String {
-        name!(EQUALS)
-    }
-}
-
-pub struct Succ;
-impl Function for Succ {
-    fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
-        let eval_args = get_nums(args)?;
-        check!(INC, 1, eval_args);
-
-        eval_args
-            .get(0)
-            .map(|x| Num(x + 1))
-            .map(|val| EvaluatedExpr(val))
-            .ok_or(Ex::new("Couldn't add num."))
-    }
-
-    fn get_num_args(&self) -> NumArgs {
-        Finite(1)
-    }
-
-    fn to_string(&self) -> String {
-        name!(INC)
-    }
-}
-
-pub struct Pred;
-impl Function for Pred {
-    fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
-        let eval_args = get_nums(args)?;
-        check!(DEC, 1, eval_args);
-
-        eval_args
-            .get(0)
-            .map(|x| Num(x - 1))
-            .map(|val| EvaluatedExpr(val))
-            .ok_or(Ex::new("Couldn't subtract num.")) // err unreachable
-    }
-
-    fn get_num_args(&self) -> NumArgs {
-        Finite(1)
-    }
-
-    fn to_string(&self) -> String {
-        name!(DEC)
-    }
-}
-
-pub struct Print;
-impl Function for Print {
     fn execute(&self, args: &[Arg], context: &EvalContext) -> Result<Expression> {
-        let values=ev!(args);
-        values.iter().for_each(|x| println!("{}", x.to_string()));
-
-        unit!()
-    }
-
-    fn get_num_args(&self) -> NumArgs {
-        Infinite
-    }
-
-    fn to_string(&self) -> String {
-        name!(PRINT)
-    }
-}
-
-// take a bunch of expressions, run them, do nothing
-// to do some side effects
-pub struct Chain;
-impl Function for Chain {
-    fn execute(&self, args: &[Arg], context: &EvalContext) -> Result<Expression> {
-        let args=Arg::expect_all_uneval(args)?;
-        for node in args {
-            evaluate_outer(context.clone(), node, false)?;
-        }
-        unit!()
-    }
-
-    fn to_string(&self) -> String {
-        name!(CHAIN)
+        (self.exec_fn)(args,context)
     }
 
     fn get_arg_type(&self) -> ArgType {
-        ArgType::Unevaluated
+        self.arg_type.clone()
     }
 
-    fn get_num_args(&self) -> NumArgs {
-        Infinite
+    fn get_args(&self)->Params {
+        self.params.clone()
+    }
+    
+    fn get_num_expected_params(&self) -> NumParams {
+        self.params.get_num_params()
+    }
+
+    fn to_string(&self) -> String {
+        format!("<function '{}'>", self.name)
     }
 }
+
+// pub struct Add;
+// impl Function for Add {
+//     fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
+//         let r = get_nums(args);
+//         let total: Result<NumType> = r.map(|v| v.into_iter().sum());
+
+//         total.map(|n| Num(n)).map(|val| EvaluatedExpr(val))
+//     }
+
+//     fn get_num_params(&self) -> NumParams {
+//         Infinite
+//     }
+
+//     fn to_string(&self) -> String {
+//         name!(ADD)
+//     }
+// }
+
+// pub struct Sub;
+// impl Function for Sub {
+//     fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
+//         get_nums(args)
+//             .map(|v| v.into_iter().reduce(|acc, e| acc - e))?
+//             .ok_or(Ex::new("Could not subtract provided expression"))
+//             .map(|x| Num(x))
+//             .map(|val| EvaluatedExpr(val))
+//     }
+
+//     fn get_num_params(&self) -> NumParams {
+//         Infinite
+//     }
+
+//     fn to_string(&self) -> String {
+//         name!(SUB)
+//     }
+// }
+
+// pub struct Mult;
+// impl Function for Mult {
+//     fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
+//         get_nums(args)
+//             .map(|v| v.into_iter().reduce(|acc, e| acc * e))?
+//             .ok_or(Ex::new("Could not multiply provided expression"))
+//             .map(|x| Num(x))
+//             .map(|val| EvaluatedExpr(val))
+//     }
+
+//     fn get_num_params(&self) -> NumParams {
+//         Infinite
+//     }
+
+//     fn to_string(&self) -> String {
+//         name!(MULT)
+//     }
+// }
+
+// pub struct Equals;
+// impl Function for Equals {
+//     fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
+//         let eval_args = ev!(args);
+//         check!(EQUALS, 2, eval_args);
+
+//         let left = eval_args.get(0).unwrap();
+//         let right = eval_args.get(1).unwrap();
+
+//         Ok(EvaluatedExpr(Bool(left.equals(right))))
+//     }
+
+//     fn get_num_params(&self) -> NumParams {
+//         Finite(2)
+//     }
+
+//     fn to_string(&self) -> String {
+//         name!(EQUALS)
+//     }
+// }
+
+// pub struct Succ;
+// impl Function for Succ {
+//     fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
+//         let eval_args = get_nums(args)?;
+//         check!(INC, 1, eval_args);
+
+//         eval_args
+//             .get(0)
+//             .map(|x| Num(x + 1))
+//             .map(|val| EvaluatedExpr(val))
+//             .ok_or(Ex::new("Couldn't add num."))
+//     }
+
+//     fn get_num_params(&self) -> NumParams {
+//         Finite(1)
+//     }
+
+//     fn to_string(&self) -> String {
+//         name!(INC)
+//     }
+// }
+
+// pub struct Pred;
+// impl Function for Pred {
+//     fn execute(&self, args: &[Arg], _context: &EvalContext) -> Result<Expression> {
+//         let eval_args = get_nums(args)?;
+//         check!(DEC, 1, eval_args);
+
+//         eval_args
+//             .get(0)
+//             .map(|x| Num(x - 1))
+//             .map(|val| EvaluatedExpr(val))
+//             .ok_or(Ex::new("Couldn't subtract num.")) // err unreachable
+//     }
+
+//     fn get_num_params(&self) -> NumParams {
+//         Finite(1)
+//     }
+
+//     fn to_string(&self) -> String {
+//         name!(DEC)
+//     }
+// }
+
+// pub struct Print;
+// impl Function for Print {
+//     fn execute(&self, args: &[Arg], context: &EvalContext) -> Result<Expression> {
+//         let values=ev!(args);
+//         values.iter().for_each(|x| println!("{}", x.to_string()));
+
+//         unit!()
+//     }
+
+//     fn get_num_params(&self) -> NumParams {
+//         Infinite
+//     }
+
+//     fn to_string(&self) -> String {
+//         name!(PRINT)
+//     }
+// }
+
+// // take a bunch of expressions, run them, do nothing
+// // to do some side effects
+// pub struct Chain;
+// impl Function for Chain {
+//     fn execute(&self, args: &[Arg], context: &EvalContext) -> Result<Expression> {
+//         let args=Arg::expect_all_uneval(args)?;
+//         for node in args {
+//             evaluate_outer(context.clone(), node, false)?;
+//         }
+//         unit!()
+//     }
+
+//     fn to_string(&self) -> String {
+//         name!(CHAIN)
+//     }
+
+//     fn get_arg_type(&self) -> ArgType {
+//         ArgType::Unevaluated
+//     }
+
+//     fn get_num_params(&self) -> NumParams {
+//         Infinite
+//     }
+// }
