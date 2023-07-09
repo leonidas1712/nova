@@ -124,8 +124,8 @@ pub fn fn_test() {
             (add n (recr (pred n)))
         ))",
         "(recr 10)",
-        // "(recr 50)",
-        // "(recr 1000)",
+        "(recr 50)",
+        "(recr 1000)",
     ];
 
     let expected = vec![
@@ -134,8 +134,8 @@ pub fn fn_test() {
         "4",
         "recr(n) => (if (eq n 0) 0 (add n (recr (pred n))))",
         "55",
-        // "1275",
-        // "500500",
+        "1275",
+        "500500",
     ];
     
     compare_many(inputs, expected, &mut ctx);
@@ -176,6 +176,26 @@ pub fn test_fn_return() {
         .expect("Should have one result");
 
     assert!(res.eq("2"));
+}
+
+#[test]
+pub fn curry_test() {
+    let app="(def app (f elem) (f elem))";
+    let func="(def fn (a,b) (add a b))";
+    let f2="(def fn2 (a,b,c) (add a b c))";
+
+    let mut ctx=EvalContext::new();
+    evaluate_all(app, &mut ctx).expect("Should be ok");
+    evaluate_all(func, &mut ctx).expect("Should be ok");
+    evaluate_all(f2, &mut ctx).expect("Should be ok");
+
+    compare("(fn 1)", "fn(b) => (add a b)", &mut ctx);
+    compare("(app fn 10)", "fn(b) => (add a b)", &mut ctx);
+    compare("(app (fn 10) 20)", "30", &mut ctx);
+    compare("(app (add 1) 10)", "11", &mut ctx);
+    compare("((((mul 1) 2) 3 4))", "24", &mut ctx);
+    compare("let h (fn2 10 20)", "fn2(c) => (add a b c)", &mut ctx);
+    compare("(h 15)", "45", &mut ctx);
 }
 // // (let x 2, y (let x 3),(add x y))
 

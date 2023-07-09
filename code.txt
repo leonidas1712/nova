@@ -1,0 +1,36 @@
+(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))));
+(def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))));
+
+(def app (f elem) (f elem))
+
+(def r_swap (acc n)
+    (recr_t n acc)
+)
+
+# (fn 1 2 3 4) => 15 #
+(def fn (x,a) (def fn2 (y,b) (add x a y b)))
+
+(def h (a,b)
+    (add a b)
+)
+
+(def h2 (a,b,c)
+    (add a b c)
+)
+
+# (def g (a b) (def g2 (y) x)) #
+
+(def fn (x,a)
+    (if (eq x 0) 
+        (def fn2 (b) (add b a)),
+        (def fn3 (c) (sub c a))
+    )
+)
+
+((let h (fn 0 3)) 10) # 13 # 
+((let h (fn 1 3)) 10) # 7 #
+
+# (fn 1 2 3 4)  - currently err #
+# ((add 1 2) 3 4) - ok #
+
+(fn 1 2)

@@ -244,7 +244,7 @@ pub fn run(mut args: impl Iterator<Item = String>) {
         println!("Error:{}", err.to_string());
     }
 
-    // use crate::time::{bench,time_comp};
-    // bench(50); // 0.0905372397 for (recr 10000)
+    use crate::utils::time::{bench,time_comp};
+    // bench(20); // 0.0905372397 for (recr 10000)
     // time_comp(65537);
 }

@@ -202,44 +202,44 @@ pub use Arg::*;
 pub use DataValue::*;
 pub use NumParams::*;
 
-// #[cfg(test)]
-// pub mod tests {
-//     use super::super::builtins_tco::Add;
-//     use super::*;
-//     use std::rc::Rc;
+#[cfg(test)]
+pub mod tests {
+    use super::super::builtins_tco::*;
+    use super::*;
+    use std::rc::Rc;
 
-//     #[test]
-//     fn data_test_getters() {
-//         let d1 = Num(20);
-//         let d2 = Bool(true);
-//         let add = Add {};
-//         let d3 = FunctionVariable(Rc::new(add));
+    #[test]
+    fn data_test_getters() {
+        let d1 = Num(20);
+        let d2 = Bool(true);
+        let add=build_add();
+        let d3 = FunctionVariable(Rc::new(add));
 
-//         dbg!(d3.to_string());
+        dbg!(d3.to_string());
 
-//         assert_eq!(d1.expect_num().unwrap(), 20);
-//         assert!(d2.expect_num().unwrap().eq(&1));
-//         assert!(d3.expect_num().is_err());
+        assert_eq!(d1.expect_num().unwrap(), 20);
+        assert!(d2.expect_num().unwrap().eq(&1));
+        assert!(d3.expect_num().is_err());
 
-//         assert!(d1.expect_bool().is_err());
-//         assert_eq!(d2.expect_bool().unwrap(), true);
-//         assert!(d3.expect_bool().is_err());
+        assert!(d1.expect_bool().is_err());
+        assert_eq!(d2.expect_bool().unwrap(), true);
+        assert!(d3.expect_bool().is_err());
 
-//         assert!(d1.expect_function().is_err());
-//         assert!(d2.expect_function().is_err());
-//         assert!(d3.expect_function().is_ok());
-//     }
+        assert!(d1.expect_function().is_err());
+        assert!(d2.expect_function().is_err());
+        assert!(d3.expect_function().is_ok());
+    }
 
-//     #[test]
-//     fn data_test_arg_expect() {
-//         let d = DataValue::Bool(true);
-//         let d1 = DataValue::Num(20);
-//         let v1: Vec<Arg> = vec![Evaluated(d), Evaluated(d1)];
+    #[test]
+    fn data_test_arg_expect() {
+        let d = DataValue::Bool(true);
+        let d1 = DataValue::Num(20);
+        let v1: Vec<Arg> = vec![Evaluated(d), Evaluated(d1)];
 
-//         let res = Arg::expect_all_eval(&v1);
-//         assert!(res.is_ok());
-//         let n = res.unwrap();
+        let res = Arg::expect_all_eval(&v1);
+        assert!(res.is_ok());
+        let n = res.unwrap();
 
-//         assert_eq!(n.get(0).unwrap().to_string(), "true");
-//     }
-// }
+        assert_eq!(n.get(0).unwrap().to_string(), "true");
+    }
+}
