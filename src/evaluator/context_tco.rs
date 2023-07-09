@@ -128,6 +128,10 @@ pub fn setup_context() -> Context {
     regb!(build_sub);
     regb!(build_mult);
     regb!(build_equals);
+    regb!(build_succ);
+    regb!(build_pred);
+    regb!(build_puts);
+    regb!(build_chain);
 
     // reg!(ADD, Add);
     // reg!(SUB, Sub);

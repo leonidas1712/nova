@@ -311,30 +311,7 @@ pub fn evaluate_if(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<Def
     }
 }
 
-// finite: only take n args?, leave the rest
 
-// // inner could return an inf function
-// pub fn partial_apply(func_call:&FunctionCall, mut args:Vec<Arg>)->Result<Expression>{
-//     let mut func_to_call=&func_call.func;
-//     // args.
-//     let mut args_q=VecDeque::from(args); 
-//     // let mut args_iter=args.into_iter().peekable();
-
-//     let mut num_args=&func_call.func.get_num_args();
-//     let mut func=&func_call.func;
-//     let mut ctx=&func_call.context;
-
-    
-
-
-
-//     Ok(EvaluatedExpr(Num(2)))
-// }
-
-// function call with arguments
-// change to generalise to uneval
-// inner: takes Vec<Arg>, func_call, call_stack, resq
-    // evaluates, puts on call/resq depending
 
 // change: func.execute should always return a curried function
     // func.resolve forces the function to return the actual value

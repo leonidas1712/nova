@@ -133,6 +133,9 @@ pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: boo
     res
 }
 
+// ((> (puts 100)) 200)
+// ((add 100) 200)
+
 fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,
     results: &mut VecDeque<ExpressionResult>,outer_call: bool)
  -> Result<()> {

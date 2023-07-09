@@ -131,6 +131,11 @@ impl BuiltInBuilder {
         BuiltInBuilder { name: None, params: None, exec_fn: None, arg_type: None }
     }
 
+    // arg type evaluated
+    pub fn new_default()->Self {
+        BuiltInBuilder::new().arg_type(ArgType::Evaluated)
+    }
+
     pub fn name(mut self, name:&str)->Self {
         self.name.replace(name.to_string());
         self
@@ -160,6 +165,7 @@ impl BuiltInBuilder {
     }
 }
 
+// (((add 1) 2) 3 4)
 fn add(args: &[Arg], _context: &EvalContext) -> Result<Expression> {
     let r = get_nums(args);
     let total: Result<NumType> = r.map(|v| v.into_iter().sum());
@@ -220,11 +226,10 @@ fn pred(args: &[Arg], _context: &EvalContext) -> Result<Expression> {
 fn puts(args: &[Arg], context: &EvalContext) -> Result<Expression> {
     let values=ev!(args);
     values.iter().for_each(|x| println!("{}", x.to_string()));
-
     unit!()
 }
 
-
+// ((> (puts 100)) (puts 200))
 fn chain(args: &[Arg], context: &EvalContext) -> Result<Expression> {
     let args=Arg::expect_all_uneval(args)?;
     for node in args {
@@ -234,40 +239,67 @@ fn chain(args: &[Arg], context: &EvalContext) -> Result<Expression> {
 }
 
 // Builders
-
 pub fn build_add()->BuiltIn {
-    BuiltInBuilder::new()
+    BuiltInBuilder::new_default()
         .name(ADD)
         .params(Params::new_infinite(2))
-        .arg_type(ArgType::Evaluated)
         .exec(add)
         .build()
 }
 
 pub fn build_sub()->BuiltIn {
-    BuiltInBuilder::new()
+    BuiltInBuilder::new_default()
         .name(SUB)
         .params(Params::new_infinite(2))
-        .arg_type(ArgType::Evaluated)
         .exec(sub)
         .build()
 }
 
 pub fn build_mult()->BuiltIn {
-    BuiltInBuilder::new()
+    BuiltInBuilder::new_default()
         .name(MULT)
         .params(Params::new_infinite(2))
-        .arg_type(ArgType::Evaluated)
         .exec(mult)
         .build()
 }
 
 pub fn build_equals()->BuiltIn {
-    BuiltInBuilder::new()
+    BuiltInBuilder::new_default()
         .name(EQUALS)
         .params(Params::new_finite(vec!["left", "right"]))
-        .arg_type(ArgType::Evaluated)
         .exec(equals)
         .build()
+}
 
+pub fn build_succ()->BuiltIn {
+    BuiltInBuilder::new_default()
+        .name(INC)
+        .params(Params::new_finite(vec!["x"]))
+        .exec(succ)
+        .build()
+}
+
+pub fn build_pred()->BuiltIn {
+    BuiltInBuilder::new_default()
+        .name(DEC)
+        .params(Params::new_finite(vec!["x"]))
+        .exec(pred)
+        .build()
+}
+
+pub fn build_puts()->BuiltIn {
+    BuiltInBuilder::new_default()
+        .name(PUTS)
+        .params(Params::new_infinite(1))
+        .exec(puts)
+        .build()
+}
+
+pub fn build_chain()->BuiltIn {
+    BuiltInBuilder::new()
+        .name(CHAIN)
+        .params(Params::new_infinite(1))
+        .arg_type(ArgType::Unevaluated)
+        .exec(chain)
+        .build()
 }
