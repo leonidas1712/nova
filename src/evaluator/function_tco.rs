@@ -83,37 +83,7 @@ impl UserFunction {
             body: fn_def.body.clone(), // ASTNode.clone
         }
     }
-
-    pub fn expected_params(&self)->Option<Vec<String>> {
-        self.params.expected_params()
-    }
-
-    pub fn num_expected_params(&self)->Option<usize> {
-        // self.params.len()-self.params_idx
-        self.expected_params().map(|x| x.len())
-    }
-
-    // create curried function given new eval context and idx
-    // body needs to be new nodes (?)
-    // pub fn curried_function(&self, args: &[Arg])->Result<UserFunction> {
-    //     let new_idx=self.params_idx+args.len();
-    //     let new_ctx=self.curry(args)?;
-
-    //     let new_body:Vec<Rc<ASTNode>>=self.body
-    //         .iter()
-    //         .map(|node| node.as_ref().clone())
-    //         .map(|node| Rc::new(node))
-    //         .collect();
-
-    //     Ok(UserFunction {
-    //         context:new_ctx, // can remove this and use passed in
-    //         name:self.name.clone(),
-    //         params:self.params.clone(),
-    //         params_idx:new_idx,
-    //         body:new_body
-    //     })
-    // }
-
+    // should be called at time of execution
     pub fn curry(&self, args: &[Arg]) -> Result<EvalContext> {
         let mut new_ctx = EvalContext::new();
         let eval_args = Arg::expect_all_eval(args)?;
@@ -123,13 +93,20 @@ impl UserFunction {
             return Ok(new_ctx);
         }
 
-        let num_expected=self.num_expected_params().unwrap();
+        // let num_expected=self.num_expected_params().unwrap();
+        // let num_expected=self.params.expected_params().unwrap().len();
+        // let num_expected;
+        // println!("Params diff:{:?}", self.params.get_finite().unwrap().params_diff());
+        let finite=self.params.get_finite().expect("Should be finite");
+        let actual_params=finite.actual_params();
+
         // can't curry for too many
-        if num_args > num_expected {
+        if num_args > actual_params.len() {
+            println!("gt_here");
             let msg = format!(
                 "'{}' expected {} arguments but received {}.",
                 self.get_name(),
-                num_expected,
+                finite.params.len(),
                 num_args
             );
             return err!(msg);
@@ -137,8 +114,7 @@ impl UserFunction {
 
         // add args to context using params
             // need to account for already in
-        let curried_params=self.expected_params()
-            .unwrap()
+        let curried_params=actual_params
             .clone()
             .into_iter()
             .take(num_args);
@@ -161,7 +137,7 @@ impl UserFunction {
     fn to_string(&self) -> String {
         let name = &self.name;
 
-        let params:Vec<String> = self.expected_params().unwrap_or(vec!["*args".to_string()]);
+        let params:Vec<String> = self.params.expected_params().unwrap_or(vec!["*args".to_string()]);
 
         let body = &self.body;
 
@@ -177,9 +153,27 @@ impl UserFunction {
 }
 
 impl Function for UserFunction {
-    fn resolve(&self, context:&EvalContext)->Result<Expression> {
-        todo!()
+    fn resolve(&self, context: &EvalContext)->Result<Expression> {
+        match &self.params {
+            Params::Finite(fin) => match fin.params_diff() {
+                // when less return curried function
+                Ordering::Less => Ok(EvaluatedExpr(FunctionVariable(Rc::new(self.clone())))),
+                Ordering::Equal => self.execute(&fin.received_args, context),
+                Ordering::Greater => {
+                    let msg=format!("'{}' expected {} arguments but received {}.", 
+                        self.name, fin.params.len(), fin.received_args.len());
+                    err!(msg)
+                }
+            },
+            Params::Infinite(inf) =>
+            if inf.received_args.len() < inf.min {
+                Ok(EvaluatedExpr(FunctionVariable(Rc::new(self.clone()))))
+            } else {
+                self.execute(&inf.received_args, context)
+            }
+        }
     }
+
     // apply args and return new functiom
     fn apply(&self,args: &[Arg]) -> Rc<dyn Function> {
         // let new_idx=self.params_idx+args.len();
@@ -203,17 +197,6 @@ impl Function for UserFunction {
 
     fn execute(&self, args:&[Arg], outer_ctx: &EvalContext) -> Result<Expression> {
         let num_args=args.len();
-
-        // return curried function if args less
-        // if num_args < self.num_expected_params().unwrap() {
-        //     let func=self.curried_function(args)?;
-        //     let d=Rc::new(func);
-        //     return Ok(
-        //         EvaluatedExpr(
-        //             FunctionVariable(d)
-        //         )
-        //     );
-        // }
 
         // first clone + add arguments using params and args
         let eval_ctx = self.curry(args)?;
@@ -243,10 +226,11 @@ impl Function for UserFunction {
 
     fn get_num_expected_params(&self) -> NumParams {
         // can change later to support *args
-        match self.num_expected_params() {
-            Some(n) => Finite(n),
-            None => Infinite
-        }
+        // match self.params.get_num_params() {
+        //     Some(n) => Finite(n),
+        //     None => Infinite
+        // }
+        self.params.get_num_params()
     }
     fn to_string(&self) -> String {
         self.to_string()

@@ -26,6 +26,12 @@ impl FiniteParams {
         }
     }
 
+    // full params
+    pub fn actual_params(&self)->&Vec<String> {
+        &self.params
+    }
+
+    // calculated after taking into account idx
     pub fn expected_params(&self)->Vec<String> {
         self.params.iter()
             .skip(self.params_idx)
@@ -76,6 +82,21 @@ impl InfiniteParams {
 pub enum Params {
     Finite(FiniteParams),
     Infinite(InfiniteParams)
+}
+
+impl Params {
+    pub fn to_string(&self)->String {
+        match self {
+            Params::Finite(fin) => {
+                let strs:Vec<String>=fin.received_args.iter().map(|x| x.to_string()).collect();
+                strs.join(",")
+            },
+            Params::Infinite(inf) => {
+                let strs:Vec<String>=inf.received_args.iter().map(|x| x.to_string()).collect();
+                strs.join(",")
+            }
+        }
+    }
 }
 
 // params: just stores Arg
@@ -160,6 +181,19 @@ impl Params {
         }
     }
 
+    pub fn get_finite(&self)->Option<&FiniteParams> {
+        match self {
+            Params::Finite(fin) => Some(fin),
+            _ => None
+        }
+    }
+
+    pub fn get_infinite(&self)->Option<&InfiniteParams> {
+        match self {
+            Params::Infinite(inf) => Some(inf),
+            _ => None
+        }
+    }
     // consume so we can use it
     pub fn received_args(self)->Vec<Arg> {
         match self {

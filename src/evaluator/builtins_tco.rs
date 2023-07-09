@@ -115,7 +115,9 @@ impl Function for BuiltIn {
     }
 
     fn to_string(&self) -> String {
+        // format!("<function '{}' len:{}, recv:{}>", self.name, self.params.clone().received_args().len(),self.params.to_string())
         format!("<function '{}'>", self.name)
+
     }
 }
 

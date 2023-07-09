@@ -301,12 +301,12 @@ pub fn evaluate_if(ctx: &EvalContext, children: &Vec<Rc<ASTNode>>) -> Result<Def
     if condition {
         Ok(DeferredExpression {
             ctx: ctx.clone(),
-            body: e1.clone(),
+            body: Rc::new(e1.as_ref().clone()),
         })
     } else {
         Ok(DeferredExpression {
             ctx: ctx.clone(),
-            body: e2.clone(),
+            body: Rc::new(e2.as_ref().clone()),
         })
     }
 }
@@ -338,11 +338,13 @@ pub fn evaluate_fn(mut args:Vec<Arg>, func_call:&FunctionCall, call_stack: &mut 
             data:FunctionVariable(func),
             parent:func_call.parent.clone() // cloning the OPTION - should be same id
         };
+
         results.push_back(expr_res);
         return Ok(())
     }  
 
     let execute_result=func.resolve(&func_call.context)?;
+    println!("Result (not is_func):{}", execute_result.to_string());
 
 
     // let num_args=func_call.func.get_num_expected_params();

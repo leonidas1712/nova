@@ -219,7 +219,8 @@ impl ASTNode {
         let self_string = self.to_string();
 
         format!(
-            "\n[\n\ttype:{}\n\tis_func:{}\n\tself:{},\n\tparent:{}\n]\n",
+            "\n[\nid:{}\n\ttype:{}\n\tis_func:{}\n\tself:{},\n\tparent:{}\n]\n",
+            self.original,
             self.get_type(),
             self.is_func,
             self_string,
