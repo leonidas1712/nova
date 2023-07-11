@@ -8,5 +8,10 @@ Nova is a functional programming language inspired by Lisp, Haskell, and Python.
 - Curried functions
 - Importing code
 - String and list processing 
-- Operator precedence with `>>` (pipe), `$` function application by spaces and parentheses
+- Operator precedence with `>>` (pipe), `$`, function application by spaces and parentheses
+
+Example code:
+```> sum $ (ltake 3) $ (add 2) >> lmap $ lfilter even (fcons succ 10)
+42
+```
 
