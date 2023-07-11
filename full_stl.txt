@@ -1,0 +1,263 @@
+(def len (lst) 
+    (if (eq lst []),
+        0,
+        (succ (len (cdr lst)))
+    )
+)
+
+(def sum (lst) 
+    (if (eq lst []) 0 
+        (add (car lst) 
+            (sum (cdr lst))
+        )
+    )
+)
+
+(def sum_t (lst acc)
+    (if (eq lst []) acc (sum_t (cdr lst) (add (car lst ) acc)))
+)
+
+
+(def map (fn lst) 
+    (if (eq lst []) [] 
+        (cons (fn (car lst)) 
+            (map fn (cdr lst))
+        )
+    )
+)
+
+(def nil? (lst) (eq lst []))
+
+(def fold (f acc lst) 
+    (if (nil? lst) acc 
+        (fold f 
+            (f acc (car lst)) 
+            (cdr lst)
+        )
+    )
+)
+
+(def not (bool) (if (eq bool false) true false))
+
+(def take (n lst) 
+    (if (or (nil? lst) (eq n 0)) [] 
+        (cons (car lst) 
+            (take (pred n) (cdr lst))
+        )
+    )
+)
+
+(def drop (n lst)
+    (if (nil? lst) []
+        (if (eq n 0) lst 
+            (drop (pred n) (cdr lst))
+        )
+    )
+)
+
+(def iter (f x)
+    (cons x (iter f (f x)))
+)
+
+
+(def id (x) x)
+
+(def times (f x n) 
+    (if (eq n 0) x
+        (f (times f x (pred n)))
+    )
+)
+
+(def ltake (n lst)
+    (if (eq n 0) []
+        (cons (lcar lst) (ltake (pred n) (lcdr lst)))
+    )
+)
+
+# f: unary, x starting elem #
+
+(def fcons (f x)
+    (lcons x (fcons f (f x)))
+)
+
+(def lmap (f lst)
+    (lcons (f (lcar lst)) 
+    (lmap f (lcdr lst))
+    )
+)
+
+(def ldrop (n lst)
+    (times lcdr lst n)
+)
+
+(def lfold (f acc lst)
+    (let new (f acc (lcar lst)) 
+        (lcons new 
+            (lfold f new (lcdr lst))
+        )
+    )
+)
+
+(def fibs (fst snd) 
+    (let sum (add fst snd) (lcons snd (fibs snd sum)))
+)
+
+(def lfilter (pred lst)
+    (let fst (lcar lst) (if (pred fst) (lcons fst (lfilter pred (lcdr lst)))
+        (lfilter pred (lcdr lst)) 
+    ))
+)
+
+(def even (n) (eq (mod n 2) 0))
+
+(def odd (n) (not (even n)))
+
+(set nats (fcons succ 1))
+
+
+(def rev (lst)
+    (if (nil? (cdr lst)) lst (cons (rev (cdr lst)) [(car lst)]))
+)
+
+(def filter (pred lst)
+    (if (nil? lst) [] 
+        (if (pred (car lst)) (cons (car lst) (filter pred (cdr lst)))
+         (filter pred (cdr lst))
+        )
+    )
+)
+
+# filter gt,lt and qsort on those then cons#
+
+(def app (arr x)
+    (cons arr [x])
+)
+
+# x>=y #
+(def gte (x y)
+    (eq (or (eq x y) (gt x y)) true) 
+)
+
+(def nilone? (lst)
+    (lt (len lst) 2)
+)
+
+(def qsort (lst)
+    (if (lt (len lst) 2) (if (nil? lst) [] lst) 
+        (let length (len lst) pivot (idx lst (rand 0 (sub length 1))) left_arr (filter (gt pivot) lst) right_arr (filter (lt pivot) lst)
+            (cons (app (qsort left_arr) pivot) (qsort right_arr))
+        )
+    )
+)
+
+
+(def merge (lst1 lst2)
+    (if (nil? lst1) lst2 (if (nil? lst2) lst1 
+        (
+            let fst (idx lst1 0),
+            snd (idx lst2 0),
+            check (lt fst snd)
+            hd (if check fst snd),
+            smaller (if check lst1 lst2),
+            bigger (if check lst2 lst1),
+
+            (if (eq lst1 smaller) (cons hd (merge (cdr lst1) lst2))
+                (cons hd (merge lst1 (cdr lst2)))
+            )
+        )
+    )
+    )
+)
+
+(def msort (lst)
+    (if (nilone? lst) lst 
+        (let mid (div (len lst) 2) left (take mid lst) right (drop mid lst)
+            (merge (msort left) (msort right))
+        )
+    )
+)
+
+(def apply (f1 f2 elem) (eq (f1 elem) (f2 elem)))
+
+(def neq (x y)
+    (not (eq x y))
+)
+
+(def prime (n)
+    (and (neq n 1)
+        (nilone?
+            (filter (z->(eq (mod n z) 0)) 
+                (takeWhile (gt n) (fcons succ 1))
+            )
+        )
+    )
+)
+
+
+(def primes (n)
+    (lfilter prime (fcons succ 2))
+)
+
+(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))))
+
+(def recf (n acc) 
+    (if (eq n 0) acc (recf (pred n) (add acc n)));
+)
+
+(def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))))
+
+(def takeWhile (pred lst) 
+    (if (and (not $ (nil? lst)) (pred (car lst)))
+        (cons (car lst) 
+            (takeWhile pred (cdr lst)),
+        ),
+        []
+    )
+)
+
+(def range (start end)
+    (
+        (if (gt start end) [] 
+            (lcons start 
+                (range (succ start) end)
+            )
+        )
+    )
+)
+
+(def for_each (lst f)
+    (if (nil? lst)
+        [],
+        (
+            (> (f (car lst)) (for_each (cdr lst) f))
+        )
+    )
+)
+
+# end = length #
+(def loop_idx (lst st end)
+    (if (gte st end) [] 
+        (> (puts (idx lst st)) (loop_idx lst (succ st) end))
+    )
+)
+
+
+#(def nested (lst)
+    (for_each (range 1 (len lst)) 
+        (def fn (i)
+            (for_each (range 0 i) (i-> (idx lst i)))
+        )
+    )
+)#
+
+(def idx (i lst)
+    (if (eq i 0) (car lst)
+        (idx (pred i) (cdr lst))
+    )
+)
+
+(def nested (lst) 
+    (for_each (range 0 (len lst))
+        (i-> (idx i lst))
+    )
+)
