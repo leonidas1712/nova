@@ -15,7 +15,7 @@ Nova is a functional programming language inspired by Lisp, Haskell, and Python.
 
 - Tail call optimization
 
-- Curried functions
+- Curried and higher order functions
 
 - Importing code
 
