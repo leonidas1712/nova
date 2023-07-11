@@ -2,7 +2,7 @@
 <h1>Nova Programming Language </h1>
 </div>
 
-![tests](https://github.com/huzaifa1712/nova/actions/workflows/rust.yml/badge.svg)
+![tests](https://github.com/huzaifa1712/nova/actions/workflows/tests.yml/badge.svg)
 
 
 Nova is a functional programming language inspired by Lisp, Haskell, and Python.
