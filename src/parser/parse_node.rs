@@ -2,12 +2,12 @@ use crate::constants::*;
 
 use std::fmt::Display;
 use std::ops::Deref;
-use std::rc::{Rc};
+use std::rc::Rc;
 
 // functions that return other functions but outer args no match
-    // (x->y->(add x y)) (1) (2)
-    // (def curr (x) (def curr2 (y) (add x y)));
-        // (curr 1 2) => err
+// (x->y->(add x y)) (1) (2)
+// (def curr (x) (def curr2 (y) (add x y)));
+// (curr 1 2) => err
 
 // todo: IfStmt, LetStmt, FnDef, Lambda, FunctionCall
 // FunctionCall: when we have a symbol or expression which is:
@@ -19,16 +19,16 @@ pub struct FnDef {
     pub name: String,
     pub params: Vec<String>,
     pub body: Vec<Rc<ASTNode>>, // can have multiple expressions in body,
-    pub global:bool
+    pub global: bool,
 }
 
 impl FnDef {
-    pub fn set_global(&self, global:bool)->FnDef {
+    pub fn set_global(&self, global: bool) -> FnDef {
         FnDef {
-            name:self.name.clone(),
-            params:self.params.clone(),
-            body:self.body.clone(),
-            global
+            name: self.name.clone(),
+            params: self.params.clone(),
+            body: self.body.clone(),
+            global,
         }
     }
 }
@@ -68,7 +68,7 @@ pub enum ParseValue {
     IfNode(Vec<Rc<ASTNode>>),
     LetNode(Vec<Rc<ASTNode>>, bool),
     FnNode(FnDef),
-    ParseUnit
+    ParseUnit,
 }
 
 impl ParseValue {
@@ -102,7 +102,7 @@ pub struct ASTNode {
     // then the initial parent can get dropped and the children get dropped successively
     pub parent: Option<Rc<ASTNode>>,
     pub original: Uuid,
-    pub is_func:bool
+    pub is_func: bool,
 }
 
 impl Clone for ASTNode {
@@ -111,7 +111,7 @@ impl Clone for ASTNode {
             value: self.value.clone(),
             parent: self.parent.clone(),
             original: Uuid::new_v4(),
-            is_func:self.is_func
+            is_func: self.is_func,
         }
     }
 }
@@ -136,9 +136,10 @@ impl ASTNode {
 
         let original = ASTNode {
             value: value.clone(),
+            // value:Number(-1),//  - with this line still works
             parent: None,
             original: original_ref,
-            is_func:false
+            is_func: false,
         };
         let original = Rc::new(original);
 
@@ -169,24 +170,24 @@ impl ASTNode {
                     value: new_value,
                     parent: None,
                     original: original_ref,
-                    is_func:false
+                    is_func: false,
                 }
             }
             _ => ASTNode {
                 value,
                 parent: None,
                 original: original_ref,
-                is_func:false
+                is_func: false,
             },
         }
     }
 
-    pub fn copy(&self)->ASTNode {
+    pub fn copy(&self) -> ASTNode {
         ASTNode {
-            value:self.value.clone(),
-            parent:self.parent.clone(),
-            original:self.original,
-            is_func:self.is_func
+            value: self.value.clone(),
+            parent: self.parent.clone(),
+            original: self.original,
+            is_func: self.is_func,
         }
     }
 
@@ -209,7 +210,7 @@ impl ASTNode {
     pub fn get_ith_child(&self, index: usize) -> Option<&Rc<ASTNode>> {
         self.get_children().and_then(|v| v.get(index))
     }
-    
+
     pub fn to_string_with_parent(&self) -> String {
         let parent_string = match &self.parent {
             Some(prt) => prt.to_string(),
@@ -255,8 +256,8 @@ impl ASTNode {
                 } else {
                     FALSE.to_string()
                 }
-            },
-            ParseUnit => String::from("")
+            }
+            ParseUnit => String::from(""),
         }
     }
 }

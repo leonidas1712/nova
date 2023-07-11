@@ -82,7 +82,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
         let expr = if open_token.eq(OPEN_EXPR) { "()" } else { "[]" };
 
         if open_token.eq(OPEN_EXPR) {
-            let u=ASTNode::new(ParseUnit);
+            let u = ASTNode::new(ParseUnit);
             return Ok(Rc::new(u));
         }
 
@@ -98,7 +98,7 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
     match opt_token {
         Some(last_token) => {
             if last_token.eq(STMT_END) {
-                let msg=format!("'{}' can't be used inside an expression.", STMT_END);
+                let msg = format!("'{}' can't be used inside an expression.", STMT_END);
                 return err!(msg);
             }
 
@@ -134,12 +134,13 @@ fn parse_list_expression(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
 
     // mark first as func call
     // let first = children.get_mut(0).unwrap();
-        // todo: change to use RefCell<ASTNode> internally then only return Rc at the top level
-    let mut children_nodes:Vec<ASTNode>=children.into_iter().map(|r| r.as_ref().clone()).collect();
-    let first=children_nodes.first_mut().unwrap();
-    first.is_func=true;
+    // todo: change to use RefCell<ASTNode> internally then only return Rc at the top level
+    let mut children_nodes: Vec<ASTNode> =
+        children.into_iter().map(|r| r.as_ref().clone()).collect();
+    let first = children_nodes.first_mut().unwrap();
+    first.is_func = true;
 
-    let children=children_nodes.into_iter().map(|n| Rc::new(n)).collect();
+    let children = children_nodes.into_iter().map(|n| Rc::new(n)).collect();
 
     let node_val = if open_token == OPEN_EXPR {
         ParseExpression(children)
@@ -212,12 +213,12 @@ pub fn parse(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
         nodes.push(res);
 
         // use ; to separate top level statements
-            // ignore duplicated ';'
+        // ignore duplicated ';'
         if let Some(token) = lex.peek() {
             if token.eq(STMT_END) {
                 while let Some(end) = lex.peek() {
                     if !end.eq(STMT_END) {
-                        break
+                        break;
                     }
                     lex.next();
                 }
@@ -227,15 +228,13 @@ pub fn parse(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
     }
 
     // filter out dont add tokens e.g let x 2; - semicolon shouldnt be inside
-    let nodes_filtered:Vec<Rc<ASTNode>>=nodes.into_iter()
-        .filter(|node| {
-            match &node.value {
-                Symbol(sym) => {
-                    !DONT_ADD.contains(&sym.as_str())
-                },
-                _ => true
-            }
-        }).collect();
+    let nodes_filtered: Vec<Rc<ASTNode>> = nodes
+        .into_iter()
+        .filter(|node| match &node.value {
+            Symbol(sym) => !DONT_ADD.contains(&sym.as_str()),
+            _ => true,
+        })
+        .collect();
 
     if nodes_filtered.len() == 0 {
         let msg = format!("{}:'{}'", EMPTY_MSG, lex.to_string());
@@ -243,19 +242,17 @@ pub fn parse(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
     };
 
     let root: Rc<ASTNode> = if nodes_filtered.len() == 1 {
-        let node=nodes_filtered.into_iter().next().unwrap();
+        let node = nodes_filtered.into_iter().next().unwrap();
         // if fn_node is the only one inside list expr set global to true
         // can't do for let because (let x 2) is not global
         match &node.value {
             FnNode(def) => {
-                let new_def=def.set_global(true);
-                let mut new_node=node.as_ref().clone();
-                new_node.value=FnNode(new_def);
+                let new_def = def.set_global(true);
+                let mut new_node = node.as_ref().clone();
+                new_node.value = FnNode(new_def);
                 Rc::new(new_node)
-            },
-            _ => {
-                node
             }
+            _ => node,
         }
     } else {
         // if special: return that, otherwise make expr with nodes
@@ -268,7 +265,7 @@ pub fn parse(lex: &mut lexer::Lexer) -> Result<Rc<ASTNode>> {
 }
 
 // parse nodes separated by ;
-pub fn parse_all(mut lex:lexer::Lexer)->Result<Vec<Rc<ASTNode>>> {
+pub fn parse_all(mut lex: lexer::Lexer) -> Result<Vec<Rc<ASTNode>>> {
     let mut nodes: Vec<Rc<ASTNode>> = Vec::new();
     loop {
         if let None = lex.peek() {

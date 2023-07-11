@@ -16,7 +16,6 @@ pub struct EvalContext {
     ctx: Rc<RefCell<Context>>,
 }
 
-
 impl EvalContext {
     pub fn new() -> EvalContext {
         EvalContext {
@@ -68,35 +67,31 @@ impl EvalContext {
         }
     }
 
-    pub fn to_string(&self)->String {
-        let mut vars:Vec<String>=vec![];
-        let mut fns:Vec<String>=vec![];
+    pub fn to_string(&self) -> String {
+        let mut vars: Vec<String> = vec![];
+        let mut fns: Vec<String> = vec![];
 
-        let ctx=self.read();
+        let ctx = self.read();
 
         for key in ctx.symbol_map.keys() {
-            let var=ctx.get_function(key);
+            let var = ctx.get_function(key);
 
             if var.is_some() {
-                let repr=format!("Function: {} => {}", key, var.unwrap().to_string());
+                let repr = format!("Function: {} => {}", key, var.unwrap().to_string());
                 fns.push(repr);
                 continue;
-            } 
+            }
 
-            let var=ctx.get_variable(key).unwrap();
-            let repr=format!("Variable: {} => {}", key, var.to_string());
+            let var = ctx.get_variable(key).unwrap();
+            let repr = format!("Variable: {} => {}", key, var.to_string());
             vars.push(repr);
         }
 
-        vars.sort_by(|a,b| {
-            a.cmp(b)
-        });
+        vars.sort_by(|a, b| a.cmp(b));
 
-        fns.sort_by(|a,b| {
-            a.cmp(b)
-        });
+        fns.sort_by(|a, b| a.cmp(b));
 
-        let mut res=fns.join("\n");
+        let mut res = fns.join("\n");
         res.push_str("\n\n");
         res.push_str(vars.join("\n").as_str());
 
@@ -119,7 +114,7 @@ pub fn setup_context() -> Context {
 
     macro_rules! regb {
         ($fn:expr) => {
-            let b=$fn();
+            let b = $fn();
             ctx.add_function(b.name.clone().as_str(), Rc::new(b));
         };
     }
@@ -158,10 +153,9 @@ impl Context {
         self.symbol_map.insert(ident.to_string(), value);
     }
 
-    pub fn delete_variable(&mut self,name:&str) {
+    pub fn delete_variable(&mut self, name: &str) {
         self.symbol_map.remove(name);
     }
-
 
     pub fn add_function(&mut self, name: &str, function: Rc<dyn Function>) {
         let d = DataValue::FunctionVariable(function);

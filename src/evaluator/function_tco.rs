@@ -21,7 +21,7 @@ use super::params::Params;
 
 // &Context: need to be able to re-use the context
 pub trait Function {
-    fn apply(&self,args: &[Arg]) -> Rc<dyn Function>;
+    fn apply(&self, args: &[Arg]) -> Rc<dyn Function>;
 
     fn execute(&self, args: &[Arg], context: &EvalContext) -> Result<Expression>;
 
@@ -43,14 +43,13 @@ pub trait Function {
 
 use crate::parser::parse_node::FnDef;
 
-
 // BuiltIn: name String, params:Params
 // name, params, body
 #[derive(Clone)]
 pub struct UserFunction {
     context: EvalContext, // ctx at creation - user only
-    name: String, // b also
-    params:Params,
+    name: String,         // b also
+    params: Params,
     body: Vec<Rc<ASTNode>>, // user only
 }
 // clone fn_def because it could have come from a closure: the original function still needs it
@@ -63,19 +62,19 @@ pub struct UserFunction {
 
 // inf args: curry by adding to internal Vec<Arg>
 // time of exec: return curried function with the additional args
-    // 
+//
 impl UserFunction {
     pub fn new(context: &EvalContext, fn_def: &FnDef) -> UserFunction {
-        let mut stored_ctx=context.copy();
+        let mut stored_ctx = context.copy();
 
         stored_ctx.write().delete_variable(&fn_def.name);
-        let params=fn_def.params.clone();
-        let params=params.iter().map(|x| x.as_str()).collect();
+        let params = fn_def.params.clone();
+        let params = params.iter().map(|x| x.as_str()).collect();
 
         UserFunction {
             context: stored_ctx, // copy to get new copy that doesn't affect
             name: fn_def.name.clone(),
-            params:Params::new_finite(params),
+            params: Params::new_finite(params),
             // params:fn_def.params.clone(),
             // params_idx:0,
             body: fn_def.body.clone(), // ASTNode.clone
@@ -85,7 +84,7 @@ impl UserFunction {
     pub fn curry(&self, args: &[Arg]) -> Result<EvalContext> {
         let mut new_ctx = EvalContext::new();
         let eval_args = Arg::expect_all_eval(args)?;
-        let num_args=eval_args.len();
+        let num_args = eval_args.len();
 
         if self.params.expected_params().is_none() {
             return Ok(new_ctx);
@@ -95,8 +94,8 @@ impl UserFunction {
         // let num_expected=self.params.expected_params().unwrap().len();
         // let num_expected;
         // println!("Params diff:{:?}", self.params.get_finite().unwrap().params_diff());
-        let finite=self.params.get_finite().expect("Should be finite");
-        let actual_params=finite.actual_params();
+        let finite = self.params.get_finite().expect("Should be finite");
+        let actual_params = finite.actual_params();
 
         // can't curry for too many
         if num_args > actual_params.len() {
@@ -111,11 +110,8 @@ impl UserFunction {
         }
 
         // add args to context using params
-            // need to account for already in
-        let curried_params=actual_params
-            .clone()
-            .into_iter()
-            .take(num_args);
+        // need to account for already in
+        let curried_params = actual_params.clone().into_iter().take(num_args);
 
         let zipped = curried_params.zip(eval_args.into_iter());
 
@@ -135,7 +131,10 @@ impl UserFunction {
     fn to_string(&self) -> String {
         let name = &self.name;
 
-        let params:Vec<String> = self.params.expected_params().unwrap_or(vec!["*args".to_string()]);
+        let params: Vec<String> = self
+            .params
+            .expected_params()
+            .unwrap_or(vec!["*args".to_string()]);
 
         let body = &self.body;
 
@@ -151,50 +150,56 @@ impl UserFunction {
 }
 
 impl Function for UserFunction {
-    fn resolve(&self, context: &EvalContext)->Result<Expression> {
+    fn resolve(&self, context: &EvalContext) -> Result<Expression> {
         match &self.params {
             Params::Finite(fin) => match fin.params_diff() {
                 // when less return curried function
                 Ordering::Less => Ok(EvaluatedExpr(FunctionVariable(Rc::new(self.clone())))),
                 Ordering::Equal => self.execute(&fin.received_args, context),
                 Ordering::Greater => {
-                    let msg=format!("'{}' expected {} arguments but received {}.", 
-                        self.name, fin.params.len(), fin.received_args.len());
+                    let msg = format!(
+                        "'{}' expected {} arguments but received {}.",
+                        self.name,
+                        fin.params.len(),
+                        fin.received_args.len()
+                    );
                     err!(msg)
                 }
             },
-            Params::Infinite(inf) =>
-            if inf.received_args.len() < inf.min {
-                Ok(EvaluatedExpr(FunctionVariable(Rc::new(self.clone()))))
-            } else {
-                self.execute(&inf.received_args, context)
+            Params::Infinite(inf) => {
+                if inf.received_args.len() < inf.min {
+                    Ok(EvaluatedExpr(FunctionVariable(Rc::new(self.clone()))))
+                } else {
+                    self.execute(&inf.received_args, context)
+                }
             }
         }
     }
 
     // apply args and return new functiom
-    fn apply(&self,args: &[Arg]) -> Rc<dyn Function> {
+    fn apply(&self, args: &[Arg]) -> Rc<dyn Function> {
         // let new_idx=self.params_idx+args.len();
         // let new_ctx=self.curry(args)?;
 
-        let new_body:Vec<Rc<ASTNode>>=self.body
+        let new_body: Vec<Rc<ASTNode>> = self
+            .body
             .iter()
             .map(|node| node.as_ref().clone())
             .map(|node| Rc::new(node))
             .collect();
 
-        let new_fn=UserFunction {
-            context:self.context.clone(),
-            name:self.name.clone(),
-            params:self.params.apply(args),
-            body:new_body
+        let new_fn = UserFunction {
+            context: self.context.clone(),
+            name: self.name.clone(),
+            params: self.params.apply(args),
+            body: new_body,
         };
 
         Rc::new(new_fn)
     }
 
-    fn execute(&self, args:&[Arg], outer_ctx: &EvalContext) -> Result<Expression> {
-        let num_args=args.len();
+    fn execute(&self, args: &[Arg], outer_ctx: &EvalContext) -> Result<Expression> {
+        let num_args = args.len();
 
         // first clone + add arguments using params and args
         let eval_ctx = self.curry(args)?;
@@ -207,7 +212,7 @@ impl Function for UserFunction {
 
         // IMPORTANT:node is CLONED so the clone compares unequal because id changed
         let cloned = fn_node.as_ref().clone();
-      
+
         let res = DeferredExpression {
             ctx: eval_ctx.clone(),
             body: Rc::new(cloned),
@@ -226,16 +231,14 @@ impl Function for UserFunction {
 use crate::Lexer;
 #[test]
 fn test_curry() {
-    let func="(def fn (a b c) (add a b c))";
-    let mut lx=lex!(func);
-    let p=parse(&mut lx).expect("Should parse fn def");
-    let ctx=EvalContext::new();
+    let func = "(def fn (a b c) (add a b c))";
+    let mut lx = lex!(func);
+    let p = parse(&mut lx).expect("Should parse fn def");
+    let ctx = EvalContext::new();
 
-    let ev=evaluate_outer(ctx,p,true)
-        .expect("Should evaluate");
-    
-    let func="(fn 1 2)";
-    let mut lx=lex!(func);
-    let p=parse(&mut lx).expect("Should parse fn def");
+    let ev = evaluate_outer(ctx, p, true).expect("Should evaluate");
 
+    let func = "(fn 1 2)";
+    let mut lx = lex!(func);
+    let p = parse(&mut lx).expect("Should parse fn def");
 }

@@ -3,9 +3,9 @@ use std::rc::Rc;
 
 use crate::constants::NumType;
 use crate::message::*;
-use crate::parser::parse_node::{ASTNode};
+use crate::parser::parse_node::ASTNode;
 
-use super::context_tco::{EvalContext};
+use super::context_tco::EvalContext;
 use super::function_tco::{Function, UserFunction};
 
 // Number, Boolean, List, String, Lambda, FunctionVariable(Box<dyn Function>)
@@ -67,13 +67,11 @@ impl DataValue {
     }
 
     // expect functions
-        // cast bool to 0/1
+    // cast bool to 0/1
     pub fn expect_num(&self) -> Result<NumType> {
         match self {
             Num(num) => Ok(*num),
-            Bool(b) => {
-                Ok(if *b { 1 } else { 0 })
-            }
+            Bool(b) => Ok(if *b { 1 } else { 0 }),
             _ => {
                 let msg = format!("Expected a number but got '{}'", self.to_string());
                 err!(msg.as_str())
@@ -131,7 +129,7 @@ impl DataValue {
 
 // change to Rc
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub enum Arg {
     Evaluated(DataValue),
     Unevaluated(Rc<ASTNode>), // node could be part of fn body -> Arg can't own it
@@ -166,7 +164,10 @@ impl Arg {
     }
 
     pub fn expect_all_uneval(args: &[Arg]) -> Result<Vec<Rc<ASTNode>>> {
-        let k: Result<Vec<Rc<ASTNode>>> = args.into_iter().map(|a| a.clone().expect_uneval()).collect();
+        let k: Result<Vec<Rc<ASTNode>>> = args
+            .into_iter()
+            .map(|a| a.clone().expect_uneval())
+            .collect();
         return k;
     }
 
@@ -186,7 +187,7 @@ impl Display for Arg {
     }
 }
 
-#[derive(PartialEq,Clone)]
+#[derive(PartialEq, Clone)]
 pub enum ArgType {
     Evaluated,
     Unevaluated,
@@ -195,7 +196,7 @@ pub enum ArgType {
 #[derive(PartialEq)]
 pub enum NumParams {
     Finite(usize),
-    Infinite
+    Infinite,
 }
 
 pub use Arg::*;
@@ -212,7 +213,7 @@ pub mod tests {
     fn data_test_getters() {
         let d1 = Num(20);
         let d2 = Bool(true);
-        let add=build_add();
+        let add = build_add();
         let d3 = FunctionVariable(Rc::new(add));
 
         dbg!(d3.to_string());

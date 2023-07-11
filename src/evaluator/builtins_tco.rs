@@ -50,54 +50,64 @@ fn get_nums(args: &[Arg]) -> Result<Vec<NumType>> {
     return r;
 }
 
-type Exec=fn(&[Arg],&EvalContext)->Result<Expression>;
+type Exec = fn(&[Arg], &EvalContext) -> Result<Expression>;
 
-#[derive (Clone)]
+#[derive(Clone)]
 pub struct BuiltIn {
-    pub name:String,
-    params:Params,
-    exec_fn:Exec,
-    arg_type:ArgType
+    pub name: String,
+    params: Params,
+    exec_fn: Exec,
+    arg_type: ArgType,
 }
 
 impl BuiltIn {
-    pub fn new(name:String, params:Params, exec_fn:Exec, arg_type:ArgType)->Self{
-        BuiltIn { name, params, exec_fn, arg_type }
+    pub fn new(name: String, params: Params, exec_fn: Exec, arg_type: ArgType) -> Self {
+        BuiltIn {
+            name,
+            params,
+            exec_fn,
+            arg_type,
+        }
     }
 }
 
 impl Function for BuiltIn {
-    fn apply(&self,args: &[Arg]) -> Rc<dyn Function> {
-        let new_fn=BuiltIn {
-            name:self.name.clone(),
-            params:self.params.apply(args),
-            exec_fn:self.exec_fn,
-            arg_type:self.arg_type.clone()
+    fn apply(&self, args: &[Arg]) -> Rc<dyn Function> {
+        let new_fn = BuiltIn {
+            name: self.name.clone(),
+            params: self.params.apply(args),
+            exec_fn: self.exec_fn,
+            arg_type: self.arg_type.clone(),
         };
         Rc::new(new_fn)
     }
 
     fn execute(&self, args: &[Arg], context: &EvalContext) -> Result<Expression> {
-        (self.exec_fn)(args,context)
+        (self.exec_fn)(args, context)
     }
 
-    fn resolve(&self, context: &EvalContext)->Result<Expression> {
+    fn resolve(&self, context: &EvalContext) -> Result<Expression> {
         match &self.params {
             Params::Finite(fin) => match fin.params_diff() {
                 // when less return curried function
                 Ordering::Less => Ok(EvaluatedExpr(FunctionVariable(Rc::new(self.clone())))),
                 Ordering::Equal => self.execute(&fin.received_args, context),
                 Ordering::Greater => {
-                    let msg=format!("'{}' expected {} arguments but received {}.", 
-                        self.name, fin.params.len(), fin.received_args.len());
+                    let msg = format!(
+                        "'{}' expected {} arguments but received {}.",
+                        self.name,
+                        fin.params.len(),
+                        fin.received_args.len()
+                    );
                     err!(msg)
                 }
             },
-            Params::Infinite(inf) =>
-            if inf.received_args.len() < inf.min {
-                Ok(EvaluatedExpr(FunctionVariable(Rc::new(self.clone()))))
-            } else {
-                self.execute(&inf.received_args, context)
+            Params::Infinite(inf) => {
+                if inf.received_args.len() < inf.min {
+                    Ok(EvaluatedExpr(FunctionVariable(Rc::new(self.clone()))))
+                } else {
+                    self.execute(&inf.received_args, context)
+                }
             }
         }
     }
@@ -109,52 +119,56 @@ impl Function for BuiltIn {
     fn to_string(&self) -> String {
         // format!("<function '{}' len:{}, recv:{}>", self.name, self.params.clone().received_args().len(),self.params.to_string())
         format!("<function '{}'>", self.name)
-
     }
 }
 
 pub struct BuiltInBuilder {
-    name:Option<String>,
-    params:Option<Params>,
-    exec_fn:Option<Exec>,
-    arg_type:Option<ArgType>
+    name: Option<String>,
+    params: Option<Params>,
+    exec_fn: Option<Exec>,
+    arg_type: Option<ArgType>,
 }
 
 impl BuiltInBuilder {
-    pub fn new()->Self {
-        BuiltInBuilder { name: None, params: None, exec_fn: None, arg_type: None }
+    pub fn new() -> Self {
+        BuiltInBuilder {
+            name: None,
+            params: None,
+            exec_fn: None,
+            arg_type: None,
+        }
     }
 
     // arg type evaluated
-    pub fn new_default()->Self {
+    pub fn new_default() -> Self {
         BuiltInBuilder::new().arg_type(ArgType::Evaluated)
     }
 
-    pub fn name(mut self, name:&str)->Self {
+    pub fn name(mut self, name: &str) -> Self {
         self.name.replace(name.to_string());
         self
     }
-    
-    pub fn params(mut self, params:Params)->Self {
+
+    pub fn params(mut self, params: Params) -> Self {
         self.params.replace(params);
         self
     }
 
-    pub fn exec(mut self, exec_fn:Exec)->Self {
+    pub fn exec(mut self, exec_fn: Exec) -> Self {
         self.exec_fn.replace(exec_fn);
         self
     }
 
-    pub fn arg_type(mut self, arg_type:ArgType)->Self {
+    pub fn arg_type(mut self, arg_type: ArgType) -> Self {
         self.arg_type.replace(arg_type);
         self
     }
 
-    pub fn build(self)->BuiltIn {
-        let name=self.name.expect("Empty name");
-        let params=self.params.expect("Empty params");
-        let exec=self.exec_fn.expect("Empty exec");
-        let arg_type=self.arg_type.expect("Empty arg type");
+    pub fn build(self) -> BuiltIn {
+        let name = self.name.expect("Empty name");
+        let params = self.params.expect("Empty params");
+        let exec = self.exec_fn.expect("Empty exec");
+        let arg_type = self.arg_type.expect("Empty arg type");
         BuiltIn::new(name, params, exec, arg_type)
     }
 }
@@ -167,14 +181,13 @@ fn add(args: &[Arg], _context: &EvalContext) -> Result<Expression> {
     total.map(|n| Num(n)).map(|val| EvaluatedExpr(val))
 }
 
-fn sub(args: &[Arg], _context:&EvalContext) -> Result<Expression> {
+fn sub(args: &[Arg], _context: &EvalContext) -> Result<Expression> {
     get_nums(args)
-    .map(|v| v.into_iter().reduce(|acc, e| acc - e))?
-    .ok_or(Ex::new("Could not subtract provided expression"))
-    .map(|x| Num(x))
-    .map(|val| EvaluatedExpr(val))
+        .map(|v| v.into_iter().reduce(|acc, e| acc - e))?
+        .ok_or(Ex::new("Could not subtract provided expression"))
+        .map(|x| Num(x))
+        .map(|val| EvaluatedExpr(val))
 }
-
 
 fn mult(args: &[Arg], _context: &EvalContext) -> Result<Expression> {
     get_nums(args)
@@ -193,7 +206,6 @@ fn equals(args: &[Arg], _context: &EvalContext) -> Result<Expression> {
 
     Ok(EvaluatedExpr(Bool(left.equals(right))))
 }
-
 
 fn succ(args: &[Arg], _context: &EvalContext) -> Result<Expression> {
     let eval_args = get_nums(args)?;
@@ -218,14 +230,14 @@ fn pred(args: &[Arg], _context: &EvalContext) -> Result<Expression> {
 }
 
 fn puts(args: &[Arg], context: &EvalContext) -> Result<Expression> {
-    let values=ev!(args);
+    let values = ev!(args);
     values.iter().for_each(|x| println!("{}", x.to_string()));
     unit!()
 }
 
 // ((> (puts 100)) (puts 200))
 fn chain(args: &[Arg], context: &EvalContext) -> Result<Expression> {
-    let args=Arg::expect_all_uneval(args)?;
+    let args = Arg::expect_all_uneval(args)?;
     for node in args {
         evaluate_outer(context.clone(), node, false)?;
     }
@@ -233,7 +245,7 @@ fn chain(args: &[Arg], context: &EvalContext) -> Result<Expression> {
 }
 
 // Builders
-pub fn build_add()->BuiltIn {
+pub fn build_add() -> BuiltIn {
     BuiltInBuilder::new_default()
         .name(ADD)
         .params(Params::new_infinite(2))
@@ -241,7 +253,7 @@ pub fn build_add()->BuiltIn {
         .build()
 }
 
-pub fn build_sub()->BuiltIn {
+pub fn build_sub() -> BuiltIn {
     BuiltInBuilder::new_default()
         .name(SUB)
         .params(Params::new_infinite(2))
@@ -249,7 +261,7 @@ pub fn build_sub()->BuiltIn {
         .build()
 }
 
-pub fn build_mult()->BuiltIn {
+pub fn build_mult() -> BuiltIn {
     BuiltInBuilder::new_default()
         .name(MULT)
         .params(Params::new_infinite(2))
@@ -257,7 +269,7 @@ pub fn build_mult()->BuiltIn {
         .build()
 }
 
-pub fn build_equals()->BuiltIn {
+pub fn build_equals() -> BuiltIn {
     BuiltInBuilder::new_default()
         .name(EQUALS)
         .params(Params::new_finite(vec!["left", "right"]))
@@ -265,7 +277,7 @@ pub fn build_equals()->BuiltIn {
         .build()
 }
 
-pub fn build_succ()->BuiltIn {
+pub fn build_succ() -> BuiltIn {
     BuiltInBuilder::new_default()
         .name(INC)
         .params(Params::new_finite(vec!["x"]))
@@ -273,7 +285,7 @@ pub fn build_succ()->BuiltIn {
         .build()
 }
 
-pub fn build_pred()->BuiltIn {
+pub fn build_pred() -> BuiltIn {
     BuiltInBuilder::new_default()
         .name(DEC)
         .params(Params::new_finite(vec!["x"]))
@@ -281,7 +293,7 @@ pub fn build_pred()->BuiltIn {
         .build()
 }
 
-pub fn build_puts()->BuiltIn {
+pub fn build_puts() -> BuiltIn {
     BuiltInBuilder::new_default()
         .name(PUTS)
         .params(Params::new_infinite(1))
@@ -289,7 +301,7 @@ pub fn build_puts()->BuiltIn {
         .build()
 }
 
-pub fn build_chain()->BuiltIn {
+pub fn build_chain() -> BuiltIn {
     BuiltInBuilder::new()
         .name(CHAIN)
         .params(Params::new_infinite(1))

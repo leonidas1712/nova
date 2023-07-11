@@ -8,37 +8,36 @@ extern crate lazy_static;
 #[macro_use]
 extern crate strum_macros;
 
-
-pub mod utils;
 pub mod evaluator;
 pub mod lexer;
 pub mod parser;
+pub mod utils;
 
 use std::rc::Rc;
 use std::vec;
 
-use crate::{
-    utils::constants::*,
-    utils::file::*
-};
+use crate::{utils::constants::*, utils::file::*};
 
 pub use utils::constants;
 pub use utils::message;
 
-pub use utils::file::{import_file, STL_FILE, save_file, USER_FILE};
+pub use utils::file::{import_file, save_file, STL_FILE, USER_FILE};
 
-use lexer::{Lexer,split_input};
-use parser::parser::{parse,parse_all};
-use parser::parse_node::ASTNode;
-use evaluator::evaluator_tco::*;
-use evaluator::data_tco::*;
-use evaluator::function_tco::*;
 use evaluator::context_tco::*;
-use rustyline::{error::ReadlineError, DefaultEditor};
+use evaluator::data_tco::*;
+use evaluator::evaluator_tco::*;
+use evaluator::function_tco::*;
+use lexer::{split_input, Lexer};
 use message::*;
+use parser::parse_node::ASTNode;
+use parser::parser::{parse, parse_all};
+use rustyline::{error::ReadlineError, DefaultEditor};
 
-pub fn evaluate_one_node(node:Rc<ASTNode>, context: &mut evaluator::context_tco::EvalContext)->Result<String> {
-    let res= evaluate_outer(context.clone(), node, true)?;
+pub fn evaluate_one_node(
+    node: Rc<ASTNode>,
+    context: &mut evaluator::context_tco::EvalContext,
+) -> Result<String> {
+    let res = evaluate_outer(context.clone(), node, true)?;
 
     let mut string = res.to_string();
 
@@ -49,7 +48,6 @@ pub fn evaluate_one_node(node:Rc<ASTNode>, context: &mut evaluator::context_tco:
         string = value.to_string();
 
         context.write_context(*ret_ctx);
-
     } else if let SetFn(rc) = res {
         let name = rc.get_name();
         let rc2: Rc<dyn Function> = rc;
@@ -60,31 +58,34 @@ pub fn evaluate_one_node(node:Rc<ASTNode>, context: &mut evaluator::context_tco:
 }
 
 // result for just one node
-pub fn evaluate_input_result(node:Rc<ASTNode>, context: &mut evaluator::context_tco::EvalContext)->String {
-    let res=evaluate_one_node(node, context);
+pub fn evaluate_input_result(
+    node: Rc<ASTNode>,
+    context: &mut evaluator::context_tco::EvalContext,
+) -> String {
+    let res = evaluate_one_node(node, context);
     match res {
         Ok(data) => data.to_string(),
-        Err(err) => err.format_error()
+        Err(err) => err.format_error(),
     }
 }
 
 pub fn evaluate_input_tco(inp: &str, context: &mut EvalContext) -> String {
-    let parse_result=Lexer::new(inp.to_string())
-    .and_then(|mut lex| parser::parser::parse(&mut lex));
+    let parse_result =
+        Lexer::new(inp.to_string()).and_then(|mut lex| parser::parser::parse(&mut lex));
 
     match parse_result {
         Ok(node) => evaluate_input_result(node, context),
-        Err(err) => err.format_error()
+        Err(err) => err.format_error(),
     }
 }
 
-pub fn evaluate_all(inp: &str, context: &mut EvalContext)->Result<Vec<String>> {
-    let lexed=lex!(inp);
-    let parse_nodes=parse_all(lexed)?;
-    let mut results:Vec<String>=vec![];
+pub fn evaluate_all(inp: &str, context: &mut EvalContext) -> Result<Vec<String>> {
+    let lexed = lex!(inp);
+    let parse_nodes = parse_all(lexed)?;
+    let mut results: Vec<String> = vec![];
 
     for node in parse_nodes {
-        let res=evaluate_one_node(node, context)?;
+        let res = evaluate_one_node(node, context)?;
         results.push(res);
     }
 
@@ -92,29 +93,29 @@ pub fn evaluate_all(inp: &str, context: &mut EvalContext)->Result<Vec<String>> {
 }
 
 // :import, :del, :list, :save(?)
-pub fn process_command(command:&str, ctx:&mut EvalContext)->Result<()> {
-    let words=split_input(command);
+pub fn process_command(command: &str, ctx: &mut EvalContext) -> Result<()> {
+    let words = split_input(command);
 
     if words.is_empty() {
         return err!("Empty command.");
     }
 
-    let command=words.get(0).unwrap().as_str();
-    let mut args=words.iter();
+    let command = words.get(0).unwrap().as_str();
+    let mut args = words.iter();
     args.next();
 
     match command {
         "list" => {
             println!("{}", ctx.to_string());
-        },
+        }
         "del" => {
-            if words.len()==1 {
+            if words.len() == 1 {
                 return err!("No variables given to delete.");
             }
-            
-            let vars=args.clone();
 
-            let vars:Vec<&String>=vars.collect();
+            let vars = args.clone();
+
+            let vars: Vec<&String> = vars.collect();
 
             for var in vars.iter() {
                 if BUILTINS.contains(&var.as_str()) {
@@ -126,24 +127,23 @@ pub fn process_command(command:&str, ctx:&mut EvalContext)->Result<()> {
                 }
             }
 
-            let mut ctx_write=ctx.write();
+            let mut ctx_write = ctx.write();
             for var in vars {
                 ctx_write.delete_variable(var);
                 println!("Deleted identifier:{}", var);
             }
-
-        },
+        }
         "import" => {
-            if words.len()==1 {
+            if words.len() == 1 {
                 return err!("No files given to import.");
             }
 
-            let files=args.clone();
-            
+            let files = args.clone();
+
             for file in files {
                 import_file(file, ctx)?;
             }
-        },
+        }
         _ => {
             println!("Unknown command: '{}'", command);
         }
@@ -152,7 +152,7 @@ pub fn process_command(command:&str, ctx:&mut EvalContext)->Result<()> {
     Ok(())
 }
 
-pub fn nova_repl_tco(mut context:EvalContext)->EvalContext {
+pub fn nova_repl_tco(mut context: EvalContext) -> EvalContext {
     let mut rl = DefaultEditor::new().unwrap();
 
     println!();
@@ -187,21 +187,19 @@ pub fn nova_repl_tco(mut context:EvalContext)->EvalContext {
                     continue;
                 }
 
+                let results = evaluate_all(&inp, &mut context);
 
-                let results=evaluate_all(&inp, &mut context);
-            
                 match results {
                     Ok(strings) => {
                         for string in strings {
-                            if string.len()==0 {
+                            if string.len() == 0 {
                                 continue;
                             }
                             println!("{}", string);
                         }
-                    },
-                    Err(err) => println!("{}", err.format_error())
+                    }
+                    Err(err) => println!("{}", err.format_error()),
                 }
-                
             }
 
             Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
@@ -223,28 +221,27 @@ pub fn nova_repl_tco(mut context:EvalContext)->EvalContext {
 // -r: import stl
 pub fn run(mut args: impl Iterator<Item = String>) {
     args.next();
-    let args:Vec<String>=args.map(|x| x.to_string()).collect();
-    let args=args.join("");
+    let args: Vec<String> = args.map(|x| x.to_string()).collect();
+    let args = args.join("");
 
-    let mut ctx=evaluator::context_tco::EvalContext::new();
+    let mut ctx = evaluator::context_tco::EvalContext::new();
 
     if args.contains('r') {
-        let imp=import_file(STL_FILE, &mut ctx);
+        let imp = import_file(STL_FILE, &mut ctx);
 
         if let Err(err) = imp {
             println!("Import error - {}", err.format_error());
         }
     }
 
-    
-    let final_ctx=nova_repl_tco(ctx); 
+    let final_ctx = nova_repl_tco(ctx);
 
     if let Err(err) = save_file(USER_FILE, final_ctx) {
         println!("Couldn't save functions to file: {}", USER_FILE);
         println!("Error:{}", err.to_string());
     }
 
-    use crate::utils::time::{bench,time_comp};
+    use crate::utils::time::{bench, time_comp};
     // bench(20); // 0.0905372397 for (recr 10000)
     // time_comp(65537);
 }

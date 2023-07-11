@@ -2,9 +2,8 @@ use std::rc::Rc;
 
 use std::collections::VecDeque;
 
+use crate::message::*;
 use crate::parser::parse_node::*;
-use crate::{message::*};
-
 
 use super::{context_tco::*, data_tco::*, eval_helpers_tco::*, function_tco::*};
 
@@ -23,17 +22,17 @@ pub enum Expression {
 }
 
 impl Expression {
-    pub fn get_evaluated(&self)->Option<&DataValue> {
+    pub fn get_evaluated(&self) -> Option<&DataValue> {
         match &self {
             EvaluatedExpr(value) => Some(value),
-            _ => None
+            _ => None,
         }
     }
 
-    pub fn is_deferred(&self)->bool {
+    pub fn is_deferred(&self) -> bool {
         match &self {
             DeferredExpr(_) => true,
-            _ => false
+            _ => false,
         }
     }
 }
@@ -46,7 +45,7 @@ pub struct FunctionCall {
     pub func: Rc<dyn Function>,
     pub ast: Rc<ASTNode>,
     pub parent: Option<Rc<ASTNode>>,
-    pub context:EvalContext
+    pub context: EvalContext,
 }
 
 // an expression on the call stack
@@ -81,8 +80,8 @@ thread_local! {
     pub (crate) static MAX_DEPTH_TCO:RefCell<u64>=RefCell::new(0);
 }
 
-// depth tracking 
-pub (crate) fn update_depth_tco() {
+// depth tracking
+pub(crate) fn update_depth_tco() {
     DEPTH_TCO.with(|x| {
         let mut rf = x.borrow_mut();
         let val = *rf;
@@ -98,7 +97,7 @@ pub (crate) fn update_depth_tco() {
     });
 }
 
-pub (crate) fn subtract_depth_tco() {
+pub(crate) fn subtract_depth_tco() {
     DEPTH_TCO.with(|x| {
         let mut rf = x.borrow_mut();
         let val = *rf;
@@ -107,15 +106,19 @@ pub (crate) fn subtract_depth_tco() {
     });
 }
 
-pub (crate) fn print_max_depth_tco() {
-    MAX_DEPTH_TCO.with(|x|{
-        let rf=x.borrow();
+pub(crate) fn print_max_depth_tco() {
+    MAX_DEPTH_TCO.with(|x| {
+        let rf = x.borrow();
         println!("Max depth:{}", *rf);
     });
 }
 
 // main evaluate
-pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: bool,) -> Result<DataValue> {
+pub(crate) fn evaluate_outer(
+    ctx: EvalContext,
+    node: Rc<ASTNode>,
+    outer_call: bool,
+) -> Result<DataValue> {
     // try to match terminals
     // update_depth_tco();
     let deferred = DeferredExpression {
@@ -128,7 +131,7 @@ pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: boo
         parent: node.parent.clone(),
     };
 
-    let res=evaluate_tco(stack_expr, outer_call);
+    let res = evaluate_tco(stack_expr, outer_call);
     // subtract_depth_tco();
     res
 }
@@ -136,9 +139,12 @@ pub(crate) fn evaluate_outer(ctx: EvalContext,node: Rc<ASTNode>, outer_call: boo
 // ((> (puts 100)) 200)
 // ((add 100) 200)
 
-fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<FunctionCall>,
-    results: &mut VecDeque<ExpressionResult>,outer_call: bool)
- -> Result<()> {
+fn resolve(
+    call_stack: &mut VecDeque<StackExpression>,
+    fn_stack: &mut VecDeque<FunctionCall>,
+    results: &mut VecDeque<ExpressionResult>,
+    outer_call: bool,
+) -> Result<()> {
     // pop from stack
     let expression = call_stack.pop_back().unwrap();
     let expr = &expression.expr;
@@ -146,7 +152,7 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
     let body = &expr.body;
     // println!("resolve_expr:{}", body.to_string_with_parent());
     let ctx = &expr.ctx;
-    let parent=&expression.parent; // dont use body.parent
+    let parent = &expression.parent; // dont use body.parent
 
     let mut result = ExpressionResult {
         data: Num(-1),
@@ -184,30 +190,30 @@ fn resolve(call_stack: &mut VecDeque<StackExpression>, fn_stack: &mut VecDeque<F
                 parent: parent.clone(),
             };
             call_stack.push_back(stack_expr);
-        },
+        }
         // only a side effect, no return (besides err)
         ParseExpression(children) => {
-            let args=ResolveExprArgs {
+            let args = ResolveExprArgs {
                 children,
                 ctx,
                 parent,
-                ast:body
+                ast: body,
             };
             resolve_expression(call_stack, fn_stack, results, args)?;
-        },
+        }
         LetNode(children, global) => {
-            let returned_result=resolve_let(&ctx,children,*global)?;
-            result.data=returned_result;
+            let returned_result = resolve_let(&ctx, children, *global)?;
+            result.data = returned_result;
             results.push_back(result);
-        },
+        }
         FnNode(fn_def) => {
-            let fn_resolve=resolve_fn_node(&ctx, &fn_def, fn_def.global)?;
-            result.data=fn_resolve;
+            let fn_resolve = resolve_fn_node(&ctx, &fn_def, fn_def.global)?;
+            result.data = fn_resolve;
             results.push_back(result);
-        },
+        }
         ParseUnit => {
-            let u=DataValue::Unit;
-            result.data=u;
+            let u = DataValue::Unit;
+            result.data = u;
             results.push_back(result);
         }
         // List
@@ -225,7 +231,9 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
     let mut fn_stack: VecDeque<FunctionCall> = VecDeque::new();
     let mut results_queue: VecDeque<ExpressionResult> = VecDeque::new();
 
-    let _max_len=0;
+    let _max_len = 0;
+
+    // println!("to_string:{}", &expression.expr.body.to_string_with_parent());
 
     let expr_string = &expression.expr.body.to_string();
     call_stack.push_back(expression);
@@ -244,48 +252,51 @@ fn evaluate_tco(expression: StackExpression, outer_call: bool) -> Result<DataVal
 
         // both - check ast vs parent
         if call_has && fn_has {
-            let call_st_last=call_stack.back().unwrap();
-            let fn_st_last=fn_stack.back().unwrap();
-            
+            let call_st_last = call_stack.back().unwrap();
+            let fn_st_last = fn_stack.back().unwrap();
+
             if can_resolve(fn_st_last, &call_st_last.parent) {
-                resolve(&mut call_stack, &mut fn_stack, &mut results_queue,outer_call)?;
+                resolve(
+                    &mut call_stack,
+                    &mut fn_stack,
+                    &mut results_queue,
+                    outer_call,
+                )?;
                 // update_max_len(call_stack.len());
-                
-            // when call_stack[-1] doesnt match fn_st[-1]: evaluate
+
+                // when call_stack[-1] doesnt match fn_st[-1]: evaluate
             } else {
                 call_fn_evaluated(&mut fn_stack, &mut call_stack, &mut results_queue)?;
             }
         }
-
         // call only: resolve whats on it
         else if call_has && !fn_has {
-            resolve(&mut call_stack, &mut fn_stack, &mut results_queue,outer_call)?;
+            resolve(
+                &mut call_stack,
+                &mut fn_stack,
+                &mut results_queue,
+                outer_call,
+            )?;
             // update_max_len(call_stack.len());
-
         }
-
         // fn only - fn.execute
-            // 1. get correct args from result queue
-            // 2. pass to fn execute, get Expression
-            // 3. push onto res_q with correct parent=fn_ast.parent
+        // 1. get correct args from result queue
+        // 2. pass to fn execute, get Expression
+        // 3. push onto res_q with correct parent=fn_ast.parent
         else {
             call_fn_evaluated(&mut fn_stack, &mut call_stack, &mut results_queue)?;
         }
 
         // update_max_len(call_stack.len());
-
     }
 
     // (def recr (n) (if (eq n 0) 0 (recr (pred n))))
     // (def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))))
     // tail: (def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))))
-        // works: fn stack len doesnt go past 2
-
+    // works: fn stack len doesnt go past 2
 
     match results_queue.into_iter().last() {
-        Some(res) =>{ 
-            Ok(res.data) 
-        },
+        Some(res) => Ok(res.data),
         None => {
             let msg = format!("Could not evaluate expression: {}", expr_string);
             return err!(msg);

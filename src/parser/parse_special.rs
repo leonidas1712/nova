@@ -2,12 +2,12 @@ use std::rc::Rc;
 
 use crate::constants::*;
 use crate::evaluator::eval_helpers_tco::is_valid_identifier;
-use crate::{lexer, lex};
 use crate::message::*;
 use crate::parser::parse_node::*;
+use crate::{lex, lexer};
 
-use super::parser::*;
 use super::parser::tests::test_parse;
+use super::parser::*;
 
 pub(super) fn parse_special(
     spec_type: Special,
@@ -80,7 +80,7 @@ pub(super) fn parse_fn_def(children: Vec<Rc<ASTNode>>, global: bool) -> Result<R
         name,
         params,
         body: rest,
-        global
+        global,
     });
 
     Ok(Rc::new(ASTNode::new(fn_node)))
@@ -130,9 +130,6 @@ pub(super) fn parse_let_expression(
 
     Ok(Rc::new(ASTNode::new(LetNode(children, global))))
 }
-
-
-
 
 #[test]
 pub fn parse_let_test() {

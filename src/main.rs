@@ -1,5 +1,5 @@
 use nova::{self};
-use std::{env::args};
+use std::env::args;
 
 fn main() {
     nova::run(args());

@@ -52,8 +52,10 @@ pub const INDEX: &str = "idx";
 pub const EMPTY_LIST: &str = "[]";
 
 // builtins list
-pub const BUILTINS:[&'static str;26]=[ADD,MULT,SUB,DBL,INC,DEC,EQUALS,PUTS,PRINT,OR,AND,
-IMPORT,CHAIN,SET,GET,LT,GT,MOD,DIV,CONS,CAR,CDR,LCONS,LCDR,LCAR,INDEX];
+pub const BUILTINS: [&'static str; 26] = [
+    ADD, MULT, SUB, DBL, INC, DEC, EQUALS, PUTS, PRINT, OR, AND, IMPORT, CHAIN, SET, GET, LT, GT,
+    MOD, DIV, CONS, CAR, CDR, LCONS, LCDR, LCAR, INDEX,
+];
 
 // Lambda
 pub const LAMBDA: &str = "->";
@@ -63,12 +65,12 @@ pub const LAMBDA_TYPE: &str = "lambda";
 pub const COMP_OPR: &str = "$";
 pub const COMP_LEFT: &str = "@";
 pub const PIPE: &str = ">>";
-pub const STMT_END:&str=";";
+pub const STMT_END: &str = ";";
 
 // Some useful token arrays
 pub const SPLIT_TOKENS: [&'static str; 12] = [
     OPEN_EXPR, CLOSE_EXPR, NEWLINE, TAB, VAR_SEP, OPEN_LIST, CLOSE_LIST, SPACE, LAMBDA, COMP_OPR,
-    PIPE,STMT_END
+    PIPE, STMT_END,
 ];
 
 pub const DONT_ADD: [&'static str; 5] = [NEWLINE, TAB, VAR_SEP, SPACE, EMPTY];
@@ -88,10 +90,10 @@ pub const STRING: &str = "string";
 
 // REPL commands
 pub const QUIT_STRINGS: [&'static str; 4] = ["quit", "quit()", "exit", "exit()"];
-pub const FAT_ARROW:&str="=>";
-pub const CMD_PREFIX:&str=":";
+pub const FAT_ARROW: &str = "=>";
+pub const CMD_PREFIX: &str = ":";
 
-pub const COMMENT:&str="#";
+pub const COMMENT: &str = "#";
 
 pub const RESERVED_KEYWORDS: [&'static str; 36] = [
     LET_NAME,
@@ -129,10 +131,10 @@ pub const RESERVED_KEYWORDS: [&'static str; 36] = [
     COMP_LEFT,
     PIPE,
     FAT_ARROW,
-    CMD_PREFIX
+    CMD_PREFIX,
 ];
 
-use std::{collections::HashSet};
+use std::collections::HashSet;
 
 lazy_static! {
     pub static ref SPLIT_SET:HashSet<String> = {

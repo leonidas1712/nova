@@ -1,5 +1,5 @@
 extern crate regex;
-use regex::{Regex,RegexSet};
+use regex::{Regex, RegexSet};
 
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -21,25 +21,25 @@ pub struct Lexer {
     tokens: Vec<String>,
     pub idx: usize,
     original: String,
-    stack:Vec<String>
+    stack: Vec<String>,
 }
 
 // need to split but retain !DONT_ADD
 
 // basic split for commands
-pub (crate) fn split_input(input:&str)->Vec<String>{
-    let split:Vec<String>=input
-    .split(|c:char| INVALID_SET.contains(&c.to_string()))
-    .map(|x| x.to_string().trim().to_owned())
-    .filter(|x| {
-        let x_string=x.to_string();
-        x_string.len() > 0 && !INVALID_SET.contains(x_string.as_str())
-    }).
-    collect();
+pub(crate) fn split_input(input: &str) -> Vec<String> {
+    let split: Vec<String> = input
+        .split(|c: char| INVALID_SET.contains(&c.to_string()))
+        .map(|x| x.to_string().trim().to_owned())
+        .filter(|x| {
+            let x_string = x.to_string();
+            x_string.len() > 0 && !INVALID_SET.contains(x_string.as_str())
+        })
+        .collect();
     split
 }
 
-impl Lexer {  
+impl Lexer {
     pub fn new(input: String) -> Result<Lexer> {
         let original = input.clone();
         let mut filtered = input;
@@ -68,7 +68,7 @@ impl Lexer {
             tokens,
             idx: 0,
             original,
-            stack:vec![]
+            stack: vec![],
         };
 
         Ok(lex)
