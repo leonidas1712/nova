@@ -85,6 +85,13 @@ impl ParseValue {
             _ => None,
         }
     }
+
+    pub fn is_unit(&self) -> bool {
+        match &self {
+            ParseUnit => true,
+            _ => false
+        }
+    }
 }
 
 pub use ParseValue::*;

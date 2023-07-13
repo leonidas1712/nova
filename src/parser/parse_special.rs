@@ -53,7 +53,7 @@ pub(super) fn parse_fn_def(children: Vec<Rc<ASTNode>>, global: bool) -> Result<R
         param_nodes = vec![nxt_node];
     } else if get_expr.is_some() {
         param_nodes = get_expr.unwrap();
-    } else {
+    } else if !nxt_node.is_unit() {
         let msg = format!(
             "Parameters for '{}' should be a symbol or in in an expression.",
             name

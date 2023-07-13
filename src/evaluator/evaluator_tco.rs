@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, thread::JoinHandle};
 
 use std::collections::VecDeque;
 
@@ -57,8 +57,10 @@ pub struct StackExpression {
     pub parent: Option<Rc<ASTNode>>,
 }
 
+// echo(echo(1) + echo(2)) + echo(echo(4) + echo(5));
+
 // body: used for eval, parent: used for checking
-#[derive(Clone)]
+#[derive(Clone)] 
 pub struct DeferredExpression {
     pub ctx: EvalContext,
     pub body: Rc<ASTNode>,

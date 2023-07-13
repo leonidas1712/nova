@@ -2,3 +2,5 @@
 (def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))));
 
 (def app (f elem) (f elem))
+
+(def new_vec ())

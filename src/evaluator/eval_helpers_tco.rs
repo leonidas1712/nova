@@ -259,6 +259,10 @@ pub fn resolve_expression(
 
     // push in reverse
     for child in rest_children.rev() {
+        if child.is_unit() {
+            continue;
+        }
+
         let deferred = DeferredExpression {
             ctx: ctx.clone(),
             body: Rc::clone(child),
@@ -315,10 +319,10 @@ pub fn evaluate_fn(
     results: &mut VecDeque<ExpressionResult>,
     fn_stack: &mut VecDeque<FunctionCall>,
 ) -> Result<()> {
-    if args.len() == 0 {
-        let msg = format!("'{}' received 0 arguments.", func_call.func.to_string());
-        return err!(msg);
-    }
+    // if args.len() == 0 {
+    //     let msg = format!("'{}' received 0 arguments.", func_call.func.to_string());
+    //     return err!(msg);
+    // }
 
     // 0. call func.apply
     // 1. if func.ast is_func (result expected to be function)
