@@ -1,2 +1,7 @@
-(def g () x);
-(def h () 2);
+(def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))));
+(def new_vec (x y) (def get_c (b) (if (eq b 0) x y)));
+(def pair (head tail) (def lst (idx) (if (eq idx 0) head tail)));
+(def app (f elem) (f elem));
+(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))));
+(def id (x) x);
+(def lst (idx) (if (eq idx 0) head tail));

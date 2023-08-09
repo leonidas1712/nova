@@ -3,4 +3,16 @@
 
 (def app (f elem) (f elem))
 
-(def new_vec ())
+(def pair (head tail)
+    (def lst (idx)
+        (if (eq idx 0) head tail)
+    )
+)
+
+let p (pair 10 (pair 20 30))
+
+(def new_vec (x,y)
+    (def get_c (b) 
+        (if (eq b 0) x y)
+    )
+)

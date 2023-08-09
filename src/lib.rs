@@ -245,3 +245,8 @@ pub fn run(mut args: impl Iterator<Item = String>) {
     // bench(20); // 0.0905372397 for (recr 10000)
     // time_comp(65537);
 }
+
+pub fn run_bench() {
+    use crate::utils::time::{bench, time_comp, RECR};
+    bench(50, RECR, "(recr 1996)");
+}
