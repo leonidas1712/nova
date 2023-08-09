@@ -10,7 +10,7 @@
 
   
 
-See [nova_bytecode](github.com/leonidas1712/nova_bytecode) repo for my latest attempt to rewrite Nova and make it faster. 
+See [nova_bytecode](https://github.com/leonidas1712/nova_bytecode) repo for my latest attempt to rewrite Nova and make it faster. 
 
 
 **Note**: The full set of features is supported in the initial Python version I wrote; not all features have been ported to the Rust versions yet.
