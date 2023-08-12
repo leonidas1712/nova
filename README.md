@@ -54,6 +54,13 @@ Nova is a functional programming language inspired by Lisp, Haskell, and Python.
 
 Example code:
 ```
-> sum $ (ltake 3) $ (add 2) >> lmap $ lfilter even (fcons succ 10)
-42
+>>> (def recr (x) (if (eq x 0) 0 (add x (recr (pred x)))))
+recr(x) => (if (eq x 0) 0 (add x (recr (pred x))))
+
+>>> (def app (f elem) (f elem))
+app(f,elem) => (f elem)
+
+>>> (app recr 3)
+6
+>>> 
 ```

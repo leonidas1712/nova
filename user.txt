@@ -1,6 +1,2 @@
-(def new_vec (x y) (def get_c (b) (if (eq b 0) x y)));
-(def recr_t (n acc) (if (eq n 0) acc (recr_t (pred n) (add acc n))));
-(def recr (n) (if (eq n 0) 0 (add n (recr (pred n)))));
+(def recr (x) (if (eq x 0) 0 (add x (recr (pred x)))));
 (def app (f elem) (f elem));
-(def pair (head tail) (def lst (idx) (if (eq idx 0) head tail)));
-(def lst (idx) (if (eq idx 0) head tail));
