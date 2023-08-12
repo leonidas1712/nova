@@ -1,8 +1,14 @@
 <div  align="center">
 
+  
+
 <h1>Nova Programming Language </h1>
 
+  
+
 </div>
+
+  
 
   
 
@@ -10,15 +16,22 @@
 
   
 
-See [nova_bytecode](https://github.com/leonidas1712/nova_bytecode) for my latest attempt to rewrite Nova and make it faster. 
+  
 
+See [nova_bytecode](https://github.com/leonidas1712/nova_bytecode) for my latest attempt to rewrite Nova and make it faster.
+
+  
+  
 
 **Note**: The full set of features is supported in the initial Python version I wrote; not all features have been ported to the Rust versions yet.
 
   
+
   
 
 Nova is a functional programming language inspired by Lisp, Haskell, and Python.
+
+  
 
   
 
@@ -26,7 +39,11 @@ Nova is a functional programming language inspired by Lisp, Haskell, and Python.
 
   
 
+  
+
 - Lazy evaluation
+
+  
 
   
 
@@ -34,25 +51,32 @@ Nova is a functional programming language inspired by Lisp, Haskell, and Python.
 
   
 
+  
+
 - Curried and higher order functions
+
+  
 
   
 
 - Importing code
 
+To be ported from Python version:
+
+- [ ] String and list processing
+
   
 
-- String and list processing
+- [ ] Operator precedence with `>>` (pipe), `$`, function application by spaces and parentheses
 
   
-
-- Operator precedence with `>>` (pipe), `$`, function application by spaces and parentheses
 
   
 
   
 
 Example code:
+
 ```
 >>> (def recr (x) (if (eq x 0) 0 (add x (recr (pred x)))))
 recr(x) => (if (eq x 0) 0 (add x (recr (pred x))))
@@ -62,5 +86,5 @@ app(f,elem) => (f elem)
 
 >>> (app recr 3)
 6
->>> 
+>>>
 ```
