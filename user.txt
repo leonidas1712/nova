@@ -1,2 +1,1 @@
-(def recr (x) (if (eq x 0) 0 (add x (recr (pred x)))));
-(def app (f elem) (f elem));
+(def fn1 (a b) (add a b));

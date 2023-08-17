@@ -133,7 +133,7 @@ pub fn process_command(command: &str, ctx: &mut EvalContext) -> Result<()> {
                 println!("Deleted identifier:{}", var);
             }
         }
-        "import" => {
+        "import" | "run" => {
             if words.len() == 1 {
                 return err!("No files given to import.");
             }
