@@ -211,7 +211,7 @@ pub fn nova_repl_tco(mut context: EvalContext) -> EvalContext {
                             if res.result.len() == 0 || res.result_type.to_string().eq("LetNode") {
                                 continue;
                             }
-                            // println!("Res type:{}", res.result_type.to_string());
+
                             println!("{}", res.result);
                         }
                     }

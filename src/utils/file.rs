@@ -156,6 +156,10 @@ pub fn import_file(filename: &str, ctx: &mut EvalContext) -> Result<()> {
     let results = evaluate_all(&sep, ctx)?;
 
     for res in results {
+        if res.result.len() == 0 || res.result_type.to_string().eq("LetNode") {
+            continue;
+        }
+
         println!("{}", res.result);
     }
 

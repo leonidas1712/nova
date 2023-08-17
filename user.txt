@@ -1,0 +1,2 @@
+(def addup (new) (add to_add new));
+(def make_adder (to_add) (def addup (new) (add to_add new)));

@@ -4,7 +4,9 @@
     )
 )
 
-let g (make_adder 10);
-
 let x 7; 
+
+let g (make_adder 10);
 puts (g x)
+
+let j (add 10 20);
