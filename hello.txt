@@ -1,3 +1,10 @@
-(def fn1 (a,b)
-    (add a b)
+(def make_adder (to_add)
+    (def addup (new)
+        (add to_add new)
+    )
 )
+
+let x 5; 
+let g (make_adder 10);
+
+puts (g x)
