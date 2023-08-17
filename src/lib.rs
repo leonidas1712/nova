@@ -18,6 +18,7 @@ use std::vec;
 
 use crate::{utils::constants::*, utils::file::*};
 
+use parser::parse_node::ParseValue;
 pub use utils::constants;
 pub use utils::message;
 
@@ -30,6 +31,7 @@ use evaluator::function_tco::*;
 use lexer::{split_input, Lexer};
 use message::*;
 use parser::parse_node::ASTNode;
+use parser::parse_node::ParseValue::LetNode;
 use parser::parser::{parse, parse_all};
 use rustyline::{error::ReadlineError, DefaultEditor};
 
@@ -79,14 +81,24 @@ pub fn evaluate_input_tco(inp: &str, context: &mut EvalContext) -> String {
     }
 }
 
+// include type
+pub struct EvalResult {
+    result:String,
+    result_type:ParseValue
+}
+
+/// Evaluate top-level nodes in order and return result strings
 pub fn evaluate_all(inp: &str, context: &mut EvalContext) -> Result<Vec<String>> {
     let lexed = lex!(inp);
     let parse_nodes = parse_all(lexed)?;
     let mut results: Vec<String> = vec![];
 
     for node in parse_nodes {
+        println!("Node type:{}", node.get_type().to_string());
+
         let res = evaluate_one_node(node, context)?;
         results.push(res);
+        
     }
 
     Ok(results)

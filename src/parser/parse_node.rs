@@ -202,8 +202,8 @@ impl ASTNode {
         ASTNode::new(Symbol("Default parent".to_string()))
     }
 
-    pub fn get_type(&self) -> String {
-        self.value.to_string()
+    pub fn get_type(&self) -> ParseValue {
+        self.value.to_owned()
     }
 
     pub fn get_children(&self) -> Option<&Vec<Rc<ASTNode>>> {
@@ -229,7 +229,7 @@ impl ASTNode {
         format!(
             "\n[\nid:{}\n\ttype:{}\n\tis_func:{}\n\tself:{},\n\tparent:{}\n]\n",
             self.original,
-            self.get_type(),
+            self.get_type().to_string(),
             self.is_func,
             self_string,
             parent_string
