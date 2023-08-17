@@ -16,6 +16,7 @@ pub mod utils;
 use std::rc::Rc;
 use std::vec;
 
+use crate::parser::parse_node::LET_NODE_TYPE;
 use crate::{utils::constants::*, utils::file::*};
 
 use parser::parse_node::ParseValue;
@@ -208,7 +209,7 @@ pub fn nova_repl_tco(mut context: EvalContext) -> EvalContext {
                 match eval_result {
                     Ok(results) => {
                         for res in results {
-                            if res.result.len() == 0 || res.result_type.to_string().eq("LetNode") {
+                            if res.result.len() == 0 || res.result_type.to_string().eq(LET_NODE_TYPE) {
                                 continue;
                             }
 

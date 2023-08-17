@@ -16,6 +16,7 @@ use crate::evaluator::context_tco::EvalContext;
 use crate::lex;
 use crate::lexer::*;
 use crate::message::*;
+use crate::parser::parse_node::LET_NODE_TYPE;
 use crate::parser::parser::parse_all;
 
 // for reading and storing functions in file
@@ -156,7 +157,7 @@ pub fn import_file(filename: &str, ctx: &mut EvalContext) -> Result<()> {
     let results = evaluate_all(&sep, ctx)?;
 
     for res in results {
-        if res.result.len() == 0 || res.result_type.to_string().eq("LetNode") {
+        if res.result.len() == 0 || res.result_type.to_string().eq(LET_NODE_TYPE) {
             continue;
         }
 

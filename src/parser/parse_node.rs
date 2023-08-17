@@ -58,6 +58,8 @@ impl Display for FnDef {
     }
 }
 
+pub const LET_NODE_TYPE:&str="LetNode";
+
 #[derive(Debug, Display, Clone)]
 pub enum ParseValue {
     Symbol(String),
