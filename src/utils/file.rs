@@ -155,8 +155,8 @@ pub fn import_file(filename: &str, ctx: &mut EvalContext) -> Result<()> {
     let sep = separate_expressions(&file)?;
     let results = evaluate_all(&sep, ctx)?;
 
-    for string in results {
-        println!("{}", string);
+    for res in results {
+        println!("{}", res.result);
     }
 
     Ok(())

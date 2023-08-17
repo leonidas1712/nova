@@ -9,8 +9,8 @@ fn compare(inp: &str, expected: &str, ctx: &mut EvalContext) {
     let res = evaluate_all(inp.trim(), ctx);
     match res {
         Ok(strings) => {
-            let string = strings.get(0).unwrap();
-            assert_eq!(string, expected.trim());
+            let res = strings.get(0).unwrap();
+            assert_eq!(res.result, expected.trim());
         }
         Err(err) => {
             println!("{}", err.format_error());
@@ -147,7 +147,7 @@ pub fn evaluate_all_test() {
     let expected = ["2", "3", "5", "10"];
 
     for (actual, exp) in res.iter().zip(expected.iter()) {
-        assert_eq!(actual, exp);
+        assert_eq!(&actual.result.as_str(), exp);
     }
 }
 
@@ -157,7 +157,7 @@ pub fn test_fn_return() {
     let func = "(def fn (x) (def fn2 (y) (add x y)))";
     let mut ctx = EvalContext::new();
     let res = evaluate_all(func, &mut ctx).expect("Should define function.");
-    println!("{}", res.get(0).expect("Should have at least one node"));
+    println!("{:?}", res.get(0).expect("Should have at least one node"));
 
     evaluate_all("(fn 1)", &mut ctx).expect("Should call function.");
     assert!(ctx.read().get_function("fn2").is_none());
@@ -168,7 +168,7 @@ pub fn test_fn_return() {
     let res = evaluate_all(call, &mut ctx).expect("Should call app on h");
     let res = res.get(0).expect("Should have one result");
 
-    assert!(res.eq("2"));
+    assert!(res.result.eq("2"));
 }
 
 #[test]

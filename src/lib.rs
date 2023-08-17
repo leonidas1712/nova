@@ -82,23 +82,27 @@ pub fn evaluate_input_tco(inp: &str, context: &mut EvalContext) -> String {
 }
 
 // include type
+#[derive(Debug)]
 pub struct EvalResult {
-    result:String,
-    result_type:ParseValue
+    pub result:String,
+    pub result_type:ParseValue
 }
 
-/// Evaluate top-level nodes in order and return result strings
-pub fn evaluate_all(inp: &str, context: &mut EvalContext) -> Result<Vec<String>> {
+/// Evaluate top-level nodes in order and return result sturcts
+pub fn evaluate_all(inp: &str, context: &mut EvalContext) -> Result<Vec<EvalResult>> {
     let lexed = lex!(inp);
     let parse_nodes = parse_all(lexed)?;
-    let mut results: Vec<String> = vec![];
+    let mut results: Vec<EvalResult> = vec![];
 
     for node in parse_nodes {
-        println!("Node type:{}", node.get_type().to_string());
+        let node_type = node.get_type();
 
         let res = evaluate_one_node(node, context)?;
-        results.push(res);
-        
+
+        results.push(EvalResult {
+            result:res,
+            result_type: node_type
+        });
     }
 
     Ok(results)
@@ -199,15 +203,16 @@ pub fn nova_repl_tco(mut context: EvalContext) -> EvalContext {
                     continue;
                 }
 
-                let results = evaluate_all(&inp, &mut context);
+                let eval_result = evaluate_all(&inp, &mut context);
 
-                match results {
-                    Ok(strings) => {
-                        for string in strings {
-                            if string.len() == 0 {
+                match eval_result {
+                    Ok(results) => {
+                        for res in results {
+                            if res.result.len() == 0 || res.result_type.to_string().eq("LetNode") {
                                 continue;
                             }
-                            println!("{}", string);
+                            // println!("Res type:{}", res.result_type.to_string());
+                            println!("{}", res.result);
                         }
                     }
                     Err(err) => println!("{}", err.format_error()),
