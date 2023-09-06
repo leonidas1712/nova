@@ -17,6 +17,7 @@ use std::rc::Rc;
 use std::vec;
 
 use crate::parser::parse_node::LET_NODE_TYPE;
+use crate::utils::file;
 use crate::{utils::constants::*, utils::file::*};
 
 use parser::parse_node::ParseValue;
@@ -110,6 +111,16 @@ pub fn evaluate_all(inp: &str, context: &mut EvalContext) -> Result<Vec<EvalResu
 }
 
 // :import, :del, :list, :save(?)
+pub const LIST_CMD:&'static str ="list";
+pub const RUN_CMD:&'static str ="run";
+pub const DEL_CMD:&'static str ="del";
+
+pub const COMMAND_STRS:[&'static str; 3] = [
+    "list",
+    "run",
+    "del"
+];
+
 pub fn process_command(command: &str, ctx: &mut EvalContext) -> Result<()> {
     let words = split_input(command);
 
@@ -122,10 +133,10 @@ pub fn process_command(command: &str, ctx: &mut EvalContext) -> Result<()> {
     args.next();
 
     match command {
-        "list" => {
+        LIST_CMD => {
             println!("{}", ctx.to_string());
         }
-        "del" => {
+        DEL_CMD => {
             if words.len() == 1 {
                 return err!("No variables given to delete.");
             }
@@ -150,7 +161,7 @@ pub fn process_command(command: &str, ctx: &mut EvalContext) -> Result<()> {
                 println!("Deleted identifier:{}", var);
             }
         }
-        "run" => {
+        RUN_CMD => {
             if words.len() == 1 {
                 return err!("No files given to import.");
             }
@@ -231,26 +242,31 @@ pub fn nova_repl_tco(mut context: EvalContext) -> EvalContext {
     context
 }
 
+/// Print eval results, ignoring variable and fn declarations
+pub fn print_eval_results() {
+    
+}
+
 // setup context by making the map of functions and pass it into Context::new, then pass it to nova_repl
 // this is how we can seed Context with map of refs to functions
 
 // append new functions to end of user file
-
-// -r: import stl
+// first arg: file path (optional)
 pub fn run(mut args: impl Iterator<Item = String>) {
-    args.next();
+    args.next(); // ignore first
     let args: Vec<String> = args.map(|x| x.to_string()).collect();
-    let args = args.join("");
 
     let mut ctx = evaluator::context_tco::EvalContext::new();
 
-    if args.contains('r') {
-        let imp = import_file(STL_FILE, &mut ctx);
-
-        if let Err(err) = imp {
-            println!("Import error - {}", err.format_error());
+    // cargo r "hello.txt"
+    if args.len() == 1 {
+        let file_name = args.get(0).unwrap();
+        if let Err(error) = import_file(&file_name, &mut ctx) {
+            println!("Error when running file '{}': {}", file_name, error.format_error());
         }
+        return;
     }
+
 
     let final_ctx = nova_repl_tco(ctx);
 

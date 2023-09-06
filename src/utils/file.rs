@@ -151,12 +151,13 @@ pub fn save_file(filename: &str, ctx: EvalContext) -> std::result::Result<(), io
 
 pub fn import_file(filename: &str, ctx: &mut EvalContext) -> Result<()> {
     let file = read_file(filename)?;
-    println!("Importing file:{}\n", filename);
+    println!("Importing file: {}\n", filename);
 
     let sep = separate_expressions(&file)?;
     let results = evaluate_all(&sep, ctx)?;
 
     for res in results {
+        // println!("Res type in import:{}", res.result_type.to_string());
         if res.result.len() == 0 || res.result_type.to_string().eq(LET_NODE_TYPE) {
             continue;
         }
@@ -170,7 +171,6 @@ pub fn import_file(filename: &str, ctx: &mut EvalContext) -> Result<()> {
 // get file contents as string
 pub fn read_file(filename: &str) -> Result<String> {
     let file_path = get_full_path(filename);
-    println!("Path: {}", file_path.display());
 
     let read = read_to_string(file_path);
 
