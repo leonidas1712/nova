@@ -180,7 +180,7 @@ fn resolve(
                     results.push_back(result);
                 }
                 None => {
-                    let err_string = format!("Unrecognised symbol: '{}'", sym);
+                    let err_string = format!("Unrecognised symbol: \"{}\"", sym);
                     return err!(err_string.as_str());
                 }
             }

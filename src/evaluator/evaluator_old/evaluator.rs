@@ -71,7 +71,7 @@ pub(crate) fn evaluate(ctx: EvalContext, node: Rc<ASTNode>, outer_call: bool) ->
                 if resolve.is_some() {
                     Ok(resolve.unwrap().clone())
                 } else {
-                    let err_string = format!("Unrecognised symbol: '{}'", sym);
+                    let err_string = format!("Unrecognised symbol: \"{}\"", sym);
                     return err!(err_string.as_str());
                 }
             }
