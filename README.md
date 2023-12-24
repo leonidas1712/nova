@@ -92,9 +92,9 @@ app(f,elem) => (f elem)
 ## Factorial
 ```
 (def fac (n)
-	(if (eq n 0) 1
-		(let p (pred n) (mul n (fac p)))
-	)
+    (if (eq n 0) 1
+        (let p (pred n) (mul n (fac p)))
+    )
 )
 
 ```
