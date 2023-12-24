@@ -88,3 +88,18 @@ app(f,elem) => (f elem)
 6
 >>>
 ```
+
+## Factorial
+```
+(def fac (n)
+	(if (eq n 0) 1
+		(let p (pred n) (mul n (fac p)))
+	)
+)
+
+```
+
+```
+>>> (fac 4)
+24
+```
